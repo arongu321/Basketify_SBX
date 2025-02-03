@@ -1,4 +1,77 @@
-@startuml
+@startuml Use Case
 title Basketify Use Case Diagram
+
+' Define Actors
+actor User
+actor Admin
+actor Developer
+
+' Define System Boundaries
+rectangle "Basketify System" {
+
+    ' User use cases
+    usecase "Register" as UC1
+    usecase "Login" as UC2
+    usecase "Logout" as UC3
+    usecase "Search Player" as UC4
+    usecase "Search Team" as UC5
+    usecase "View Player Stats" as UC6
+    usecase "View Team Stats" as UC7
+    usecase "Filter Stats" as UC8
+    usecase "Visualize Data" as UC9
+    usecase "Favorite Player" as UC10
+    usecase "Favorite Team" as UC11
+    usecase "Predict Player Stats" as UC12
+    usecase "Predict Team Stats" as UC13
+    usecase "Predict Win/Loss" as UC14
+    usecase "Predict NBA Champion" as UC15
+    usecase "Compare ML Predictions" as UC16
+
+    ' Admin use cases
+    usecase "Manage Users" as UC17
+    usecase "Monitor System Performance" as UC18
+    usecase "Update Database" as UC19
+
+    ' Developer use cases
+    usecase "Improve ML Model" as UC20
+    usecase "Deploy Updates" as UC21
+    usecase "Fix Bugs" as UC22
+
+    ' Define Relationships
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
+    User --> UC5
+    User --> UC6
+    User --> UC7
+    User --> UC8
+    User --> UC9
+    User --> UC10
+    User --> UC11
+    User --> UC12
+    User --> UC13
+    User --> UC14
+    User --> UC15
+    User --> UC16
+
+    Admin --> UC17
+    Admin --> UC18
+    Admin --> UC19
+
+    Developer --> UC20
+    Developer --> UC21
+    Developer --> UC22
+
+    ' Extensions and Includes
+    UC4 .> UC6 : <<includes>> 
+    UC5 .> UC7 : <<includes>>
+    UC8 .> UC9 : <<includes>>
+    UC12 .> UC16 : <<extends>>
+    UC13 .> UC16 : <<extends>>
+    UC14 .> UC16 : <<extends>>
+    UC15 .> UC16 : <<extends>>
+
+}
 
 @enduml
