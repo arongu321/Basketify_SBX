@@ -1,0 +1,42 @@
+@startuml
+title Dependency Analysis Diagram
+left to right direction
+skinparam rectangle {
+  BackgroundColor LightSteelBlue
+  BorderColor Black
+  BorderThickness 1
+  Shadowing true
+}
+
+rectangle "FR1: Request Registration" as FR1 {
+  rectangle "Design registration user interface" as FR1_1
+  rectangle "Create user information database schema" as FR1_2
+  rectangle "Implement backend for registration" as FR1_3
+  rectangle "Create user registration form" as FR1_4
+  rectangle "Validate email address format" as FR1_5
+  rectangle "Ensure email uniqueness in the database" as FR1_6
+  rectangle "Encrypt and store user passwords" as FR1_7
+  rectangle "Integrate CAPTCHA for bot prevention" as FR1_8
+  rectangle "Add user notifications of successful registration" as FR1_9
+  rectangle "Add error messages for invalid inputs" as FR1_10
+  rectangle "Audit successful/failed registration" as FR1_11
+  rectangle "Implement email confirmation" as FR1_12
+
+  'Dependency Arrows
+  FR1_1 --> FR1_4
+  FR1_2 --> FR1_3
+  FR1_4 --> FR1_5
+  FR1_3 --> FR1_6
+  FR1_3 --> FR1_7
+  FR1_4 --> FR1_8
+  FR1_4 --> FR1_10
+  FR1_3 --> FR1_9
+  FR1_4 --> FR1_9
+  FR1_3 --> FR1_11
+  FR1_5 --> FR1_12
+  FR1_6 --> FR1_12
+
+}
+
+@enduml
+
