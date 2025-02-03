@@ -5,3 +5,4 @@ This ECE 493 Capstone project aims to build a full stack machine learning applic
 
 ## Developers
 - Aron Gu(arongu321)
+- Zachary Schmidt (ZacharySchmidt0)
