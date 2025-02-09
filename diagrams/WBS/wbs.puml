@@ -1,5 +1,106 @@
-@startwbs
+@startwbs WBS
 * Basketify (Full Stack Machine Learning Application)
+
+** User Registration (FR1)
+*** Design registration UI
+*** Implement form validation
+*** Develop backend API
+*** Store credentials securely
+*** Implement email verification
+*** Handle errors and feedback
+*** Write unit tests
+*** Deploy and test
+
+** User Login (FR2)
+*** Develop login UI
+*** Implement authentication (JWT/Sessions)
+*** Verify credentials with DB
+*** Hash and verify passwords
+*** Handle incorrect login attempts
+*** Implement session persistence
+*** Develop password reset feature
+*** Test login scenarios
+
+** Main Dashboard (FR4 - FR6)
+*** Design dashboard layout
+*** Implement search navigation
+*** Add favorite player/team shortcuts
+*** Fetch dashboard data dynamically
+*** Display quick statistics
+*** Optimize UI for responsiveness
+*** Implement real-time updates
+*** Write test cases
+
+** Search Interface (FR7 - FR8)
+*** Develop search bar UI
+*** Implement autocomplete
+*** Optimize search speed
+*** Fetch search results from DB
+*** Implement wildcard search
+*** Display search results properly
+*** Add search filtering options
+*** Write test cases for accuracy
+
+** Data Visualization (FR9 - FR15)
+*** Design tabular stats view
+*** Implement interactive graphs
+*** Integrate hover interactions
+*** Develop dual-comparison mode
+*** Optimize graph rendering
+*** Implement statistical filtering
+*** Connect graphs with backend APIs
+*** Perform cross-browser testing
+
+** Player/Team Forecast (FR16 - FR18)
+*** Develop forecast UI
+*** Integrate backend ML model
+*** Preprocess historical data
+*** Train/test ML model
+*** Display predictions dynamically
+*** Implement accuracy logging
+*** Optimize real-time processing
+*** Validate predictions with actual results
+
+** Predict Win/Loss (FR19 - FR20)
+*** Implement win/loss UI
+*** Develop ML model for predictions
+*** Fetch team statistics
+*** Train model with past match data
+*** Display prediction results
+*** Implement real-time updates
+*** Compare with actual game results
+*** Conduct A/B testing on models
+
+** Predict NBA Champion (FR21 - FR22)
+*** Implement championship prediction UI
+*** Train ML model for season forecast
+*** Collect historical championship data
+*** Evaluate long-term model accuracy
+*** Display season-long predictions
+*** Update model inputs dynamically
+*** Handle season anomalies
+*** Validate model results
+
+** Log ML Performance (FR23 - FR24)
+*** Implement ML logging system
+*** Store actual vs predicted results
+*** Develop performance reports
+*** Train models based on feedback
+*** Optimize retraining frequency
+*** Implement error tracking
+*** Ensure logging efficiency
+*** Conduct ML audits
+
+** Statistics Filtering (FR25 - FR28)
+*** Implement filtering UI
+*** Add multiple filtering options
+*** Optimize database queries
+*** Connect filters to visualization
+*** Ensure real-time updates
+*** Implement reset filter option
+*** Optimize filter performance
+*** Validate filtering logic with tests
+
 @endwbs
 
 
