@@ -21,6 +21,7 @@
 *** Develop password reset feature
 *** Test login scenarios
 
+
 ** Main Dashboard (FR4 - FR6)
 *** Describe objects on dashboard
 *** Design layout of dashboard in Figma diagram
@@ -42,32 +43,51 @@
 **** Style dashboard to display widget in a large, visible place
 **** Set widget onlick to route to get-fave-team/{username} path
 **** Route user to stats page for fave team value retrieved
-**** Write test cases for Django View function
+**** Write unit test cases for Django View function
 **** Write Activity / UI test cases
 
 *** FR6 - Dashboard.Favourite_Player_Shortcut
 **** Store user's favourite player in DB
 **** Write Django "Model" to store user and their fave player
-**** Write Django "View" to use the Model to retive fave player
+**** Write Django "View" to use the Model to retrieve fave player
 **** Set return of Django View as JSON object
 **** Set Django URL Pattern to call Django View when path 'get-fave-player/{username}' is accessed
 **** Create frontend favourite player widget
 **** Style dashboard to display widget in a large, visible place
 **** Set widget onlick to route to get-fave-player/{username} path
 **** Route user to stats page for fave player value retrieved
-**** Write test cases for Django View function
+**** Write unit test cases for Django View function
 **** Write Activity / UI test cases
 
 
 ** Search Interface (FR7 - FR8)
-*** Develop search bar UI
-*** Implement autocomplete
-*** Optimize search speed
-*** Fetch search results from DB
-*** Implement wildcard search
-*** Display search results properly
-*** Add search filtering options
-*** Write test cases for accuracy
+*** Write frontend for fillable search bar
+*** Write user instructions: Describe wildcard matching on search page
+
+*** FR7 - Search.Player
+**** Store names of all players in DB
+**** Write Django "Model" to contain player names
+**** Write Django "View" to use the Model to retrieve matching player names given regex
+**** Set return of Django View as JSON object of matching player names
+**** Set Django URL Pattern to call Django View when path 'get-players/{regex}' is accessed
+**** Create frontend list to display player names
+**** Style frontend list of players to be clickable and displayed well
+**** For each player name in list, set onlick to route to stats for that player "player-stats/{player_name}"
+**** Write unit test cases for Django View function (retrieve player names from regex)
+**** Write Activity / UI test cases
+
+*** FR8 - Search.Team
+**** Store names of all teams in DB
+**** Write Django "Model" to contain team names
+**** Write Django "View" to use the Model to retrieve matching team names given regex
+**** Set return of Django View as JSON object of matching team names
+**** Set Django URL Pattern to call Django View when path 'get-team/{regex}' is accessed
+**** Create frontend list to display team names
+**** Style frontend list of team to be clickable and displayed well
+**** For each team name in list, set onlick to route to stats for that team "team-stats/{team}"
+**** Write unit test cases for Django View function (retrieve team names from regex)
+**** Write Activity / UI test cases
+
 
 ** Data Visualization (FR9 - FR15)
 *** Design tabular stats view
@@ -78,6 +98,7 @@
 *** Implement statistical filtering
 *** Connect graphs with backend APIs
 *** Perform cross-browser testing
+
 
 ** Player/Team Forecast (FR16 - FR18)
 *** Develop forecast UI
