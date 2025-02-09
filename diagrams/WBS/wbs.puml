@@ -22,14 +22,42 @@
 *** Test login scenarios
 
 ** Main Dashboard (FR4 - FR6)
-*** Design dashboard layout
-*** Implement search navigation
-*** Add favorite player/team shortcuts
-*** Fetch dashboard data dynamically
-*** Display quick statistics
-*** Optimize UI for responsiveness
-*** Implement real-time updates
-*** Write test cases
+*** Describe objects on dashboard
+*** Design layout of dashboard in Figma diagram
+*** Write frontend for dashboard (HTML/CSS)
+
+*** FR4 - Dashboard.Search_Connection
+**** Create frontend search widget
+**** Style dashboard to display widget in a large, visible place
+**** Route user to search page for onlick of widget
+**** Write Activity / UI test cases
+
+*** FR5 - Dashboard.Favourite_Team_Shortcut
+**** Store user's favourite team in DB
+**** Write Django "Model" to store user and their favourite team
+**** Write Django "View" to use the Model to retive favourite team
+**** Set return of Django View as JSON object
+**** Set Django URL Pattern to call Django View when path 'get-fave-team/{username}' is accessed
+**** Create frontend favourite team widget
+**** Style dashboard to display widget in a large, visible place
+**** Set widget onlick to route to get-fave-team/{username} path
+**** Route user to stats page for fave team value retrieved
+**** Write test cases for Django View function
+**** Write Activity / UI test cases
+
+*** FR6 - Dashboard.Favourite_Player_Shortcut
+**** Store user's favourite player in DB
+**** Write Django "Model" to store user and their fave player
+**** Write Django "View" to use the Model to retive fave player
+**** Set return of Django View as JSON object
+**** Set Django URL Pattern to call Django View when path 'get-fave-player/{username}' is accessed
+**** Create frontend favourite player widget
+**** Style dashboard to display widget in a large, visible place
+**** Set widget onlick to route to get-fave-player/{username} path
+**** Route user to stats page for fave player value retrieved
+**** Write test cases for Django View function
+**** Write Activity / UI test cases
+
 
 ** Search Interface (FR7 - FR8)
 *** Develop search bar UI
