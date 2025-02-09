@@ -36,7 +36,7 @@
 *** FR5 - Dashboard.Favourite_Team_Shortcut
 **** Store user's favourite team in DB
 **** Write Django "Model" to store user and their favourite team
-**** Write Django "View" to use the Model to retive favourite team
+**** Write Django "View" to retive favourite team into Model
 **** Set return of Django View as JSON object
 **** Set Django URL Pattern to call Django View when path 'get-fave-team/{username}' is accessed
 **** Create frontend favourite team widget
@@ -49,7 +49,7 @@
 *** FR6 - Dashboard.Favourite_Player_Shortcut
 **** Store user's favourite player in DB
 **** Write Django "Model" to store user and their fave player
-**** Write Django "View" to use the Model to retrieve fave player
+**** Write Django "View" to retrieve fave player into Model
 **** Set return of Django View as JSON object
 **** Set Django URL Pattern to call Django View when path 'get-fave-player/{username}' is accessed
 **** Create frontend favourite player widget
@@ -65,9 +65,11 @@
 *** Write user instructions: Describe wildcard matching on search page
 
 *** FR7 - Search.Player
-**** Store names of all players in DB
+**** Setup MongoDB Collection for player names
+**** Write server-side function to pull player names from nba_api
+**** Schedule server-side function to run every 24 hours & update Collection
 **** Write Django "Model" to contain player names
-**** Write Django "View" to use the Model to retrieve matching player names given regex
+**** Write Django "View" to retrieve matching player names given regex into Model
 **** Set return of Django View as JSON object of matching player names
 **** Set Django URL Pattern to call Django View when path 'get-players/{regex}' is accessed
 **** Create frontend list to display player names
@@ -77,9 +79,11 @@
 **** Write Activity / UI test cases
 
 *** FR8 - Search.Team
-**** Store names of all teams in DB
+**** Setup MongoDB Collection for team names
+**** Write server-side function to pull team names from nba_api
+**** Schedule server-side function to run every 24 hours & update Collection
 **** Write Django "Model" to contain team names
-**** Write Django "View" to use the Model to retrieve matching team names given regex
+**** Write Django "View" to retrieve matching team names given regex into Model
 **** Set return of Django View as JSON object of matching team names
 **** Set Django URL Pattern to call Django View when path 'get-team/{regex}' is accessed
 **** Create frontend list to display team names
@@ -90,14 +94,47 @@
 
 
 ** Data Visualization (FR9 - FR15)
-*** Design tabular stats view
-*** Implement interactive graphs
-*** Integrate hover interactions
-*** Develop dual-comparison mode
-*** Optimize graph rendering
-*** Implement statistical filtering
-*** Connect graphs with backend APIs
-*** Perform cross-browser testing
+*** FR9 - Display.Table
+**** Setup MongoDB Collection for player stats for one season
+**** Setup MongoDB COllection for team stats for one season
+**** Write server-side function to pull player stats from nba_api
+**** Write server-side function to pull team stats from nba_api
+**** Schedule server-side functions to run every 24 hours & update Collections
+**** Write Django "Model" to contain player stats
+**** Write Django "Model" to contain team stats
+**** Write Django "View" to retrieve stats for a given player in latest season into Model
+**** Write Django "View" to retrieve stats for a given team in latest season into Model
+**** Set return of Django View as JSON object of stats
+**** Set Django URL Pattern to call Django View when path 'get-player-stats/{player_name}/{season}' is accessed
+**** Set Django URL Pattern to call Django View when path 'get-team-stats/{team_name}/{season}' is accessed
+**** Create frontend table to display retrieved stats for the player/team in one season
+**** Write unit test cases for player Django View function (retrieve player stats given their name)
+**** Write unit test cases for team Django View function (retrieve team stats given their name)
+**** Write Activity / UI test cases for player stats
+**** Write Activity / UI test cases for team stats
+
+*** FR10 - Table.Time_Window
+**** Create frontend dropdown/widget to select game or season basis for the player/team
+**** Write Django "View" to retrieve seasonally-based stats for player into Model
+**** Write Django "View" to retrieve seasonally-based stats for team into Model
+**** Set value=='season-basis' of widget to direct user to path 'get-player-stats/{player_name}/all_stats'
+**** Set value=='season-basis' of widget to direct user to path 'get-team-stats/{team_name}/all_stats'
+**** Create frontend table to display player/team stats on seasonal basis
+**** Fill frontend table with retrieved stats when page loaded
+**** Write unit test cases for player Django View function (retrieve player stats on seasonal basis)
+**** Write unit test cases for team Django View function (retrieve team stats on seasonal basis)
+**** Write Activity / UI test cases for player seasonal stats
+**** Write Activity / UI test cases for team seasonal stats
+
+*** FR11 - Display.Graph
+
+*** FR12 - Graph.Select_Stat
+
+*** FR13 - Graph.Deselect_Stat
+
+*** FR14 - Graph.Hover
+
+*** FR15 - Graph.Time_Window
 
 
 ** Player/Team Forecast (FR16 - FR18)
