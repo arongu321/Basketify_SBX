@@ -117,8 +117,8 @@
 **** Create frontend dropdown/widget to select game or season basis for the player/team
 **** Write Django "View" to retrieve seasonally-based stats for player into Model
 **** Write Django "View" to retrieve seasonally-based stats for team into Model
-**** Set value=='season-basis' of widget to direct user to path 'get-player-stats/{player_name}/all_stats'
-**** Set value=='season-basis' of widget to direct user to path 'get-team-stats/{team_name}/all_stats'
+**** Set value=='season-basis' of widget to direct user to path 'get-player-stats/{player_name}/seasonal'
+**** Set value=='season-basis' of widget to direct user to path 'get-team-stats/{team_name}/seasonal'
 **** Create frontend table to display player/team stats on seasonal basis
 **** Fill frontend table with retrieved stats when page loaded
 **** Write unit test cases for player Django View function (retrieve player stats on seasonal basis)
@@ -127,14 +127,42 @@
 **** Write Activity / UI test cases for team seasonal stats
 
 *** FR11 - Display.Graph
+**** Create frontend widget to select stats view in table or graph format
+**** Set onClick of widget to direct user to path of current + '/graph'
+**** Create frontend graph display area
+**** Create frontend list of stats to select from
+**** Create frontend widget to select to view stats on game or season basis
+**** Write Activity / UI test cases for navigating to blank stats graph
 
 *** FR12 - Graph.Select_Stat
+**** Write Django "Model" to contain player time-series stats
+**** Write Django "Model" to contain team time-series stats
+**** Write Django "View" to retrieve player time-series stats into Model based on player name
+**** Write Django "View" to retrieve team time-series stats into Model based on team name
+**** Set onClick of stats selector to append '/{stat_name}' to path
+**** Restrict user from having more than 2 stats selected at a time
+**** Display 2 y-axes if 2 stats are selected
+**** Display time series of selected stats when page is loaded
+**** Style the graph: titles given selected stats, coloring of series, legend
 
 *** FR13 - Graph.Deselect_Stat
+**** Set variable holding selected stats based on path
+**** Add checkSelected(stat_name) JS function: return true if stat_name currently selected
+**** Set onClick of stats selector to remove {stat_name} from path if checkSelected(stat_name) is true
 
 *** FR14 - Graph.Hover
+**** Use Plotly.js to display graph of stats
+**** Config Plotly.js graph to be hoverable
+**** Style graph hover box to show axes values
+**** Handle case for 2 stats being displayed (2 y-axis values)
 
 *** FR15 - Graph.Time_Window
+**** Write Django "Model" to contain player or team time-series stat on seasonal basis
+**** Write Django "View" to retrieve player time-series seasonal stat into Model based on player name
+**** Write Django "View" to retrieve team time-series seasonal stat into Model based on team name
+**** Create frontend widget for user to select to view stat(s) on a game or seasonal basis
+**** Set widget onClick to append/remove '/seasonal' to current path
+**** Scale x-axis to fit only seasons the player/team have been active
 
 
 ** Player/Team Forecast (FR16 - FR18)
