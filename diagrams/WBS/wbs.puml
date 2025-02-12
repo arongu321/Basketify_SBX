@@ -2,7 +2,7 @@
 * Basketify (Full Stack Machine Learning Application)
 
 ** User Login and Registration (FR1-FR3)
-*** User Registration (FR1)
+*** FR1 - User Registration
 **** Design registration form UI
 **** Implement form validation
 **** Create user database schema
@@ -16,7 +16,7 @@
 **** Write unit tests
 **** Deploy and test
 
-*** User Login (FR2)
+*** FR2 - User Login
 **** Design login form UI
 **** Implement backend for login authentication using 
 **** Verify credentials with database
@@ -31,7 +31,7 @@
 **** Provide account lockout mechanism after multiple failed attempts
 **** Test login scenarios
 
-*** User Change Email and/or Password (FR3) 
+*** FR3 - User Change Email and/or Password
 **** Design password and email reset request form
 **** Generate secure tokens for password and email reset links
 **** Send reset links via email to registered users
@@ -222,14 +222,22 @@
 *** Conduct ML audits
 
 ** Statistics Filtering (FR25 - FR28)
-*** Implement filtering UI
-*** Add multiple filtering options
-*** Optimize database queries
-*** Connect filters to visualization
-*** Ensure real-time updates
-*** Implement reset filter option
-*** Optimize filter performance
-*** Validate filtering logic with tests
+*** FR25 - Filter Criteria Display
+**** Implement filtering UI
+**** Validate filtering logic with tests
+**** Connect filters to visualization
+
+*** FR26 - Filter Dynamic Update
+**** Optimize database queries
+**** Ensure real-time updates
+**** Optimize filter performance
+
+*** FR27 - Filter Multiple Criteria
+**** Add multiple filtering options
+
+*** FR28 - Filter Reset
+**** Implement reset filter option
+
 
 @endwbs
 
