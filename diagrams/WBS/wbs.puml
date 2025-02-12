@@ -1,25 +1,48 @@
 @startwbs WBS
 * Basketify (Full Stack Machine Learning Application)
 
-** User Registration (FR1)
-*** Design registration UI
-*** Implement form validation
-*** Develop backend API
-*** Store credentials securely
-*** Implement email verification
-*** Handle errors and feedback
-*** Write unit tests
-*** Deploy and test
+** User Login and Registration (FR1-FR3)
+*** User Registration (FR1)
+**** Design registration form UI
+**** Implement form validation
+**** Create user database schema
+**** Develop backend API for registration using Django
+**** Store credentials securely
+**** Implement email verification
+**** Ensure email uniqueness in the database
+**** Encrypt and store user passwords
+**** Add user notifications of successful registration
+**** Handle errors and feedback
+**** Write unit tests
+**** Deploy and test
 
-** User Login (FR2)
-*** Develop login UI
-*** Implement authentication (JWT/Sessions)
-*** Verify credentials with DB
-*** Hash and verify passwords
-*** Handle incorrect login attempts
-*** Implement session persistence
-*** Develop password reset feature
-*** Test login scenarios
+*** User Login (FR2)
+**** Design login form UI
+**** Implement backend for login authentication using 
+**** Verify credentials with database
+**** Hash and verify passwords
+**** Handle incorrect login attempts through error messages
+**** Secure login form against injection attacks
+**** Manage sessions for logged-in users
+**** Implement session persistence
+**** Audit login attempts (successful/failed)
+**** Ensure compatibility with mobile devices and browsers
+**** Develop password reset feature
+**** Provide account lockout mechanism after multiple failed attempts
+**** Test login scenarios
+
+*** User Change Email and/or Password (FR3) 
+**** Design password and email reset request form
+**** Generate secure tokens for password and email reset links
+**** Send reset links via email to registered users
+**** Validate password strength (e.g., length, special characters, sequeunces)
+**** Add confirmation message for new email
+**** Add confirmation message for new pasword
+**** Check if unique email and/or password are created
+**** Notify users about successful password and/or email changes
+**** Handle token expiration and invalidation scenarios
+**** Implement backend for password and email updates
+**** Integrate security of password and email management workflows
 
 
 ** Main Dashboard (FR4 - FR6)
