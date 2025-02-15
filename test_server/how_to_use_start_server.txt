@@ -1,0 +1,20 @@
+- Install Node.js:
+$ sudo apt update && sudo apt install nodejs
+
+- Install NPM:
+$ sudo apt update && sudo apt install npm
+
+- Check install successful with:
+$ node -v
+$ npm -v
+
+
+- Install curl:
+$ sudo apt install curl
+
+
+- Allow start_server.sh to be executable:
+$ chmod +x start_server.sh
+
+
+- Note: no Python setup required, virtualenv takes care of this

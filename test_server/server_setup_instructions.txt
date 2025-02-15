@@ -1,0 +1,207 @@
+To set up a basic website locally using Django as the backend and React for the frontend:
+
+Prerequisites:
+1. Install Python 3.13 (or use the virtual environment in .venv)  
+   - Download and install Python from [here](https://www.python.org/downloads/).
+
+2. Install Node.js (for React)  
+   - Download and install Node.js from [here](https://nodejs.org/).
+
+3. Install `npm` (Node package manager)  
+   - `npm` comes with Node.js, so installing Node.js will also install `npm`.
+
+-------------------------------------------------------------------------------------
+
+1. Set Up the Backend (Django)
+
+Step 1: Create a virtual environment
+Navigate to your desired project directory and create a virtual environment.
+
+mkdir my_project
+cd my_project
+python3 -m venv .venv
+
+Activate the virtual environment:
+- On macOS/Linux:
+source .venv/bin/activate
+
+- On Windows:
+.venv\Scripts\activate
+
+Step 2: Install Django
+Once the virtual environment is activated, install Django using `pip`.
+
+pip install django
+
+
+Step 3: Create a new Django project.
+
+django-admin startproject backend
+cd backend
+
+
+Step 4: Create a Django app
+
+python manage.py startapp home
+
+
+Step 5: Set up your views and URL routing
+In 'home/views.py', create a simple view that will render a "Welcome" message.
+
+from django.http import JsonResponse
+
+def welcome(request):
+    return JsonResponse({'message': 'Welcome to Django with React!'})
+
+
+Step 6: Add the app to your Django project
+In 'backend/settings.py', add the app ('home') to the 'INSTALLED_APPS' list:
+
+INSTALLED_APPS = [
+    # other apps
+    'home',
+]
+
+
+Step 7: Set up the URL routing
+In 'home/urls.py', set up the URL for the welcome message: (create home/urls.py if it doesn't exist)
+
+from django.urls import path
+from .views import welcome
+
+urlpatterns = [
+    path('', welcome, name='welcome'),
+]
+
+
+Make sure to include this URL routing in the main `urls.py` of the project (`backend/urls.py`):
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', include('home.urls')),
+]
+
+
+Step 8: Run the Django server
+Now, migrate the database (get Django to update changes to Models) and start the server:
+
+python3 manage.py migrate
+python3 manage.py runserver
+
+Your backend should now be running at 'http://127.0.0.1:8000'. You can test it by visiting 'http://127.0.0.1:8000/api/' in your browser, which should show a JSON message like this:
+{"message": "Welcome to Django with React!"}
+
+
+----------------------------------------------------------------------------------
+
+2. Set Up the Frontend (React)
+
+Step 1: Create a React app
+Now, in your project directory, create the React app using 'npx' (make sure you're in the 'my_project' directory):
+
+npx create-react-app frontend
+
+This will create a `frontend` folder containing all the necessary React files.
+
+
+Step 2: Install Axios (for HTTP requests)
+In the 'frontend' directory, install Axios to make requests to the Django backend:
+
+cd frontend
+npm install axios
+
+
+Step 3: Modify 'App.js' to fetch data from Django
+In 'frontend/src/App.js', modify the code to fetch the welcome message from the Django API and display it.
+
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    axios.get('http://127.0.0.1:8000/api/')
+      .then(response => {
+        setMessage(response.data.message);
+      })
+      .catch(error => {
+        console.log('There was an error!', error);
+      });
+  }, []);
+
+  return (
+    <div className="App">
+      <h1>{message}</h1>
+    </div>
+  );
+}
+
+export default App;
+
+
+Step 4: Run the React app
+Now, start the React development server:
+
+npm start
+
+
+Your React app should now be running at 'http://localhost:3000/'. It will make a request to the Django backend and display the welcome message.
+
+----------------------------------------------------------------------------------------
+
+3. Configure CORS (Cross-Origin Resource Sharing)
+
+Since you're running Django and React on different ports, you need to allow requests from the React app (running on port '3000') to access the Django backend (running on port '8000').
+
+Step 1: Install 'django-cors-headers'
+In your Django backend directory ('backend'), install the 'django-cors-headers' package to handle CORS:
+
+pip install django-cors-headers
+
+
+Step 2: Update 'INSTALLED_APPS' and Middleware
+In 'backend/settings.py', add 'corsheaders' to the 'INSTALLED_APPS' list:
+
+INSTALLED_APPS = [
+    # other apps
+    'corsheaders',
+]
+
+Then, add 'CorsMiddleware' to the top of your 'MIDDLEWARE' setting:
+
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    # other middleware
+]
+
+
+Step 3: Allow requests from React
+Still in 'backend/settings.py', add the following line to allow requests from your React frontend:
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+This allows any origin to make requests to your backend, which is fine for local development.
+
+--------------------------------------------------------------------------------
+
+4. Test the Full Application
+
+At this point, you should have both the Django backend and React frontend running:
+
+- Django backend: 'http://127.0.0.1:8000/api/'
+- React frontend: 'http://localhost:3000/'
+
+You should see the welcome message from the Django backend displayed on your React frontend.
+
+---------------------------------------------------------------------------------
+
+Optional: Serve React from Django (Production)
+For production, you can configure Django to serve the React app. This would involve building the React app ('npm run build'), copying the build folder to Django's static files directory, and serving it with Django.
+
+However, for now, with local development, you are good to go with the setup mentioned above!
+
+----------------------------------------------------------------------------------
