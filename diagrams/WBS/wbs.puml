@@ -182,44 +182,98 @@
 
 
 ** Player/Team Forecast (FR16 - FR18)
-*** Develop forecast UI
-*** Integrate backend ML model
-*** Preprocess historical data
-*** Train/test ML model
-*** Display predictions dynamically
-*** Implement accuracy logging
-*** Optimize real-time processing
-*** Validate predictions with actual results
+*** FR16 - ML.Player_Prompt
+**** Create UI form to enter player name
+**** Validate player name input before submission
+**** Write Django "View" to retrieve player's past game stats from DB
+**** Write Django "Model" to store player time-series statistics
+**** Implement API call to ML model to predict stats
+**** Display ML predictions on frontend dynamically
+**** Handle API errors and display fallback messages
+**** Write unit tests for ML integration and API calls
+
+*** FR17 - ML.Team_Prompt
+**** Create UI form to enter team name
+**** Validate team name input before submission
+**** Write Django "View" to retrieve team’s historical performance data
+**** Write Django "Model" to store team time-series statistics
+**** Implement API call to ML model to predict team performance
+**** Display forecasted team stats on frontend
+**** Optimize data retrieval for fast API responses
+**** Write unit tests for ML accuracy and database queries
+
+*** FR18 - ML.Forecast
+**** Setup MongoDB collection to store forecasted stats
+**** Write scheduled backend job to update forecasts periodically
+**** Store ML prediction confidence scores alongside stats
+**** Create frontend widget to toggle between actual vs predicted stats
+**** Implement UI highlighting for forecast accuracy (green = high, red = low)
+**** Enable comparison between predicted and actual performance
+**** Log incorrect predictions to improve ML training
+**** Develop admin panel to monitor ML performance metrics
 
 ** Predict Win/Loss (FR19 - FR20)
-*** Implement win/loss UI
-*** Develop ML model for predictions
-*** Fetch team statistics
-*** Train model with past match data
-*** Display prediction results
-*** Implement real-time updates
-*** Compare with actual game results
-*** Conduct A/B testing on models
+*** FR19 - ML.Team_Prompt
+**** Develop UI dropdown to select a team for prediction
+**** Ensure API retrieves the latest available team roster data
+**** Implement data pre-processing pipeline for ML predictions
+**** Write Django "View" to retrieve matchup history for selected team
+**** Pass matchup statistics to ML model for inference
+**** Display confidence percentage for predicted outcomes
+**** Optimize API responses to ensure predictions load under 2s
+**** Write test cases for win/loss prediction accuracy
+
+*** FR20 - ML.Predict_WinLoss
+**** Store previous game results and predictions for comparison
+**** Implement backend job to compute prediction success rate
+**** Update UI to show percentage of correct predictions in past games
+**** Implement real-time match data fetching to improve ML input
+**** Integrate rolling win probability updates for live games
+**** Develop fallback mechanism if ML model fails to return predictions
+**** Provide team matchups analysis alongside ML predictions
+**** Conduct A/B testing on different ML models for accuracy
 
 ** Predict NBA Champion (FR21 - FR22)
-*** Implement championship prediction UI
-*** Train ML model for season forecast
-*** Collect historical championship data
-*** Evaluate long-term model accuracy
-*** Display season-long predictions
-*** Update model inputs dynamically
-*** Handle season anomalies
-*** Validate model results
+*** FR21 - ML.Predict_Champion
+**** Aggregate season-long statistics for all teams
+**** Implement ML training pipeline for playoff and final predictions
+**** Store championship predictions in a MongoDB collection
+**** Write Django "View" to retrieve latest championship predictions
+**** Create frontend component to display updated predictions
+**** Provide confidence intervals for each team’s championship odds
+**** Enable visualization of probability changes throughout the season
+**** Log prediction errors and refine ML model training data
+
+*** FR22 - ML.Display_Champion
+**** Design UI component to showcase predicted NBA champion
+**** Implement historical comparison feature (e.g., last 5 seasons)
+**** Add graph visualization for championship odds fluctuation
+**** Display reasoning behind ML prediction (e.g., key player stats)
+**** Optimize query performance for fast retrieval of predictions
+**** Enable filtering predictions based on player injuries or trades
+**** Allow user to compare ML predictions vs expert analyst picks
+**** Test UI responsiveness on mobile and desktop versions
 
 ** Log ML Performance (FR23 - FR24)
-*** Implement ML logging system
-*** Store actual vs predicted results
-*** Develop performance reports
-*** Train models based on feedback
-*** Optimize retraining frequency
-*** Implement error tracking
-*** Ensure logging efficiency
-*** Conduct ML audits
+*** FR23 - ML.Compare
+**** Retrieve past game results and compare with ML predictions
+**** Develop automated script to generate accuracy reports
+**** Store accuracy metrics in a database for long-term analysis
+**** Display ML accuracy trends on the admin dashboard
+**** Implement backend logic to flag consistently inaccurate predictions
+**** Enable automatic retraining of ML models based on error rates
+**** Provide real-time visualization of prediction confidence vs accuracy
+**** Log misclassified outcomes and provide explanations for failures
+
+*** FR24 - ML.Feedback_Loop
+**** Design mechanism to retrain ML models with new season data
+**** Implement periodic model evaluations based on stored accuracy data
+**** Store model performance scores and hyperparameters in DB
+**** Develop admin interface to manually trigger model retraining
+**** Optimize ML retraining process to avoid service downtime
+**** Introduce adaptive learning techniques for improving model predictions
+**** Implement real-time feedback system for users to rate prediction quality
+**** Develop ML monitoring tools to detect anomalies in prediction trends
 
 ** Statistics Filtering (FR25 - FR28)
 *** FR25 - Filter Criteria Display

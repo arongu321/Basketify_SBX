@@ -1,0 +1,245 @@
+@startuml UserAuthentication
+|User|
+start
+:Opens Basketify website;
+:Chooses an action;
+
+|System|
+if (Register, Log In, or Change Password?) then (Yes)
+    switch (Selected Action)
+        case (Register)
+            |User|
+            :Fills registration form;
+            
+            |System|
+            :Validates email format and password strength;
+            
+            |Database|
+            :Checks if email already exists;
+            
+            if (Email exists?) then (Yes)
+                |System|
+                :Show error message;
+                stop
+            else (No)
+                |Database|
+                :Store user details;
+                
+                |System|
+                :Redirect user to login;
+            endif
+        case (Log In)
+            |User|
+            :Enters email and password;
+            
+            |System|
+            :Sends credentials for validation;
+            
+            |Database|
+            :Checks credentials;
+            
+            if (Credentials valid?) then (Yes)
+                |System|
+                :Grant access to user dashboard;
+            else (No)
+                |System|
+                :Show error message - "Invalid login";
+            endif
+        case (Change Password)
+            |User|
+            :Requests password change;
+            :Enters old password;
+            
+            |System|
+            :Sends request to validate old password;
+            
+            |Database|
+            :Verifies old password;
+            
+            if (Old password matches?) then (Yes)
+                |User|
+                :Enters new password;
+                
+                |System|
+                :Sends update request;
+                
+                |Database|
+                :Updates password;
+                
+                |System|
+                :Confirm password change;
+            else (No)
+                |System|
+                :Show error message - "Incorrect old password";
+            endif
+    endswitch
+else (No)
+    stop
+endif
+stop
+@enduml
+
+@startuml DashboardNavigation
+|User|
+start
+:Logs into Basketify;
+:Arrives at Dashboard;
+:Chooses an option;
+
+|System|
+switch (Selected Option)
+    case (Search)
+        :Redirects user to search interface;
+    case (Favorite Team)
+        :Redirects user to team statistics;
+    case (Favorite Player)
+        :Redirects user to player statistics;
+endswitch
+stop
+@enduml
+
+@startuml SearchFunctionality
+|User|
+start
+:Logs into Basketify;
+:Opens Search Interface;
+:Enters player or team name;
+
+|System|
+:Processes search query;
+|Database|
+:Retrieves matching players/teams;
+
+|System|
+if (Matches found?) then (Yes)
+    :Displays results;
+    :User selects player/team;
+    :Redirects to stats view;
+else (No)
+    :Show "No results found" message;
+endif
+stop
+@enduml
+
+@startuml DataVisualization
+|User|
+start
+:Logs into Basketify;
+:Selects a player/team;
+:Views statistics table;
+
+|System|
+if (Graph View?) then (Yes)
+    :Displays time-series graph;
+    :User selects statistics to visualize;
+    
+    |System|
+    :Updates graph with selected stats;
+    if (User hovers over graph?) then (Yes)
+        :Displays exact values;
+    endif
+else (No)
+    :Show table with statistics;
+endif
+stop
+@enduml
+
+@startuml MachineLearningPredictions
+|User|
+start
+:Logs into Basketify;
+:Selects "Predict Player/Team Stats";
+:Chooses a player/team;
+
+|System|
+:Processes data with ML model;
+|Database|
+:Fetches historical performance data;
+
+|System|
+:Generates predicted stats;
+:Displays forecasted values with confidence score;
+stop
+@enduml
+
+@startuml WinLossPrediction
+|User|
+start
+:Logs into Basketify;
+:Selects "Predict Match Outcome";
+:Chooses a team;
+
+|System|
+:Processes data with ML model;
+|Database|
+:Fetches team performance history;
+
+|System|
+:Generates win/loss prediction;
+:Displays expected winner and confidence score;
+stop
+@enduml
+
+@startuml PredictNBAChampion
+|User|
+start
+:Logs into Basketify;
+:Selects "Predict NBA Champion";
+
+|System|
+:Runs ML model on all teams;
+|Database|
+:Fetches season performance data;
+
+|System|
+:Generates NBA champion prediction;
+:Displays winner with confidence score;
+stop
+@enduml
+
+@startuml MLPerformanceLogging
+|System|
+start
+:ML Model makes a prediction;
+:Logs prediction in system;
+
+|Database|
+:Compares prediction with actual result;
+:Calculates accuracy/error rate;
+
+|System|
+:Updates ML feedback loop;
+if (Accuracy below threshold?) then (Yes)
+    :Retrain model;
+else (No)
+    :Continue logging performance;
+endif
+stop
+@enduml
+
+@startuml StatisticsFiltering
+|User|
+start
+:Logs into Basketify;
+:Opens player/team statistics;
+:Chooses filter criteria;
+
+|System|
+:Applies filters;
+|Database|
+:Retrieves filtered stats;
+
+|System|
+if (Filters applied?) then (Yes)
+    :Update displayed statistics;
+else (No)
+    :Show default view;
+endif
+
+if (User resets filters?) then (Yes)
+    |System|
+    :Clear applied filters;
+    :Show unfiltered statistics;
+endif
+stop
+@enduml
