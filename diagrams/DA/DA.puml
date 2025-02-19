@@ -8,34 +8,96 @@ skinparam rectangle {
   Shadowing true
 }
 
-rectangle "FR1: Request Registration" as FR1 {
-  rectangle "Design registration user interface" as FR1_1
-  rectangle "Create user information database schema" as FR1_2
-  rectangle "Implement backend for registration" as FR1_3
-  rectangle "Create user registration form" as FR1_4
-  rectangle "Validate email address format" as FR1_5
-  rectangle "Ensure email uniqueness in the database" as FR1_6
-  rectangle "Encrypt and store user passwords" as FR1_7
-  rectangle "Integrate CAPTCHA for bot prevention" as FR1_8
-  rectangle "Add user notifications of successful registration" as FR1_9
-  rectangle "Add error messages for invalid inputs" as FR1_10
-  rectangle "Audit successful/failed registration" as FR1_11
-  rectangle "Implement email confirmation" as FR1_12
+' FR1: User Registration
+rectangle "FR1: User.Register" as FR1 {
+  rectangle "Design registration form UI in Figma" as FR1_1
+  rectangle "Create registration form using React" as FR1_2
+  rectangle "Implement form validation" as FR1_3
+  rectangle "Create user database schema for PostgreSQL" as FR1_4
+  rectangle "Develop backend API for registration using Django" as FR1_5
+  rectangle "Store credentials securely in PostgreSQL database" as FR1_6
+  rectangle "Implement email verification" as FR1_7
+  rectangle "Ensure email uniqueness in the database" as FR1_8
+  rectangle "Encrypt and store user passwords" as FR1_9
+  rectangle "Add user notifications of successful registration" as FR1_10
+  rectangle "Handle form errors and display form error messages for users" as FR1_11
+  rectangle "Write unit tests for user registration" as FR1_12
 
-  'Dependency Arrows
-  FR1_1 --> FR1_4
+  FR1_1 --> FR1_2
   FR1_2 --> FR1_3
   FR1_4 --> FR1_5
-  FR1_3 --> FR1_6
-  FR1_3 --> FR1_7
   FR1_4 --> FR1_8
-  FR1_4 --> FR1_10
-  FR1_3 --> FR1_9
-  FR1_4 --> FR1_9
+  FR1_5 --> FR1_6
+  FR1_6 --> FR1_7
+  FR1_8 --> FR1_9
+  FR1_9 --> FR1_10
   FR1_3 --> FR1_11
   FR1_5 --> FR1_12
-  FR1_6 --> FR1_12
+  FR1_2 --> FR1_12
 
+}
+
+' FR2: User Login
+rectangle "FR2: User.Login" as FR2 {
+  rectangle "Design login form UI in Figma" as FR2_1
+  rectangle "Create login form using React" as FR2_2
+  rectangle "Implement backend for login authentication using Django" as FR2_3
+  rectangle "Verify credentials with database" as FR2_4
+  rectangle "Hash and verify passwords" as FR2_5
+  rectangle "Handle incorrect login attempts through error messages" as FR2_6
+  rectangle "Secure login form against injection attacks" as FR2_7
+  rectangle "Manage sessions for logged-in users" as FR2_8
+  rectangle "Implement session persistence" as FR2_9
+  rectangle "Audit login attempts (successful/failed)" as FR2_10
+  rectangle "Develop password reset feature" as FR2_11
+  rectangle "Provide account lockout mechanism after multiple failed attempts" as FR2_12
+  rectangle "Test login scenarios with existing and non-existing users" as FR2_13
+
+  FR1_4 --> FR2_3
+  FR2_1 --> FR2_2
+  FR2_3 --> FR2_4
+  FR2_3 --> FR2_5
+  FR2_5 --> FR2_6
+  FR2_5 --> FR2_7
+  FR2_3 --> FR2_8
+  FR2_8 --> FR2_9
+  FR2_9 --> FR2_10
+  FR2_2 --> FR2_11
+  FR2_3 --> FR2_11
+  FR2_10 --> FR2_12
+  FR2_2 --> FR2_13
+  FR2_3 --> FR2_13
+  FR2_4 --> FR2_13
+  FR2_5 --> FR2_13
+}
+
+' FR3: User.ChangeEmailPassword
+rectangle "FR3: User.ChangeEmailPassword" as FR3 {
+  rectangle "Design password and email reset request form in Figma" as FR3_1
+  rectangle "Generate secure tokens for password and email reset links" as FR3_2
+  rectangle "Send reset links via email to registered users" as FR3_3
+  rectangle "Validate password strength" as FR3_4
+  rectangle "Add confirmation message for new email" as FR3_5
+  rectangle "Add confirmation message for new password" as FR3_6
+  rectangle "Check if unique email and/or password are created" as FR3_7
+  rectangle "Notify users about successful password and/or email changes" as FR3_8
+  rectangle "Handle token expiration and invalidation scenarios" as FR3_9
+  rectangle "Implement backend for password and email updates" as FR3_10
+  rectangle "Integrate security of password and email management workflows" as FR3_11
+
+  FR2_1 --> FR3_1
+  FR3_1 --> FR3_2
+  FR3_2 --> FR3_3
+  FR3_1 --> FR3_4
+  FR3_1 --> FR3_5
+  FR3_1 --> FR3_6
+  FR1_4 --> FR3_7
+  FR3_1 --> FR3_8
+  FR3_3 --> FR3_8
+  FR3_2 --> FR3_9
+  FR3_3 --> FR3_10
+  FR3_7 --> FR3_10
+  FR3_10 --> FR3_11
 }
 
 ' FR16: ML Player Prompt
@@ -169,6 +231,108 @@ rectangle "FR21: ML.Predict_Champion" as FR21 {
   FR21_6 --> FR21_7
   FR21_7 --> FR21_8
   FR21_3 --> FR21_6
+}
+
+' FR25: Filter Criteria Display
+rectangle "FR25 - Filter.Criteria_Display" as FR25 {
+  rectangle "Design filtering UI in Figma" as FR25_1
+  rectangle "Create filtering section for displaying stats in React" as FR25_2
+  rectangle "Implement team-specific filters (by conference, division, etc.) in React" as FR25_3
+  rectangle "Implement segment-based filters (by month, last N games, pre/post all-star) in React" as FR25_4
+  rectangle "Implement season type filter" as FR25_5
+  rectangle "Implement game scenario-based filters (by quarter, win/loss, game halves)" as FR25_6
+  rectangle "Implement year filter (e.g., 2018-19, 2019-20, etc.)" as FR25_7
+  rectangle "Implement date range filter" as FR25_8
+  rectangle "Implement filters to display basic or advanced stats" as FR25_9
+  rectangle "Add option to select specific columns to display (points, rebounds, team name, etc.)" as FR25_10
+  rectangle "Validate filtering logic with tests" as FR25_11
+  rectangle "Add backend logic to connect filters to update visualized results" as FR25_12
+  rectangle "Provide feedback messages when no results show" as FR25_13
+
+  FR25_1 --> FR25_2
+  FR25_2 --> FR25_3
+  FR25_2 --> FR25_4
+  FR25_2 --> FR25_5
+  FR25_2 --> FR25_6
+  FR25_2 --> FR25_7
+  FR25_2 --> FR25_8
+  FR25_2 --> FR25_9
+  FR25_2 --> FR25_10
+  FR25_2 --> FR25_11
+  FR25_10 --> FR25_11
+  FR25_2 --> FR25_12
+  FR25_12 --> FR25_13
+}
+
+' FR26: Filter.Dynamic_Update
+rectangle "FR26: Filter.Dynamic_Update" as FR26 {
+  rectangle "Optimize database queries" as FR26_1
+  rectangle "Implement real-time updates upon user selection" as FR26_2
+  rectangle "Cache result of frequently used filters for optimized performance" as FR26_3
+  rectangle "Optimize filter performance using lazy loading and/or pagination" as FR26_4
+  rectangle "Check for consistency between filtered results and graph view" as FR26_5
+  rectangle "Monitor backend API response time based on filters" as FR26_6
+  rectangle "Create automated UI and backend tests for filter updates" as FR26_7
+  rectangle "Display filtered results on page" as FR26_8
+
+  FR25_12 --> FR26_8
+  FR26_8 -> FR26_2
+  FR26_2 --> FR26_1
+  FR26_2 --> FR26_3
+  FR26_2 --> FR26_4
+  FR26_2 --> FR26_5
+  FR26_2 --> FR26_6
+  FR26_6 --> FR26_7
+}
+
+' FR27: Filter.Multiple_Criteria
+rectangle "FR27: Filter.Multiple_Criteria" as FR27 {
+  rectangle "Add multiple filtering options in UI" as FR27_1
+  rectangle "Implement backend logic to combine multiple filters" as FR27_2
+  rectangle "Display selected filters for user" as FR27_3
+  rectangle "Allow users to modify filters without affecting other filters" as FR27_4
+  rectangle "Integrate automated UI and backend tests for multiple filters" as FR27_5
+  rectangle "Ensure filtering does not break when user switches to other webpages" as FR27_6
+  rectangle "Use indexing to optimize queries with multiple filters" as FR27_7
+  rectangle "Log filters used to see results" as FR27_8
+  rectangle "Add option for user to view recently used filters" as FR27_9
+
+  FR25_1 --> FR27_1
+  FR27_1 --> FR27_2
+  FR27_1 --> FR27_3
+  FR27_1 --> FR27_4
+  FR27_1 --> FR27_5
+  FR27_2 --> FR27_5
+  FR27_2 --> FR27_6
+  FR27_2 --> FR27_7
+  FR27_2 --> FR27_8
+  FR27_8 --> FR27_9
+  FR27_1 --> FR27_9
+}
+
+' FR28: Filter.Reset
+rectangle "FR28: Filter.Reset" as FR28 {
+  rectangle "Add reset filter option in UI" as FR28_1
+  rectangle "Ensure reset filter defaults to using no filters" as FR28_2
+  rectangle "Handle UI updates dynamically upon reset without reloading" as FR28_3
+  rectangle "Implement backend logic to clear filters in a session" as FR28_4
+  rectangle "Ensure reset filter syncs with tabular and graph views (stats displayed with no filters)" as FR28_5
+  rectangle "Add automated UI and backend tests for filter resetting" as FR28_6
+  rectangle "Add message to confirm reset of filters" as FR28_7
+  rectangle "Test reset filter with different result combinations (for small and large results)" as FR28_8
+
+  FR25_1 --> FR28_1
+  FR28_1 --> FR28_2
+  FR25_12 --> FR28_3
+  FR28_1 --> FR28_4
+  FR28_1 --> FR28_5
+  FR25_12 --> FR28_5
+  FR28_4 --> FR28_6
+  FR28_5 --> FR28_6
+  FR28_4 --> FR28_7
+  FR28_6 --> FR28_8
+  FR25_12 --> FR28_8
+
 }
 
 @enduml

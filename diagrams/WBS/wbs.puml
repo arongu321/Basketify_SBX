@@ -4,6 +4,7 @@
 ** User Login and Registration (FR1-FR3)
 *** FR1 - User.Register
 **** Design registration form UI in Figma
+**** Create registration form using React
 **** Implement form validation
 **** Create user database schema for PostgreSQL
 **** Develop backend API for registration using Django
@@ -12,12 +13,12 @@
 **** Ensure email uniqueness in the database
 **** Encrypt and store user passwords
 **** Add user notifications of successful registration
-**** Handle errors and feedback
-**** Write unit tests
-**** Deploy and test
+**** Handle form errors and display form error messages for users
+**** Write unit tests for user registration
 
 *** FR2 - User.Login
 **** Design login form UI in Figma
+**** Create login form using React
 **** Implement backend for login authentication using 
 **** Verify credentials with database
 **** Hash and verify passwords
@@ -26,10 +27,9 @@
 **** Manage sessions for logged-in users
 **** Implement session persistence
 **** Audit login attempts (successful/failed)
-**** Ensure compatibility with mobile devices and browsers
 **** Develop password reset feature
 **** Provide account lockout mechanism after multiple failed attempts
-**** Test login scenarios
+**** Test login scenarios with existing and non-existing users
 
 *** FR3 - User.ChangeEmailPassword
 **** Design password and email reset request form in Figma
@@ -46,11 +46,11 @@
 
 
 ** Main Dashboard (FR4 - FR6)
-*** Describe objects on dashboard
-*** Design layout of dashboard in Figma diagram
-*** Write frontend for dashboard (HTML/CSS)
 
 *** FR4 - Dashboard.Search_Connection
+**** Describe objects on dashboard
+**** Design layout of dashboard in Figma diagram
+**** Write frontend for dashboard (HTML/CSS)
 **** Create frontend search widget
 **** Style dashboard to display widget in a large, visible place
 **** Route user to search page for onlick of widget
@@ -277,7 +277,8 @@
 
 ** Statistics Filtering (FR25 - FR28)
 *** FR25 - Filter.Criteria_Display
-**** Design filtering UI
+**** Design filtering UI in Figma
+**** Create filtering section for displaying stats in React
 **** Implement team-specific filters(i.e. by conference, by divison, etc.) in React
 **** Implement segment-based(month, last N games, pre/post all-star) filter in React
 **** Implement season type filter
@@ -287,18 +288,18 @@
 **** Implement filters to display basic or advanced stats
 **** Add option to select specific columns to display(i.e. Points, rebounds, team name, etc.)
 **** Validate filtering logic with tests
-**** Connect filters to visualization
+**** Add backend logic to connect filters to update visualized results
 **** Provide feedback messages when no results show
 
 *** FR26 - Filter.Dynamic_Update
 **** Optimize database queries
 **** Implement real-time updates upon user selection
 **** Cache result of frequently used filters for optimized performance
-**** Ensure real-time updates when filters are applied
 **** Optimize filter performance using lazy loading and/or pagination
 **** Check for consistency between filtered results and graph view
 **** Monitor backend API response time based on filters
 **** Create automated UI and backend tests for filter updates
+**** Display filtered results on page
 
 *** FR27 - Filter.Multiple_Criteria
 **** Add multiple filtering options in UI
