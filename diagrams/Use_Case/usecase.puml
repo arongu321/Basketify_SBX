@@ -1,5 +1,6 @@
 @startuml Use Case
 title Basketify Use Case Diagram
+left to right direction
 
 ' Define Actors
 actor User
@@ -9,23 +10,122 @@ actor Developer
 ' Define System Boundaries
 rectangle "Basketify System" {
 
-    ' User use cases
-    usecase "Register" as UC1
-    usecase "Login" as UC2
-    usecase "Logout" as UC3
-    usecase "Search Player" as UC4
-    usecase "Search Team" as UC5
+    ' Use cases
+    usecase "FR1: Register For New Account" as UC1
+    usecase "FR2: Login" as UC2
+    usecase "FR3: Change Email and/or Password" as UC3
+    usecase "FR4: Navigate to Search Interface" as UC4
+    usecase "FR5: Go to Favorite Player(s)" as UC5
+    usecase "FR6: Go to Favorite Team(s)" as UC6
+    usecase "FR7: Search Player" as UC7
+    usecase "FR8: Search Team" as UC8
+    usecase "Display Stats" as UC9
+    usecase "FR9: Display Tabular View of Stats" as UC10
+    usecase "FR10: Adjust Table Time Window" as UC11
+    usecase "FR11: Display Graph View of Stats" as UC12
+    usecase "FR12: Select Stat on Graph View" as UC13
+    usecase "FR13: Deselect Stat from Graph View" as UC14
+    usecase "FR14: Hover Graph View" as UC15
+    usecase "FR15: Adjust Time Window for Graph View" as UC16
+    usecase "FR16: Enter Player to Get Forecast Prediction" as UC17
+    usecase "FR17: Enter Team to Get Forecast Prediction" as UC18
+    usecase "FR18: Predict Future Stats" as UC19
+    usecase "Predict Player Stats" as UC20
+    usecase "Predict Team Stats" as UC21
+    usecase "FR19: Enter Team's Win/Loss Prediction" as UC22
+    usecase "FR20: Predict Win/Loss Record for Team" as UC23
+    usecase "FR21: Predict NBA Champion" as UC24
+    usecase "FR22: Display Predicted NBA Champion" as UC25
+    usecase "FR23: Compare ML Predictions" as UC26
+    usecase "Filter Stats" as UC28
+    usecase "FR25: Display Filtering Criteria" as UC29
+    usecase "FR26: Update Stats Dynamically With Give Filters" as UC30
+    usecase "FR27: Use Multiple Filters" as UC31
+    usecase "FR28: Reset Filters" as UC32
+
+    ' Admin use cases
+    usecase "Manage Users" as UC33
+    usecase "Monitor System Performance" as UC34
+    usecase "Update Database" as UC35
+
+    ' Developer use cases
+    usecase "Deploy Updates" as UC36
+    usecase "FR24: Improve Predictive Accuracy in ML Models" as UC27
+    usecase "Fix Bugs" as UC37
+
+
+
+    ' Define User Relationships
+    User ---- UC1
+    User ---- UC2
+    User ---- UC3
+    User ---- UC5
+    User ---- UC6
+    User ---- UC7
+    User ---- UC8
+    User ---- UC10
+    User ---- UC11
+    User ---- UC12
+    User ---- UC13
+    User ---- UC14
+    User ---- UC15
+    User ---- UC16
+    User ---- UC20
+    User ---- UC21
+    User ---- UC18
+    User ---- UC22
+    User ---- UC25
+    User ---- UC26
+    User ---- UC28
+
+    ' Define Admin Relationships
+    Admin ---- UC33
+    Admin ---- UC34
+    Admin ---- UC35
+
+    ' Define Developer Relationships
+    Developer --- UC36
+    Developer --- UC27
+    Developer --- UC37
+    
+    ' Extends and Includes
+    UC7 ....> UC4 : <<include>>
+    UC8 ....> UC4 : <<include>>
+    UC10 ....> UC9 : <<extend>>
+    UC12 ....> UC9 : <<extend>>
+    UC11 ....> UC10 : <<extend>> 
+    UC13 ....> UC12 : <<extend>>
+    UC14 ....> UC12 : <<extend>>
+    UC15 ....> UC12 : <<extend>>
+    UC16 ....> UC12 : <<extend>>
+    UC20 ....> UC17 : <<include>>
+    UC21 ....> UC18 : <<include>>
+    UC20 ....> UC19 : <<extend>>
+    UC21 ....> UC19 : <<extend>>
+    UC23 ....> UC22 : <<include>>
+    UC25 ....> UC24 : <<include>>
+    UC28 ....> UC29 : <<include>>
+    UC29 ....> UC30 : <<include>>
+    UC31 ....> UC28 : <<extend>>
+    UC32 ....> UC28 : <<extend>>
+
+    /'
+    usecase "FR7: Search Player" as UC4
+    usecase "FR8: Search Team" as UC5
     usecase "View Player Stats" as UC6
     usecase "View Team Stats" as UC7
     usecase "Filter Stats" as UC8
     usecase "Visualize Data" as UC9
-    usecase "Favorite Player" as UC10
-    usecase "Favorite Team" as UC11
+    usecase "FR5: Go to Favorite Player" as UC10
+    usecase "FR6: Go to Favorite Team" as UC11
     usecase "Predict Player Stats" as UC12
     usecase "Predict Team Stats" as UC13
     usecase "Predict Win/Loss" as UC14
     usecase "Predict NBA Champion" as UC15
     usecase "Compare ML Predictions" as UC16
+    
+    ' System use cases
+    usecase "Display NBA Champion" as UC23
 
     ' Admin use cases
     usecase "Manage Users" as UC17
@@ -38,39 +138,46 @@ rectangle "Basketify System" {
     usecase "Fix Bugs" as UC22
 
     ' Define Relationships
-    User --> UC1
-    User --> UC2
-    User --> UC3
-    User --> UC4
-    User --> UC5
-    User --> UC6
-    User --> UC7
-    User --> UC8
-    User --> UC9
-    User --> UC10
-    User --> UC11
-    User --> UC12
-    User --> UC13
-    User --> UC14
-    User --> UC15
-    User --> UC16
+    User -- UC1
+    User -- UC2
+    User -- UC3
+    User -- UC4
+    User -- UC5
+    User -- UC6
+    User -- UC7
+    User -- UC8
+    User -- UC9
+    User -- UC10
+    User -- UC11
+    User -- UC12
+    User -- UC13
+    User -- UC14
+    User -- UC15
+    User --- UC23
+    User -- UC16
 
-    Admin --> UC17
-    Admin --> UC18
-    Admin --> UC19
+    Admin -- UC17
+    Admin -- UC18
+    Admin -- UC19
 
-    Developer --> UC20
-    Developer --> UC21
-    Developer --> UC22
+    Developer -- UC20
+    Developer -- UC21
+    Developer -- UC22
+    
+    ML -- UC15
+
 
     ' Extensions and Includes
-    UC4 .> UC6 : <<includes>> 
-    UC5 .> UC7 : <<includes>>
-    UC8 .> UC9 : <<includes>>
-    UC12 .> UC16 : <<extends>>
-    UC13 .> UC16 : <<extends>>
-    UC14 .> UC16 : <<extends>>
-    UC15 .> UC16 : <<extends>>
+    UC4 ..> UC6 : <<includes>> 
+    UC5 ..> UC7 : <<includes>>
+    UC8 ..> UC9 : <<includes>>
+    UC15 ...> UC23 : <<includes>>
+    UC12 ..> UC16 : <<extends>>
+    UC13 ..> UC16 : <<extends>>
+    UC14 ..> UC16 : <<extends>>
+    UC15 ..> UC16 : <<extends>>
+    '
+    '/
 
 }
 
