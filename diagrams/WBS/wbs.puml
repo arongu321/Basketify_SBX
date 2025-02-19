@@ -2,7 +2,7 @@
 * Basketify (Full Stack Machine Learning Application)
 
 ** User Login and Registration (FR1-FR3)
-*** FR1 - User Registration
+*** FR1 - User.Register
 **** Design registration form UI in Figma
 **** Implement form validation
 **** Create user database schema for PostgreSQL
@@ -16,7 +16,7 @@
 **** Write unit tests
 **** Deploy and test
 
-*** FR2 - User Login
+*** FR2 - User.Login
 **** Design login form UI in Figma
 **** Implement backend for login authentication using 
 **** Verify credentials with database
@@ -31,7 +31,7 @@
 **** Provide account lockout mechanism after multiple failed attempts
 **** Test login scenarios
 
-*** FR3 - User Change Email and/or Password
+*** FR3 - User.ChangeEmailPassword
 **** Design password and email reset request form in Figma
 **** Generate secure tokens for password and email reset links
 **** Send reset links via email to registered users
@@ -276,7 +276,7 @@
 **** Develop ML monitoring tools to detect anomalies in prediction trends
 
 ** Statistics Filtering (FR25 - FR28)
-*** FR25 - Filter Criteria Display
+*** FR25 - Filter.Criteria_Display
 **** Design filtering UI
 **** Implement team-specific filters(i.e. by conference, by divison, etc.) in React
 **** Implement segment-based(month, last N games, pre/post all-star) filter in React
@@ -290,7 +290,7 @@
 **** Connect filters to visualization
 **** Provide feedback messages when no results show
 
-*** FR26 - Filter Dynamic Update
+*** FR26 - Filter.Dynamic_Update
 **** Optimize database queries
 **** Implement real-time updates upon user selection
 **** Cache result of frequently used filters for optimized performance
@@ -300,7 +300,7 @@
 **** Monitor backend API response time based on filters
 **** Create automated UI and backend tests for filter updates
 
-*** FR27 - Filter Multiple Criteria
+*** FR27 - Filter.Multiple_Criteria
 **** Add multiple filtering options in UI
 **** Implement backend logic to combine multiple filters
 **** Display selected filters for user
@@ -312,7 +312,7 @@
 **** Add option for user to view recently user filters
 
 
-*** FR28 - Filter Reset
+*** FR28 - Filter.Reset
 **** Add reset filter option in UI
 **** Ensure reset filter defaults to using no filters
 **** Handle UI updates dynamically upon reset without reloading
