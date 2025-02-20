@@ -13,9 +13,9 @@ rectangle "FR1: User.Register" as FR1 {
   rectangle "Design registration form UI in Figma" as FR1_1
   rectangle "Create registration form using React" as FR1_2
   rectangle "Implement form validation" as FR1_3
-  rectangle "Create user database schema for PostgreSQL" as FR1_4
+  rectangle "Create user database schema for MongoDB" as FR1_4
   rectangle "Develop backend API for registration using Django" as FR1_5
-  rectangle "Store credentials securely in PostgreSQL database" as FR1_6
+  rectangle "Store credentials securely in MongoDB database" as FR1_6
   rectangle "Implement email verification" as FR1_7
   rectangle "Ensure email uniqueness in the database" as FR1_8
   rectangle "Encrypt and store user passwords" as FR1_9
