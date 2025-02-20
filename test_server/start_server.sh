@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 start_django_server() {
     echo "Starting Django server..."

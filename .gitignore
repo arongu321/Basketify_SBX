@@ -1,1 +1,3 @@
 *.DS_Store
+/test_server/.basketify-venv/
+*/__pycache__
