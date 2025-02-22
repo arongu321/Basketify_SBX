@@ -100,6 +100,259 @@ rectangle "FR3: User.ChangeEmailPassword" as FR3 {
   FR3_10 --> FR3_11
 }
 
+' FR4: Dashboard.Search_Connection
+rectangle "FR4: Dashboard.Search_Connection" as FR4 {
+  rectangle "Describe objects on dashboard" as FR4_1
+  rectangle "Design layout of dashboard in Figma diagram" as FR4_2
+  rectangle "Write frontend for dashboard (HTML/CSS)" as FR4_3
+  rectangle "Create frontend search widget" as FR4_4
+  rectangle "Style dashboard to display widget in a large, visible place" as FR4_5
+  rectangle "Route user to search page for onlick of widget" as FR4_6
+  rectangle "Write Activity / UI test cases" as FR4_7
+
+  FR4_1 --> FR4_2
+  FR4_2 --> FR4_3
+  FR4_3 --> FR4_5
+  FR4_4 --> FR4_5
+  FR4_5 --> FR4_7
+  FR4_6 --> FR4_7
+}
+
+' FR5: Dashboard.Favourite_Team_Shortcut
+rectangle "FR5: Dashboard.Favourite_Team_Shortcut" as FR5 {
+  rectangle "Store user's favourite team in DB" as FR5_1
+  rectangle "Write Django 'Model' to store user and their favourite team" as FR5_2
+  rectangle "Write Django 'View' to retrieve favourite team into Model" as FR5_3
+  rectangle "Set return of Django View as JSON object" as FR5_4
+  rectangle "Set Django URL Pattern to call Django View when path 'get-fave-team/{username}' is accessed" as FR5_5
+  rectangle "Create frontend favourite team widget" as FR5_6
+  rectangle "Style dashboard to display widget in a large, visible place" as FR5_7
+  rectangle "Set widget onclick to route to get-fave-team/{username} path" as FR5_8
+  rectangle "Route user to stats page for fave team value retrieved" as FR5_9
+  rectangle "Write unit test cases for Django View function" as FR5_10
+  rectangle "Write Activity / UI test cases" as FR5_11
+
+  FR5_1 --> FR5_2
+  FR5_2 --> FR5_3
+  FR5_3 --> FR5_5
+  FR5_6 --> FR5_7
+  FR5_6 --> FR5_8
+  FR5_3 --> FR5_10
+  FR5_5 --> FR5_11
+  FR5_8 --> FR5_11
+  FR5_9 --> FR5_11
+}
+
+' FR6: Dashboard.Favourite_Player_Shortcut
+rectangle "FR6: Dashboard.Favourite_Player_Shortcut" as FR6 {
+  rectangle "Store user's favourite player in DB" as FR6_1
+  rectangle "Write Django 'Model' to store user and their fave player" as FR6_2
+  rectangle "Write Django 'View' to retrieve fave player into Model" as FR6_3
+  rectangle "Set return of Django View as JSON object" as FR6_4
+  rectangle "Set Django URL Pattern to call Django View when path 'get-fave-player/{username}' is accessed" as FR6_5
+  rectangle "Create frontend favourite player widget" as FR6_6
+  rectangle "Style dashboard to display widget in a large, visible place" as FR6_7
+  rectangle "Set widget onclick to route to get-fave-player/{username} path" as FR6_8
+  rectangle "Route user to stats page for fave player value retrieved" as FR6_9
+  rectangle "Write unit test cases for Django View function" as FR6_10
+  rectangle "Write Activity / UI test cases" as FR6_11
+
+  FR6_1 --> FR6_2
+  FR6_2 --> FR6_3
+  FR6_3 --> FR6_5
+  FR6_6 --> FR6_7
+  FR6_6 --> FR6_8
+  FR6_3 --> FR6_10
+  FR6_5 --> FR6_11
+  FR6_8 --> FR6_11
+  FR6_9 --> FR6_11
+}
+
+rectangle "Write frontend for fillable search bar" as FR7_and_8_1
+rectangle "Write user instructions: Describe wildcard matching on search page" as FR7_and_8_2
+
+' FR7: Search.Player
+rectangle "FR7: Search.Player" as FR7 {
+  rectangle "Setup MongoDB Collection for player names" as FR7_1
+  rectangle "Write server-side function to pull player names from nba_api" as FR7_2
+  rectangle "Schedule server-side function to run every 24 hours & update Collection" as FR7_3
+  rectangle "Write Django 'Model' to contain player names" as FR7_4
+  rectangle "Write Django 'View' to retrieve matching player names given regex into Model" as FR7_5
+  rectangle "Set return of Django View as JSON object of matching player names" as FR7_6
+  rectangle "Set Django URL Pattern to call Django View when path 'get-players/{regex}' is accessed" as FR7_7
+  rectangle "Create frontend list to display player names" as FR7_8
+  rectangle "Style frontend list of players to be clickable and displayed well" as FR7_9
+  rectangle "For each player name in list, set onclick to route to stats for that player 'player-stats/{player_name}'" as FR7_10
+  rectangle "Write unit test cases for Django View function" as FR7_11
+  rectangle "Write Activity / UI test cases" as FR7_12
+
+  FR7_and_8_1 --> FR7_7
+  FR7_1 --> FR7_2
+  FR7_2 --> FR7_3
+  FR7_1 --> FR7_4
+  FR7_4 --> FR7_5
+  FR7_5 --> FR7_7
+  FR7_8 --> FR7_9
+  FR7_8 --> FR7_10
+  FR7_5 --> FR7_11
+  FR7_6 --> FR7_12
+  FR7_10 --> FR7_12
+}
+
+' FR8: Search.Team
+rectangle "FR8: Search.Team" as FR8 {
+  rectangle "Setup MongoDB Collection for team names" as FR8_1
+  rectangle "Write server-side function to pull team names from nba_api" as FR8_2
+  rectangle "Schedule server-side function to run every 24 hours & update Collection" as FR8_3
+  rectangle "Write Django 'Model' to contain team names" as FR8_4
+  rectangle "Write Django 'View' to retrieve matching team names given regex into Model" as FR8_5
+  rectangle "Set return of Django View as JSON object of matching team names" as FR8_6
+  rectangle "Set Django URL Pattern to call Django View when path 'get-team/{regex}' is accessed" as FR8_7
+  rectangle "Create frontend list to display team names" as FR8_8
+  rectangle "Style frontend list of team to be clickable and displayed well" as FR8_9
+  rectangle "For each team name in list, set onclick to route to stats for that team 'team-stats/{team}'" as FR8_10
+  rectangle "Write unit test cases for Django View function" as FR8_11
+  rectangle "Write Activity / UI test cases" as FR8_12
+
+  FR7_and_8_1 --> FR8_7
+  FR8_1 --> FR8_2
+  FR8_2 --> FR8_3
+  FR8_1 --> FR8_4
+  FR8_4 --> FR8_5
+  FR8_5 --> FR8_7
+  FR8_8 --> FR8_9
+  FR8_8 --> FR8_10
+  FR8_5 --> FR8_11
+  FR8_6 --> FR8_12
+  FR8_10 --> FR8_12
+}
+
+' FR9: Display.Table
+rectangle "FR9: Display.Table" as FR9 {
+  rectangle "Setup MongoDB Collection for player & team stats for one season" as FR9_1
+  rectangle "Write server-side function to pull player & team stats from nba_api" as FR9_2
+  rectangle "Schedule server-side functions to run every 24 hours & update Collections" as FR9_3
+  rectangle "Write Django 'Model' to contain player & team stats" as FR9_4
+  rectangle "Write Django 'View' to retrieve stats for a given player & team in latest season into Model" as FR9_5
+  rectangle "Set return of Django View as JSON object of stats" as FR9_6
+  rectangle "Set Django URL Pattern to call Django View when path 'get-player(team)-stats/{player_name}/{season}' is accessed" as FR9_7
+  rectangle "Create frontend table to display retrieved stats for the player/team in one season" as FR9_8
+  rectangle "Write unit test cases for player Django View function" as FR9_9
+  rectangle "Write Activity / UI test cases for player & team stats" as FR9_10
+
+  FR9_1 --> FR9_2
+  FR9_2 --> FR9_3
+  FR9_4 --> FR9_5
+  FR9_5 --> FR9_6
+  FR9_5 --> FR9_7
+  FR9_5 --> FR9_9
+  FR9_7 --> FR9_10
+  FR9_8 --> FR9_10
+}
+
+' FR10: Table.Time_Window
+rectangle "FR10: Table.Time_Window" as FR10 {
+  rectangle "Create frontend dropdown/widget to select game or season basis for the player/team" as FR10_1
+  rectangle "Write Django 'View' to retrieve seasonally-based stats for player into Model" as FR10_2
+  rectangle "Write Django 'View' to retrieve seasonally-based stats for team into Model" as FR10_3
+  rectangle "Set value=='season-basis' of widget to direct user to path 'get-player-stats/{player_name}/seasonal'" as FR10_4
+  rectangle "Set value=='season-basis' of widget to direct user to path 'get-team-stats/{team_name}/seasonal'" as FR10_5
+  rectangle "Create frontend table to display player/team stats on seasonal basis" as FR10_6
+  rectangle "Fill frontend table with retrieved stats when page loaded" as FR10_7
+  rectangle "Write unit test cases for player Django View function" as FR10_8
+  rectangle "Write unit test cases for team Django View function" as FR10_9
+  rectangle "Write Activity / UI test cases for player seasonal stats" as FR10_10
+  rectangle "Write Activity / UI test cases for team seasonal stats" as FR10_11
+
+  FR10_1 --> FR10_2
+  FR10_1 --> FR10_3
+  FR10_4 --> FR10_6
+  FR10_5 --> FR10_6
+  FR10_6 --> FR10_7
+  FR10_2 --> FR10_8
+  Fr10_3 --> FR10_9
+  FR10_4 --> FR10_10
+  FR10_5 --> FR10_11
+  FR10_6 --> FR10_10
+  FR10_6 --> FR10_11
+}
+
+' FR11: Display.Graph
+rectangle "FR11: Display.Graph" as FR11 {
+  rectangle "Create frontend widget to select stats view in table or graph format" as FR11_1
+  rectangle "Set onClick of widget to direct user to path of current + '/graph'" as FR11_2
+  rectangle "Create frontend graph display area" as FR11_3
+  rectangle "Create frontend list of stats to select from" as FR11_4
+  rectangle "Create frontend widget to select to view stats on game or season basis" as FR11_5
+  rectangle "Write Activity / UI test cases for navigating to blank stats graph" as FR11_6
+
+  FR11_1 --> FR11_2
+  FR11_2 --> FR11_6
+  FR11_3 --> FR11_6
+  FR11_4 --> FR11_6
+  FR11_5 --> FR11_6
+}
+
+' FR12: Graph.Select_Stat
+rectangle "FR12: Graph.Select_Stat" as FR12 {
+  rectangle "Write Django 'Model' to contain player time-series stats" as FR12_1
+  rectangle "Write Django 'Model' to contain team time-series stats" as FR12_2
+  rectangle "Write Django 'View' to retrieve player time-series stats into Model based on player name" as FR12_3
+  rectangle "Write Django 'View' to retrieve team time-series stats into Model based on team name" as FR12_4
+  rectangle "Set onClick of stats selector to append '/{stat_name}' to path" as FR12_5
+  rectangle "Restrict user from having more than 2 stats selected at a time" as FR12_6
+  rectangle "Display 2 y-axes if 2 stats are selected" as FR12_7
+  rectangle "Display time series of selected stats when page is loaded" as FR12_8
+  rectangle "Style the graph: titles given selected stats, coloring of series, legend" as FR12_9
+
+  FR12_1 --> FR12_3
+  FR12_2 --> FR12_4
+  FR11_4 --> FR12_6
+  FR12_5 --> FR12_7
+  FR12_5 --> FR12_8
+  FR12_8 --> FR12_9
+}
+
+' FR13: Graph.Deselect_Stat
+rectangle "FR13: Graph.Deselect_Stat" as FR13 {
+  rectangle "Set variable holding selected stats based on path" as FR13_1
+  rectangle "Add checkSelected(stat_name) JS function: return true if stat_name currently selected" as FR13_2
+  rectangle "Set onClick of stats selector to remove {stat_name} from path if checkSelected(stat_name) is true" as FR13_3
+
+  FR13_1 --> FR11_4
+  FR13_1 --> FR13_2
+  FR13_2 --> FR13_3
+}
+
+' FR14: Graph.Hover
+rectangle "FR14: Graph.Hover" as FR14 {
+  rectangle "Use Plotly.js to display graph of stats" as FR14_1
+  rectangle "Config Plotly.js graph to be hoverable" as FR14_2
+  rectangle "Style graph hover box to show axes values" as FR14_3
+  rectangle "Handle case for 2 stats being displayed (2 y-axis values)" as FR14_4
+
+  FR14_1 --> FR14_2
+  FR14_2 --> FR14_3
+  FR12_7 --> FR14_4
+  FR14_1 --> FR14_4
+}
+
+' FR15: Graph.Time_Window
+rectangle "FR15: Graph.Time_Window" as FR15 {
+  rectangle "Write Django 'Model' to contain player or team time-series stat on seasonal basis" as FR15_1
+  rectangle "Write Django 'View' to retrieve player time-series seasonal stat into Model based on player name" as FR15_2
+  rectangle "Write Django 'View' to retrieve team time-series seasonal stat into Model based on team name" as FR15_3
+  rectangle "Create frontend widget for user to select to view stat(s) on a game or seasonal basis" as FR15_4
+  rectangle "Set widget onClick to append/remove '/seasonal' to current path" as FR15_5
+  rectangle "Scale x-axis to fit only seasons the player/team have been active" as FR15_6
+
+  FR15_1 --> FR15_2
+  FR15_1 --> FR15_3
+  FR15_4 --> FR15_5
+  FR15_2 --> FR15_5
+  FR15_3 --> FR15_5
+}
+
 ' FR16: ML Player Prompt
 rectangle "FR16: ML.Player_Prompt" as FR16 {
   rectangle "Create UI form to enter player name" as FR16_1
