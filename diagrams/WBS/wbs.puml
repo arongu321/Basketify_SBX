@@ -183,97 +183,132 @@
 
 ** Player/Team Forecast (FR16 - FR18)
 *** FR16 - ML.Player_Prompt
-**** Create UI form to enter player name
-**** Validate player name input before submission
-**** Write Django "View" to retrieve player's past game stats from DB
-**** Write Django "Model" to store player time-series statistics
-**** Implement API call to ML model to predict stats
-**** Display ML predictions on frontend dynamically
-**** Handle API errors and display fallback messages
-**** Write unit tests for ML integration and API calls
+**** Design UI form for player selection using React
+**** Implement search functionality for quick player selection
+**** Validate player name input (handle incorrect, partial, or ambiguous names)
+**** Write Django "View" to fetch player's historical game stats from MongoDB
+**** Develop a data transformation pipeline for preprocessing player stats
+**** Implement API call to ML model for player performance prediction
+**** Store ML predictions in MongoDB for caching and analysis
+**** Display ML predictions dynamically on the frontend
+**** Implement UI indicators for ML prediction confidence scores
+**** Handle API errors and implement a retry mechanism for model failures
+**** Develop backend logging to track incorrect or missing predictions
+**** Write unit tests for ML integration, frontend updates, and error handling
 
 *** FR17 - ML.Team_Prompt
-**** Create UI form to enter team name
-**** Validate team name input before submission
-**** Write Django "View" to retrieve team’s historical performance data
-**** Write Django "Model" to store team time-series statistics
-**** Implement API call to ML model to predict team performance
-**** Display forecasted team stats on frontend
-**** Optimize data retrieval for fast API responses
-**** Write unit tests for ML accuracy and database queries
+**** Create UI dropdown to select a team for predictions
+**** Implement an autofill mechanism for quick team selection
+**** Validate team selection input (handle incorrect or missing teams)
+**** Write Django "View" to fetch team historical performance data
+**** Develop a pre-processing pipeline to clean and aggregate team statistics
+**** Implement API call to ML model to generate team forecasts
+**** Store ML-predicted team stats in MongoDB for retrieval
+**** Display forecasted team statistics dynamically on the UI
+**** Implement UI indicators to show ML model confidence intervals
+**** Handle errors and implement API fallback solutions
+**** Develop backend monitoring to detect and log incorrect forecasts
+**** Write unit tests for Django views, ML integration, and UI updates
 
 *** FR18 - ML.Forecast
-**** Setup MongoDB collection to store forecasted stats
-**** Write scheduled backend job to update forecasts periodically
-**** Store ML prediction confidence scores alongside stats
-**** Create frontend widget to toggle between actual vs predicted stats
-**** Implement UI highlighting for forecast accuracy (green = high, red = low)
-**** Enable comparison between predicted and actual performance
-**** Log incorrect predictions to improve ML training
-**** Develop admin panel to monitor ML performance metrics
+**** Setup MongoDB collection to store forecasted stats for both players and teams
+**** Write scheduled backend job to update ML forecasts periodically
+**** Implement version control for ML models to compare different prediction models
+**** Store ML prediction confidence scores alongside forecasted stats
+**** Implement real-time performance tracking for ML forecasts
+**** Develop frontend widget to toggle between actual vs predicted stats
+**** Enable graph overlays to compare ML-predicted and real-world stats
+**** Log incorrect predictions to refine and retrain ML models
+**** Optimize MongoDB queries for efficient retrieval of forecast data
+**** Develop an admin panel to visualize and monitor ML forecast accuracy
+**** Implement API to retrieve forecast accuracy history for developers
+**** Write unit and integration tests for forecast pipeline, caching, and model validation
 
 ** Predict Win/Loss (FR19 - FR20)
 *** FR19 - ML.Team_Prompt
-**** Develop UI dropdown to select a team for prediction
-**** Ensure API retrieves the latest available team roster data
-**** Implement data pre-processing pipeline for ML predictions
-**** Write Django "View" to retrieve matchup history for selected team
-**** Pass matchup statistics to ML model for inference
-**** Display confidence percentage for predicted outcomes
-**** Optimize API responses to ensure predictions load under 2s
-**** Write test cases for win/loss prediction accuracy
+**** Develop UI dropdown for team selection in win/loss prediction
+**** Implement an autofill mechanism to enhance UX for selecting teams
+**** Fetch latest team rosters from nba_api for more accurate predictions
+**** Develop a pre-processing pipeline for matchup history analysis
+**** Write Django "View" to fetch matchup history and win/loss trends
+**** Implement API call to ML model for win probability calculation
+**** Store ML-generated win/loss predictions in MongoDB for analysis
+**** Implement real-time probability updates before game start
+**** Display confidence percentage alongside predicted outcomes
+**** Develop frontend UI elements to compare team stats before prediction
+**** Implement logging and analytics to track ML accuracy over time
+**** Write unit and integration tests for Django API, ML model, and UI
 
 *** FR20 - ML.Predict_WinLoss
-**** Store previous game results and predictions for comparison
-**** Implement backend job to compute prediction success rate
-**** Update UI to show percentage of correct predictions in past games
-**** Implement real-time match data fetching to improve ML input
-**** Integrate rolling win probability updates for live games
-**** Develop fallback mechanism if ML model fails to return predictions
-**** Provide team matchups analysis alongside ML predictions
-**** Conduct A/B testing on different ML models for accuracy
+**** Store previous game results and ML predictions for comparison
+**** Implement backend job to compute ML model prediction success rate
+**** Develop an API to provide historical win/loss prediction accuracy
+**** Display UI statistics showing accuracy of previous predictions
+**** Implement real-time match data fetching to improve ML model accuracy
+**** Introduce rolling win probability updates for ongoing live games
+**** Develop a fallback mechanism to reprocess predictions in case of missing data
+**** Provide pre-match team matchup analysis alongside win probability
+**** Enable users to compare ML win/loss predictions with expert opinions
+**** Implement logging for incorrectly predicted games for ML model refinement
+**** Conduct A/B testing with different ML architectures for optimal prediction
+**** Write automated tests for ML accuracy, Django views, and UI components
 
 ** Predict NBA Champion (FR21 - FR22)
 *** FR21 - ML.Predict_Champion
-**** Aggregate season-long statistics for all teams
-**** Implement ML training pipeline for playoff and final predictions
-**** Store championship predictions in a MongoDB collection
-**** Write Django "View" to retrieve latest championship predictions
-**** Create frontend component to display updated predictions
-**** Provide confidence intervals for each team’s championship odds
-**** Enable visualization of probability changes throughout the season
-**** Log prediction errors and refine ML model training data
+**** Aggregate season-long statistics for all teams in MongoDB
+**** Implement ML model pipeline to predict playoff progression probabilities
+**** Develop feature importance analysis to identify key championship predictors
+**** Store ML-generated championship predictions in MongoDB
+**** Implement an API to fetch the latest championship projections
+**** Develop frontend visualizations for championship odds over time
+**** Implement UI indicators for confidence intervals in champion prediction
+**** Optimize database queries to retrieve team championship probability efficiently
+**** Enable visualization of probability fluctuations over the season
+**** Log incorrect predictions and retrain ML model with updated historical data
+**** Implement an admin panel to track the performance of the championship predictor
+**** Write unit tests to validate data integrity in the championship prediction pipeline
 
 *** FR22 - ML.Display_Champion
-**** Design UI component to showcase predicted NBA champion
-**** Implement historical comparison feature (e.g., last 5 seasons)
-**** Add graph visualization for championship odds fluctuation
-**** Display reasoning behind ML prediction (e.g., key player stats)
-**** Optimize query performance for fast retrieval of predictions
-**** Enable filtering predictions based on player injuries or trades
-**** Allow user to compare ML predictions vs expert analyst picks
-**** Test UI responsiveness on mobile and desktop versions
+**** Design an interactive UI component to showcase championship predictions
+**** Implement historical championship comparison (e.g., previous 5 seasons)
+**** Develop graph visualization to illustrate championship odds fluctuations
+**** Implement ML explainability features to display reasoning behind predictions
+**** Optimize Django query performance for fast championship retrieval
+**** Enable filtering predictions based on key factors (injuries, trades, streaks)
+**** Provide an option to compare ML predictions against human expert picks
+**** Display championship insights dynamically based on real-time team performance
+**** Write UI responsiveness tests to ensure optimal performance on all devices
+**** Implement caching mechanisms to avoid excessive recomputation
+**** Log user interactions to analyze most viewed championship insights
+**** Develop an API for external applications to fetch championship predictions
 
 ** Log ML Performance (FR23 - FR24)
 *** FR23 - ML.Compare
-**** Retrieve past game results and compare with ML predictions
-**** Develop automated script to generate accuracy reports
-**** Store accuracy metrics in a database for long-term analysis
-**** Display ML accuracy trends on the admin dashboard
+**** Retrieve past game results and ML predictions for comparison
+**** Develop an automated script to generate ML accuracy reports
+**** Store prediction accuracy metrics in a dedicated MongoDB collection
+**** Display ML accuracy trends on the admin dashboard with visualizations
 **** Implement backend logic to flag consistently inaccurate predictions
-**** Enable automatic retraining of ML models based on error rates
-**** Provide real-time visualization of prediction confidence vs accuracy
-**** Log misclassified outcomes and provide explanations for failures
+**** Develop a monitoring system to identify degrading ML performance
+**** Automate accuracy validation with real-time prediction comparisons
+**** Implement alerts for sudden accuracy drops in ML models
+**** Enable developers to request re-evaluation of past predictions
+**** Log errors and incorrect forecasts for debugging and retraining
+**** Write API to expose ML performance metrics for external integrations
+**** Implement scheduled reports on model performance improvements
 
 *** FR24 - ML.Feedback_Loop
-**** Design mechanism to retrain ML models with new season data
-**** Implement periodic model evaluations based on stored accuracy data
-**** Store model performance scores and hyperparameters in DB
-**** Develop admin interface to manually trigger model retraining
-**** Optimize ML retraining process to avoid service downtime
-**** Introduce adaptive learning techniques for improving model predictions
-**** Implement real-time feedback system for users to rate prediction quality
-**** Develop ML monitoring tools to detect anomalies in prediction trends
+**** Design ML retraining workflows based on accuracy feedback
+**** Implement periodic evaluations of stored prediction accuracy data
+**** Store ML model hyperparameters and version control history
+**** Develop an admin interface to manually trigger model retraining
+**** Optimize ML retraining to ensure minimal downtime in live predictions
+**** Introduce self-learning mechanisms for continuous ML improvement
+**** Implement real-time user feedback on ML predictions for refinement
+**** Develop alert system for anomalies detected in ML performance trends
+**** Implement comparison of different ML retraining strategies
+**** Store retrained model logs for auditing and debugging
+**** Write automated tests for feedback integration in ML retraining pipeline
 
 ** Statistics Filtering (FR25 - FR28)
 *** FR25 - Filter.Criteria_Display

@@ -355,105 +355,152 @@ rectangle "FR15: Graph.Time_Window" as FR15 {
 
 ' FR16: ML Player Prompt
 rectangle "FR16: ML.Player_Prompt" as FR16 {
-  rectangle "Create UI form to enter player name" as FR16_1
-  rectangle "Validate player name input before submission" as FR16_2
-  rectangle "Write Django View to retrieve player's past game stats" as FR16_3
-  rectangle "Write Django Model to store player statistics" as FR16_4
-  rectangle "Implement API call to ML model for prediction" as FR16_5
-  rectangle "Display ML predictions on frontend dynamically" as FR16_6
-  rectangle "Handle API errors and display fallback messages" as FR16_7
-  rectangle "Write unit tests for ML integration and API calls" as FR16_8
+  rectangle "Design UI form for player selection using React" as FR16_1
+  rectangle "Implement search functionality for quick player selection" as FR16_2
+  rectangle "Validate player name input (handle incorrect, partial, or ambiguous names)" as FR16_3
+  rectangle "Write Django View to fetch player's historical game stats from MongoDB" as FR16_4
+  rectangle "Develop a data transformation pipeline for preprocessing player stats" as FR16_5
+  rectangle "Implement API call to ML model for player performance prediction" as FR16_6
+  rectangle "Store ML predictions in MongoDB for caching and analysis" as FR16_7
+  rectangle "Display ML predictions dynamically on the frontend" as FR16_8
+  rectangle "Implement UI indicators for ML prediction confidence scores" as FR16_9
+  rectangle "Handle API errors and implement a retry mechanism for model failures" as FR16_10
+  rectangle "Develop backend logging to track incorrect or missing predictions" as FR16_11
+  rectangle "Write unit tests for ML integration, frontend updates, and error handling" as FR16_12
 
   FR16_1 --> FR16_2
   FR16_2 --> FR16_3
   FR16_3 --> FR16_4
   FR16_4 --> FR16_5
   FR16_5 --> FR16_6
-  FR16_5 --> FR16_7
-  FR16_6 --> FR16_8
+  FR16_6 --> FR16_7
   FR16_7 --> FR16_8
-  FR16_3 --> FR16_5
+  FR16_6 --> FR16_9
+  FR16_8 --> FR16_10
+  FR16_9 --> FR16_11
+  FR16_10 --> FR16_11
+  FR16_7 --> FR16_12
+  FR16_11 --> FR16_5
+  FR16_11 --> FR16_9
+  FR16_8 --> FR16_12
   FR16_4 --> FR16_6
+  FR16_3 --> FR16_5
 }
 
 ' FR17: ML Team Prompt
 rectangle "FR17: ML.Team_Prompt" as FR17 {
-  rectangle "Create UI form to enter team name" as FR17_1
-  rectangle "Validate team name input before submission" as FR17_2
-  rectangle "Write Django View to retrieve team’s historical performance" as FR17_3
-  rectangle "Write Django Model to store team statistics" as FR17_4
-  rectangle "Implement API call to ML model for team prediction" as FR17_5
-  rectangle "Display forecasted team stats on frontend" as FR17_6
-  rectangle "Optimize data retrieval for fast API responses" as FR17_7
-  rectangle "Write unit tests for ML accuracy and database queries" as FR17_8
+  rectangle "Create UI dropdown to select a team for predictions" as FR17_1
+  rectangle "Implement an autofill mechanism for quick team selection" as FR17_2
+  rectangle "Validate team selection input (handle incorrect or missing teams)" as FR17_3
+  rectangle "Write Django View to fetch team historical performance data" as FR17_4
+  rectangle "Develop a pre-processing pipeline to clean and aggregate team statistics" as FR17_5
+  rectangle "Implement API call to ML model to generate team forecasts" as FR17_6
+  rectangle "Store ML-predicted team stats in MongoDB for retrieval" as FR17_7
+  rectangle "Display forecasted team statistics dynamically on the UI" as FR17_8
+  rectangle "Implement UI indicators to show ML model confidence intervals" as FR17_9
+  rectangle "Handle errors and implement API fallback solutions" as FR17_10
+  rectangle "Develop backend monitoring to detect and log incorrect forecasts" as FR17_11
+  rectangle "Write unit tests for Django views, ML integration, and UI updates" as FR17_12
 
   FR17_1 --> FR17_2
   FR17_2 --> FR17_3
   FR17_3 --> FR17_4
   FR17_4 --> FR17_5
   FR17_5 --> FR17_6
-  FR17_5 --> FR17_7
-  FR17_6 --> FR17_8
+  FR17_6 --> FR17_7
   FR17_7 --> FR17_8
-  FR17_3 --> FR17_5
+  FR17_6 --> FR17_9
+  FR17_8 --> FR17_10
+  FR17_9 --> FR17_11
+  FR17_10 --> FR17_11
+  FR17_7 --> FR17_12
+  FR17_11 --> FR17_5
+  FR17_11 --> FR17_9
+  FR17_8 --> FR17_12
   FR17_4 --> FR17_6
+  FR17_3 --> FR17_5
 }
 
 ' FR18: ML Forecast
 rectangle "FR18: ML.Forecast" as FR18 {
-  rectangle "Setup MongoDB collection to store forecasts" as FR18_1
-  rectangle "Write scheduled backend job to update forecasts" as FR18_2
-  rectangle "Store ML prediction confidence scores" as FR18_3
-  rectangle "Create frontend widget to toggle actual vs predicted stats" as FR18_4
-  rectangle "Implement UI highlighting for forecast accuracy" as FR18_5
-  rectangle "Enable comparison between predicted and actual stats" as FR18_6
-  rectangle "Log incorrect predictions for ML retraining" as FR18_7
-  rectangle "Develop admin panel for monitoring ML performance" as FR18_8
+  rectangle "Setup MongoDB collection for storing forecasted stats" as FR18_1
+  rectangle "Write scheduled backend job to update ML forecasts periodically" as FR18_2
+  rectangle "Implement version control for ML models to compare different prediction models" as FR18_3
+  rectangle "Store ML prediction confidence scores alongside forecasted stats" as FR18_4
+  rectangle "Implement real-time performance tracking for ML forecasts" as FR18_5
+  rectangle "Develop frontend widget to toggle between actual vs predicted stats" as FR18_6
+  rectangle "Enable graph overlays to compare ML-predicted and real-world stats" as FR18_7
+  rectangle "Log incorrect predictions to refine and retrain ML models" as FR18_8
+  rectangle "Optimize MongoDB queries for efficient retrieval of forecast data" as FR18_9
+  rectangle "Develop an admin panel to visualize and monitor ML forecast accuracy" as FR18_10
+  rectangle "Implement API to retrieve forecast accuracy history for developers" as FR18_11
+  rectangle "Write unit and integration tests for forecast pipeline, caching, and model validation" as FR18_12
 
   FR18_1 --> FR18_2
   FR18_2 --> FR18_3
   FR18_3 --> FR18_4
-  FR18_3 --> FR18_5
-  FR18_4 --> FR18_6
+  FR18_4 --> FR18_5
   FR18_5 --> FR18_6
   FR18_6 --> FR18_7
   FR18_7 --> FR18_8
-  FR18_3 --> FR18_6
-  FR18_7 --> FR18_2
+  FR18_8 --> FR18_9
+  FR18_9 --> FR18_10
+  FR18_10 --> FR18_11
+  FR18_11 --> FR18_12
+  FR18_8 --> FR18_2
+  FR18_6 --> FR18_12
+  FR18_7 --> FR18_10
+  FR18_3 --> FR18_11
+  FR18_9 --> FR18_6
 }
 
-' FR19: ML Team Prompt (Win/Loss)
-rectangle "FR19: ML.Team_Prompt (Win/Loss)" as FR19 {
-  rectangle "Develop UI dropdown to select a team for prediction" as FR19_1
-  rectangle "Ensure API retrieves latest team roster data" as FR19_2
-  rectangle "Implement data pre-processing pipeline for ML" as FR19_3
-  rectangle "Write Django View to retrieve team matchup history" as FR19_4
-  rectangle "Pass matchup statistics to ML model" as FR19_5
-  rectangle "Display confidence percentage for predictions" as FR19_6
-  rectangle "Optimize API responses for fast loading" as FR19_7
-  rectangle "Write test cases for win/loss accuracy" as FR19_8
+' FR19: ML Team Prompt (Win/Loss Prediction)
+rectangle "FR19: ML.Team_Prompt" as FR19 {
+  rectangle "Develop UI dropdown for team selection in win/loss prediction" as FR19_1
+  rectangle "Implement an autofill mechanism to enhance UX for selecting teams" as FR19_2
+  rectangle "Fetch latest team rosters from nba_api for more accurate predictions" as FR19_3
+  rectangle "Develop a pre-processing pipeline for matchup history analysis" as FR19_4
+  rectangle "Write Django View to fetch matchup history and win/loss trends" as FR19_5
+  rectangle "Implement API call to ML model for win probability calculation" as FR19_6
+  rectangle "Store ML-generated win/loss predictions in MongoDB for analysis" as FR19_7
+  rectangle "Implement real-time probability updates before game start" as FR19_8
+  rectangle "Display confidence percentage alongside predicted outcomes" as FR19_9
+  rectangle "Develop frontend UI elements to compare team stats before prediction" as FR19_10
+  rectangle "Implement logging and analytics to track ML accuracy over time" as FR19_11
+  rectangle "Write unit and integration tests for Django API, ML model, and UI" as FR19_12
 
   FR19_1 --> FR19_2
   FR19_2 --> FR19_3
   FR19_3 --> FR19_4
   FR19_4 --> FR19_5
   FR19_5 --> FR19_6
-  FR19_5 --> FR19_7
-  FR19_6 --> FR19_8
+  FR19_6 --> FR19_7
   FR19_7 --> FR19_8
-  FR19_4 --> FR19_6
+  FR19_6 --> FR19_9
+  FR19_8 --> FR19_10
+  FR19_9 --> FR19_11
+  FR19_10 --> FR19_12
+  FR19_11 --> FR19_4
+  FR19_11 --> FR19_8
+  FR19_6 --> FR19_12
+  FR19_5 --> FR19_10
+  FR19_7 --> FR19_9
 }
 
 ' FR20: ML Predict Win/Loss
 rectangle "FR20: ML.Predict_WinLoss" as FR20 {
-  rectangle "Store previous game results for comparison" as FR20_1
-  rectangle "Implement backend job to compute accuracy" as FR20_2
-  rectangle "Update UI with past prediction success rates" as FR20_3
-  rectangle "Implement real-time data fetching for ML updates" as FR20_4
-  rectangle "Enable rolling win probability updates for live games" as FR20_5
-  rectangle "Develop fallback mechanism for ML failures" as FR20_6
-  rectangle "Provide team matchup analysis alongside predictions" as FR20_7
-  rectangle "A/B test different ML models for best accuracy" as FR20_8
+  rectangle "Store previous game results and ML predictions for comparison" as FR20_1
+  rectangle "Implement backend job to compute ML model prediction success rate" as FR20_2
+  rectangle "Develop an API to provide historical win/loss prediction accuracy" as FR20_3
+  rectangle "Display UI statistics showing accuracy of previous predictions" as FR20_4
+  rectangle "Implement real-time match data fetching to improve ML model accuracy" as FR20_5
+  rectangle "Introduce rolling win probability updates for ongoing live games" as FR20_6
+  rectangle "Develop a fallback mechanism to reprocess predictions in case of missing data" as FR20_7
+  rectangle "Provide pre-match team matchup analysis alongside win probability" as FR20_8
+  rectangle "Enable users to compare ML win/loss predictions with expert opinions" as FR20_9
+  rectangle "Implement logging for incorrectly predicted games for ML model refinement" as FR20_10
+  rectangle "Conduct A/B testing with different ML architectures for optimal prediction" as FR20_11
+  rectangle "Write automated tests for ML accuracy, Django views, and UI components" as FR20_12
 
   FR20_1 --> FR20_2
   FR20_2 --> FR20_3
@@ -462,19 +509,31 @@ rectangle "FR20: ML.Predict_WinLoss" as FR20 {
   FR20_5 --> FR20_6
   FR20_6 --> FR20_7
   FR20_7 --> FR20_8
-  FR20_3 --> FR20_5
+  FR20_8 --> FR20_9
+  FR20_9 --> FR20_10
+  FR20_10 --> FR20_11
+  FR20_11 --> FR20_12
+  FR20_10 --> FR20_2
+  FR20_3 --> FR20_6
+  FR20_6 --> FR20_7
+  FR20_7 --> FR20_9
+  FR20_8 --> FR20_12
 }
 
-' FR21: ML Predict Champion
+' FR21: ML Predict NBA Champion
 rectangle "FR21: ML.Predict_Champion" as FR21 {
-  rectangle "Aggregate season-long stats for all teams" as FR21_1
-  rectangle "Train ML pipeline for playoff predictions" as FR21_2
-  rectangle "Store championship predictions in DB" as FR21_3
-  rectangle "Write Django View to fetch championship predictions" as FR21_4
-  rectangle "Create frontend component for championship updates" as FR21_5
-  rectangle "Provide confidence intervals for predictions" as FR21_6
-  rectangle "Enable visualization of probability changes" as FR21_7
-  rectangle "Log incorrect predictions for model improvement" as FR21_8
+  rectangle "Aggregate season-long statistics for all teams in MongoDB" as FR21_1
+  rectangle "Implement ML model pipeline to predict playoff progression probabilities" as FR21_2
+  rectangle "Develop feature importance analysis to identify key championship predictors" as FR21_3
+  rectangle "Store ML-generated championship predictions in MongoDB" as FR21_4
+  rectangle "Implement an API to fetch the latest championship projections" as FR21_5
+  rectangle "Develop frontend visualizations for championship odds over time" as FR21_6
+  rectangle "Implement UI indicators for confidence intervals in champion prediction" as FR21_7
+  rectangle "Optimize database queries to retrieve team championship probability efficiently" as FR21_8
+  rectangle "Enable visualization of probability fluctuations over the season" as FR21_9
+  rectangle "Log incorrect predictions and retrain ML model with updated historical data" as FR21_10
+  rectangle "Implement an admin panel to track the performance of the championship predictor" as FR21_11
+  rectangle "Write unit tests to validate data integrity in the championship prediction pipeline" as FR21_12
 
   FR21_1 --> FR21_2
   FR21_2 --> FR21_3
@@ -483,7 +542,112 @@ rectangle "FR21: ML.Predict_Champion" as FR21 {
   FR21_5 --> FR21_6
   FR21_6 --> FR21_7
   FR21_7 --> FR21_8
-  FR21_3 --> FR21_6
+  FR21_8 --> FR21_9
+  FR21_9 --> FR21_10
+  FR21_10 --> FR21_11
+  FR21_11 --> FR21_12
+  FR21_10 --> FR21_2
+  FR21_4 --> FR21_7
+  FR21_6 --> FR21_9
+  FR21_3 --> FR21_10
+  FR21_7 --> FR21_12
+}
+
+' FR22: ML Display NBA Champion
+rectangle "FR22: ML.Display_Champion" as FR22 {
+  rectangle "Design an interactive UI component to showcase championship predictions" as FR22_1
+  rectangle "Implement historical championship comparison (e.g., previous 5 seasons)" as FR22_2
+  rectangle "Develop graph visualization to illustrate championship odds fluctuations" as FR22_3
+  rectangle "Implement ML explainability features to display reasoning behind predictions" as FR22_4
+  rectangle "Optimize Django query performance for fast championship retrieval" as FR22_5
+  rectangle "Enable filtering predictions based on key factors (injuries, trades, streaks)" as FR22_6
+  rectangle "Provide an option to compare ML predictions against human expert picks" as FR22_7
+  rectangle "Display championship insights dynamically based on real-time team performance" as FR22_8
+  rectangle "Write UI responsiveness tests to ensure optimal performance on all devices" as FR22_9
+  rectangle "Implement caching mechanisms to avoid excessive recomputation" as FR22_10
+  rectangle "Log user interactions to analyze most viewed championship insights" as FR22_11
+  rectangle "Develop an API for external applications to fetch championship predictions" as FR22_12
+
+  FR22_1 --> FR22_2
+  FR22_2 --> FR22_3
+  FR22_3 --> FR22_4
+  FR22_4 --> FR22_5
+  FR22_5 --> FR22_6
+  FR22_6 --> FR22_7
+  FR22_7 --> FR22_8
+  FR22_8 --> FR22_9
+  FR22_9 --> FR22_10
+  FR22_10 --> FR22_11
+  FR22_11 --> FR22_12
+  FR22_10 --> FR22_5
+  FR22_6 --> FR22_12
+  FR22_4 --> FR22_7
+  FR22_8 --> FR22_11
+  FR22_3 --> FR22_9
+}
+
+' FR23: ML Compare
+rectangle "FR23: ML.Compare" as FR23 {
+  rectangle "Retrieve past game results and ML predictions for comparison" as FR23_1
+  rectangle "Develop an automated script to generate ML accuracy reports" as FR23_2
+  rectangle "Store prediction accuracy metrics in a dedicated MongoDB collection" as FR23_3
+  rectangle "Display ML accuracy trends on the admin dashboard with visualizations" as FR23_4
+  rectangle "Implement backend logic to flag consistently inaccurate predictions" as FR23_5
+  rectangle "Develop a monitoring system to identify degrading ML performance" as FR23_6
+  rectangle "Automate accuracy validation with real-time prediction comparisons" as FR23_7
+  rectangle "Implement alerts for sudden accuracy drops in ML models" as FR23_8
+  rectangle "Enable developers to request re-evaluation of past predictions" as FR23_9
+  rectangle "Log errors and incorrect forecasts for debugging and retraining" as FR23_10
+  rectangle "Write API to expose ML performance metrics for external integrations" as FR23_11
+  rectangle "Implement scheduled reports on model performance improvements" as FR23_12
+
+  FR23_1 --> FR23_2
+  FR23_2 --> FR23_3
+  FR23_3 --> FR23_4
+  FR23_4 --> FR23_5
+  FR23_5 --> FR23_6
+  FR23_6 --> FR23_7
+  FR23_7 --> FR23_8
+  FR23_8 --> FR23_9
+  FR23_9 --> FR23_10
+  FR23_10 --> FR23_11
+  FR23_11 --> FR23_12
+  FR23_10 --> FR23_2
+  FR23_3 --> FR23_6
+  FR23_4 --> FR23_8
+  FR23_7 --> FR23_10
+  FR23_5 --> FR23_12
+}
+
+' FR24: ML Feedback Loop
+rectangle "FR24: ML.Feedback_Loop" as FR24 {
+  rectangle "Design ML retraining workflows based on accuracy feedback" as FR24_1
+  rectangle "Implement periodic evaluations of stored prediction accuracy data" as FR24_2
+  rectangle "Store ML model hyperparameters and version control history" as FR24_3
+  rectangle "Develop an admin interface to manually trigger model retraining" as FR24_4
+  rectangle "Optimize ML retraining to ensure minimal downtime in live predictions" as FR24_5
+  rectangle "Introduce self-learning mechanisms for continuous ML improvement" as FR24_6
+  rectangle "Implement real-time user feedback on ML predictions for refinement" as FR24_7
+  rectangle "Develop alert system for anomalies detected in ML performance trends" as FR24_8
+  rectangle "Implement comparison of different ML retraining strategies" as FR24_9
+  rectangle "Store retrained model logs for auditing and debugging" as FR24_10
+  rectangle "Write automated tests for feedback integration in ML retraining pipeline" as FR24_11
+
+  FR24_1 --> FR24_2
+  FR24_2 --> FR24_3
+  FR24_3 --> FR24_4
+  FR24_4 --> FR24_5
+  FR24_5 --> FR24_6
+  FR24_6 --> FR24_7
+  FR24_7 --> FR24_8
+  FR24_8 --> FR24_9
+  FR24_9 --> FR24_10
+  FR24_10 --> FR24_11
+  FR24_10 --> FR24_2
+  FR24_6 --> FR24_9
+  FR24_3 --> FR24_8
+  FR24_7 --> FR24_11
+  FR24_5 --> FR24_10
 }
 
 ' FR25: Filter Criteria Display
