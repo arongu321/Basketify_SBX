@@ -1,4 +1,8 @@
 asgiref==3.8.1
+DateTime==5.5
 Django==5.1.6
 django-cors-headers==4.7.0
+pytz==2025.1
+setuptools==75.8.0
 sqlparse==0.5.3
+zope.interface==7.2

@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import axios from 'axios';
+import Login from './components/Login';
+import SearchInterface from './components/SearchInterface';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -15,9 +18,36 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <h1>{message}</h1>
-    </div>
+    <Router>
+      <div>
+        <Routes>
+          {/* Home route with navigation */}
+          <Route
+            path="/"
+            element={
+              <>
+                <h1>Message from Django server: {message}</h1>
+                <p>Click on the links below to go to other pages:</p>
+                <ul>
+                  <li>
+                    <Link to="/login">Go to Login</Link>
+                  </li>
+                  <li>
+                    <Link to="/search">Go to Search Interface</Link>
+                  </li>
+                </ul>
+              </>
+            }
+          />
+          
+          {/* Login route */}
+          <Route path="/login" element={<Login />} />
+          
+          {/* Search Interface route */}
+          <Route path="/search" element={<SearchInterface />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

@@ -18,7 +18,7 @@ start_django_server() {
 
     # wait for Django server to be ready
     echo "Waiting for Django server to be up..."
-    while ! curl -s http://localhost:8000 > /dev/null; do
+    while ! curl -s http://localhost:8000/api > /dev/null; do
       sleep 1
     done
     echo "Django server is up and running!"
@@ -30,6 +30,7 @@ start_react_server() {
 
     # install dependencies (if not installed already)
     npm install
+    npm install react-router-dom
 
     # run the React server
     npm start &
