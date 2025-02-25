@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useParams } from 'react-router-dom'; // import useParams
 
-function StatsPage({ match }) {
-  const { type, name } = match.params; // Extract 'type' (player/team) and 'name' from the URL
+function StatsPage() {
+  const { type, name } = useParams(); // Get 'type' and 'name' from the URL using useParams
   const [statsData, setStatsData] = useState([]);
   const [loading, setLoading] = useState(true);
 

@@ -22,10 +22,17 @@ function SearchInterface() {
 
   // Function to handle the search
   const handleSearch = () => {
-    const url = `http://localhost:8000/api/search-${searchType}`;
+    const url = searchType === 'player'
+      ? 'http://localhost:8000/api/search-player'
+      : 'http://localhost:8000/api/search-team';
+
     axios.get(url, { params: { name: searchTerm } })
       .then(response => {
-        setSearchResults(response.data.results);  // Assume response contains 'results'
+        if (searchType === 'player') {
+          setSearchResults(response.data.players); // Assume response contains 'players'
+        } else {
+          setSearchResults(response.data.teams); // Assume response contains 'teams'
+        }
       })
       .catch(error => {
         console.error("Error fetching search results:", error);
@@ -44,8 +51,18 @@ function SearchInterface() {
       <p>{message}</p>
 
       <div>
-        <button onClick={() => setSearchType('player')}>Search Players</button>
-        <button onClick={() => setSearchType('team')}>Search Teams</button>
+        <button onClick={() => { 
+          setSearchType('player'); 
+          setSearchResults([]); // Clear results when switching to player search
+        }}>
+          Search Players
+        </button>
+        <button onClick={() => { 
+          setSearchType('team'); 
+          setSearchResults([]); // Clear results when switching to team search
+        }}>
+          Search Teams
+        </button>
       </div>
 
       <div>
@@ -61,13 +78,26 @@ function SearchInterface() {
       {searchResults.length > 0 && (
         <div>
           <h3>Search Results:</h3>
-          <ul>
-            {searchResults.map((result, index) => (
-              <li key={index} onClick={() => handleClick(result.name)}>
-                {result.name}
-              </li>
-            ))}
-          </ul>
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                {searchType === 'player' && <th>Position</th>}
+                {searchType === 'player' && <th>Team</th>}
+                {searchType === 'team' && <th>Location</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {searchResults.map((result, index) => (
+                <tr key={index} onClick={() => handleClick(result.name)}>
+                  <td>{result.name}</td>
+                  {searchType === 'player' && <td>{result.position}</td>}
+                  {searchType === 'player' && <td>{result.team}</td>}
+                  {searchType === 'team' && <td>{result.location}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
