@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom'; // import useParams
+import { useParams, useNavigate } from 'react-router-dom';
 
 function StatsPage() {
   const { type, name } = useParams(); // Get 'type' and 'name' from the URL using useParams
+  const navigate = useNavigate(); // To navigate to StatsGraph page
   const [statsData, setStatsData] = useState([]);
+  const [seasonalStats, setSeasonalStats] = useState([]);
+  const [currentSeasonStats, setCurrentSeasonStats] = useState([]);
+  const [isSeasonal, setIsSeasonal] = useState(false); // Track if the user wants seasonal stats or game-by-game
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -12,7 +16,14 @@ function StatsPage() {
     const fetchStats = async () => {
       try {
         const response = await axios.get(`http://localhost:8000/api/stats/${type}/${name}`);
-        setStatsData(response.data.stats); // Assume 'stats' is the key in the response
+        const stats = response.data.stats;
+
+        // Filter stats for the current season
+        const currentSeason = stats.filter(stat => stat.year === new Date().getFullYear());
+
+        setStatsData(stats);
+        setCurrentSeasonStats(currentSeason);
+        setSeasonalStats(stats); // Set all stats for later use
         setLoading(false);
       } catch (error) {
         console.error("There was an error fetching the stats data:", error);
@@ -27,9 +38,27 @@ function StatsPage() {
     return <div>Loading...</div>;
   }
 
+  // Toggle between seasonal stats and current season stats
+  const handleToggleStats = () => {
+    setIsSeasonal(!isSeasonal);
+  };
+
+  // Handle navigation to graph view
+  const handleGoToGraph = () => {
+    navigate(`/stats-graph/${type}/${name}`);
+  };
+
   return (
     <div>
       <h1>{type.charAt(0).toUpperCase() + type.slice(1)} Stats: {name}</h1>
+      
+      <div className="button-container">
+        <button onClick={handleToggleStats}>
+          {isSeasonal ? 'Show Game-by-Game Stats' : 'Show Seasonal Stats'}
+        </button>
+        <button onClick={handleGoToGraph}>View Stats Graph</button>
+      </div>
+
       {statsData.length === 0 ? (
         <p>No stats available for this {type}.</p>
       ) : (
@@ -52,7 +81,7 @@ function StatsPage() {
             </tr>
           </thead>
           <tbody>
-            {statsData.map((yearStats, index) => (
+            {(isSeasonal ? seasonalStats : currentSeasonStats).map((yearStats, index) => (
               <tr key={index}>
                 <td>{yearStats.year}</td>
                 <td>{yearStats.points}</td>

@@ -90,7 +90,15 @@ function SearchInterface() {
             <tbody>
               {searchResults.map((result, index) => (
                 <tr key={index} onClick={() => handleClick(result.name)}>
-                  <td>{result.name}</td>
+                  <td 
+                    style={{
+                      color: 'blue', 
+                      textDecoration: 'underline', 
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {result.name}
+                  </td>
                   {searchType === 'player' && <td>{result.position}</td>}
                   {searchType === 'player' && <td>{result.team}</td>}
                   {searchType === 'team' && <td>{result.location}</td>}

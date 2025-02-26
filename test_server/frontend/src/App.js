@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import axios from 'axios';
 import Login from './components/Login';
 import SearchInterface from './components/SearchInterface';
-import StatsPage from './components/StatsPage'; // Import StatsPage
+import StatsPage from './components/StatsPage';
+import StatsGraph from './components/StatsGraph';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -47,8 +48,11 @@ function App() {
           {/* Search Interface route */}
           <Route path="/search" element={<SearchInterface />} />
           
-          {/* Stats route - players ans teams */}
+          {/* Stats route - players and teams */}
           <Route path="/stats/:type/:name" element={<StatsPage />} />
+
+          {/* Stats route - players and teams in graphical time-series format */}
+          <Route path="/stats-graph/:type/:name" element={<StatsGraph />} />
         </Routes>
       </div>
     </Router>

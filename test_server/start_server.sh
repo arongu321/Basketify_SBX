@@ -31,6 +31,8 @@ start_react_server() {
     # install dependencies (if not installed already)
     npm install
     npm install react-router-dom
+    npm install react-plotly.js plotly.js
+
 
     # run the React server
     npm start &
