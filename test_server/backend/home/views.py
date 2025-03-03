@@ -1,5 +1,20 @@
 from django.http import JsonResponse
 import datetime
+from pymongo import MongoClient
+
+def get_mongo_client():
+    # Your MongoDB Atlas URI
+    uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
+
+    try:
+        client = MongoClient(uri)
+    except:
+        print("Couldn't connect to mongodb database at URI: " + uri)
+        return -1
+    
+    print("Successfully connected")
+    return client
+
 
 
 def welcome(request):
@@ -19,26 +34,37 @@ def get_search_message(request):
 
 
 def search_player(request):
-    # Get the 'name' parameter from the GET request
+    # get 'name' parameter from the GET request
     name = request.GET.get('name', None)
 
     if not name:
         return JsonResponse({'error': 'Name parameter is required'}, status=400)
 
-    # test data for now
-    player_data_list = []
-    player_data_list.append({
-        'name': "Lebron James",
-        'position': "A",
-        'team': "B"
-    })
-    player_data_list.append({
-        'name': "Lebron James 2.0",
-        'position': "xx",
-        'team': "yy"
-    })
+    try:
+        client = get_mongo_client()
 
-    return JsonResponse({'players': player_data_list}, status=200)
+        db = client['nba_stats']
+        players_collection = db['players']
+
+        # '$regex' used for case-insensitive matching of player names
+        matching_players = players_collection.find(
+            {"name": {"$regex": name, "$options": "i"}}
+        )
+
+        player_data_list = []
+        for player in matching_players:
+            player_data_list.append({
+                'name': player.get('name', ''),
+            })
+
+        if not player_data_list:
+            return JsonResponse({'message': 'No players found'}, status=404)
+
+        # good return
+        return JsonResponse({'players': player_data_list}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def search_team(request):

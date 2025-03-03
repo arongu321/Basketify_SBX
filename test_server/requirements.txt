@@ -1,8 +1,22 @@
+## The following requirements were added by pip freeze:
 asgiref==3.8.1
+certifi==2025.1.31
+charset-normalizer==3.4.1
 DateTime==5.5
 Django==5.1.6
 django-cors-headers==4.7.0
+dnspython==2.7.0
+idna==3.10
+nba_api==1.7.0
+numpy==1.26.4
+pandas==2.2.3
+pymongo==4.11.1
+python-dateutil==2.9.0.post0
 pytz==2025.1
+requests==2.32.3
 setuptools==75.8.0
+six==1.17.0
 sqlparse==0.5.3
+tzdata==2025.1
+urllib3==2.3.0
 zope.interface==7.2
