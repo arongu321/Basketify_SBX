@@ -82,19 +82,59 @@ stop
 @startuml DashboardNavigation
 |User|
 start
-:Logs into Basketify;
 :Arrives at Dashboard;
-:Chooses an option;
 
-|System|
-switch (Selected Option)
+|Frontend System|
+if (User is logged in?) then (yes)
+    :Display favourite team widget;
+    :Display favourite player widget;
+    :Display search interface;
+    :Display logout button;
+else (no)
+    :Display search interface;
+    :Display login button;
+endif
+
+|User|
+:Select an Option;
+
+|Frontend System|
+switch(Selected Option)
+    case (Login)
+        if (User is logged in?) then (no)
+            |User|
+            :Logs into Basketify;
+        endif
     case (Search)
-        :Redirects user to search interface;
-    case (Favorite Team)
-        :Redirects user to team statistics;
-    case (Favorite Player)
-        :Redirects user to player statistics;
+        |Frontend System|
+        :Redirect to player/team search page;
+    case (Favourite Team)
+        if (Has a Fave Team) then (yes)
+            :Redirect to team statistics;
+        else (no)
+            :Prompt user to search for and select a favourite team;
+            |Backend System|
+            :Retrieve list of teams from the database;
+            :Send list to frontend;
+            |Frontend System|
+            :Display search interface for selecting a team;
+        endif
+    case (Favourite Player)
+        if (Has a Fave Player) then (yes)
+            :Redirect to player statistics;
+        else (no)
+            :Prompt user to search for and select a favourite player;
+            |Backend System|
+            :Retrieve list of players from the database;
+            :Send list to frontend;
+            |Frontend System|
+            :Display search interface for selecting a player;
+        endif
+    case (Logout)
+        :Logout user;
+        :Display login button;
 endswitch
+
 stop
 @enduml
 
@@ -103,6 +143,8 @@ stop
 start
 :Logs into Basketify;
 :Opens Search Interface;
+
+|System|
 :Enters player or team name;
 
 |System|
@@ -127,6 +169,9 @@ start
 :Logs into Basketify;
 :Selects a player/team;
 :Views statistics table;
+
+|Database|
+:Retrieve statistics for player/team;
 
 |System|
 if (Graph View?) then (Yes)

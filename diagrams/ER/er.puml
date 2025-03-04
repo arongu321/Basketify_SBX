@@ -39,8 +39,15 @@ entity Statistics {
   points
   rebounds
   assists
+  fg_scored
   fg_percentage
+  three_pt_scored
   three_pt_percentage
+  ft_scored
+  ft_percentage
+  steals
+  blocks
+  turnovers
 }
 
 entity Prediction {
