@@ -2,19 +2,28 @@ from django.http import JsonResponse
 import datetime
 from pymongo import MongoClient
 
+
+# Global variable to store MongoDB client
+mongo_client = None
+
+
 def get_mongo_client():
-    # Your MongoDB Atlas URI
+    global mongo_client
+    # Check if the MongoDB client is already initialized
+    if mongo_client is not None:
+        return mongo_client
+    
+    # MongoDB Atlas URI
     uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
 
     try:
-        client = MongoClient(uri)
+        mongo_client = MongoClient(uri)
     except:
         print("Couldn't connect to mongodb database at URI: " + uri)
-        return -1
+        return None
     
     print("Successfully connected")
-    return client
-
+    return mongo_client
 
 
 def welcome(request):

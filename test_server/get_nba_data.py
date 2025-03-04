@@ -123,7 +123,7 @@ def get_team_data():
 
 def upload_to_mongodb():
     # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
-    # get_player_data()
+    get_player_data()
     get_team_data()
 
 
