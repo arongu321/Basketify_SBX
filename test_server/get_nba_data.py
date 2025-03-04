@@ -111,9 +111,7 @@ def get_team_data():
             # Write to MongoDB after each game (update the team's document with a nested 'games' field)
             team_collection.update_one(
                 {"name": team_name},
-                {"$set": {"games." + 
-                          team_name + "." +
-                          formatted_date: team_data}},  # Store game data under 'games'
+                {"$set": {"games." + formatted_date: team_data}},  # Store game data under 'games'
                 upsert=True
             )
 

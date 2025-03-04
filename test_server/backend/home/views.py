@@ -55,9 +55,8 @@ def search_player(request):
         db = client['nba_stats']
         players_collection = db['players']
 
-        # '$regex' used for case-insensitive matching of player names
         matching_players = players_collection.find(
-            {"name": {"$regex": name, "$options": "i"}}
+            {"name": {"$regex": name, "$options": "i"}}  # case-insensitive and allows substring match
         )
 
         player_data_list = []
@@ -69,7 +68,7 @@ def search_player(request):
         if not player_data_list:
             return JsonResponse({'message': 'No players found'}, status=404)
 
-        # good return
+        # Return the player data
         return JsonResponse({'players': player_data_list}, status=200)
 
     except Exception as e:
@@ -83,18 +82,33 @@ def search_team(request):
     if not name:
         return JsonResponse({'error': 'Name parameter is required'}, status=400)
 
-    # test data for now
-    team_data_list = []
-    team_data_list.append({
-        'name': "Lakers",
-        'location': "LA"
-    })
-    team_data_list.append({
-        'name': "Warriors",
-        'location': "San Francisco"
-    })
+    try:
+        client = get_mongo_client()
 
-    return JsonResponse({'teams': team_data_list}, status=200)
+        db = client['nba_stats']
+        teams_collection = db['teams']
+
+        # '$regex' used for case-insensitive matching of team names
+        # This will search for the name provided by the user as a substring anywhere in the team name
+        matching_teams = teams_collection.find(
+            {"name": {"$regex": name, "$options": "i"}}  # case-insensitive and allows substring match
+        )
+
+        team_data_list = []
+        for team in matching_teams:
+            team_data_list.append({
+                'name': team.get('name', ''),
+                'location': team.get('location', '')
+            })
+
+        if not team_data_list:
+            return JsonResponse({'message': 'No teams found'}, status=404)
+
+        # Return the team data
+        return JsonResponse({'teams': team_data_list}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 def get_player_stats(request, name):
