@@ -1,0 +1,19 @@
+name: Notify Discord on Bug Issues
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'bug'
+    steps:
+      - name: Send Discord Notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\": \"🚨 A new bug issue has been created: ${GITHUB_EVENT_ISSUE_URL}\"}" \
+               "$DISCORD_WEBHOOK"
