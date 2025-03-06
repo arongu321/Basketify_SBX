@@ -15,10 +15,9 @@ function StatsPage() {
     const fetchStats = async () => {
       try {
         const response = await axios.get(`http://localhost:8000/api/stats/${type}/${name}`);
-    
+
         const stats = response.data.stats;
-        console.log(response.data);
-        console.log(stats);
+
 
         // get current season (e.g. "2024-2025")
         const getSeason = (date) => {
@@ -137,7 +136,6 @@ function StatsPage() {
         <table border="1">
           <thead>
             <tr>
-              {/* Show Date column for game-by-game stats, Season for seasonal stats */}
               <th>{isSeasonal ? 'Season' : 'Date'}</th>
               <th>Points Scored</th>
               <th>Rebounds</th>
