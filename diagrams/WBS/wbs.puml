@@ -19,7 +19,7 @@
 *** FR2 - User.Login
 **** Design login form UI in Figma
 **** Create login form using React
-**** Implement backend for login authentication using 
+**** Implement backend for login authentication using Django
 **** Verify credentials with database
 **** Hash and verify passwords
 **** Handle incorrect login attempts through error messages

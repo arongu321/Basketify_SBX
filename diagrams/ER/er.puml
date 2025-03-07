@@ -2,103 +2,95 @@
 
 ' Entities
 entity User {
-  user_id <<key>>
-  email
-  password
-  registered
+  email: string <<key>>
+  hashed_password : string
+  registered : boolean
 }
 
 entity Team {
-  team_id <<key>>
-  team_name
-  conference
-  division
+  team_id : int <<key>>
+  team_name : string
+  city : string
+  conference : string
+  division : string
 }
 
 entity Player {
-  player_id <<key>>
-  player_name
-  team_id <<fk>>
-  position
-  age
+  player_id : int <<key>>
+  player_name : string
+  team_id : int <<fk>>
+  position : string
+  age : int
 }
 
 entity Game {
-  game_id <<key>>
-  date
-  home_team_id <<fk>>
-  away_team_id <<fk>>
-  result
+  game_id : int <<key>>
+  game_date : date
+  home_team_id : int <<fk>>
+  away_team_id : int <<fk>>
+  result : string
+  home_team_score : int
+  away_team_score : int
 }
 
 entity Statistics {
-  stat_id <<key>>
-  player_id <<fk>>
-  team_id <<fk>>
-  game_id <<fk>>
-  points
-  rebounds
-  assists
-  fg_scored
-  fg_percentage
-  three_pt_scored
-  three_pt_percentage
-  ft_scored
-  ft_percentage
-  steals
-  blocks
-  turnovers
+  stat_id : int <<key>>
+  player_id : int <<fk>>
+  team_id : int<<fk>>
+  game_id : int <<fk>>
+  points : int
+  rebounds : int
+  assists : int
+  fg_scored : int 
+  fg_percentage : float
+  three_pt_scored : int 
+  three_pt_percentage : float
+  ft_scored : int
+  ft_percentage : float
+  steals : int
+  blocks :  int
+  turnovers : int
 }
 
 entity Prediction {
-  prediction_id <<key>>
-  game_id <<fk>>
-  player_id <<fk>>
-  team_id <<fk>>
-  predicted_points
-  predicted_rebounds
-  predicted_assists
-  confidence_score
+  prediction_id : int <<key>>
+  game_id : int <<fk>>
+  player_id : int <<fk>>
+  team_id : int <<fk>>
+  predicted_points : float
+  predicted_rebounds : float
+  predicted_assists : float
+  confidence_score : float
 }
 
 entity MLModel {
-  model_id <<key>>
-  model_name
-  accuracy
-  last_trained
-}
-
-entity Favorites {
-  favorite_id <<key>>
-  user_id <<fk>>
-  player_id <<fk>>
-  team_id <<fk>>
-}
+  model_id: int <<key>>
+  model_name: string
+  accuracy : float
+  last_trained : datetime
+ }
 
 entity SearchHistory {
-  search_id <<key>>
-  user_id <<fk>>
-  search_query
-  timestamp
+  search_id : int <<key>>
+  search_query : string
+  timestamp : datetime
 }
 
 entity Registration {
-  registration_id <<key>>
-  user_id <<fk>>
-  date_registered
+  registration_id : int <<key>>
+  user_id : int <<fk>>
+  date_registered : datetime
 }
 
 entity MLLogs {
-  log_id <<key>>
-  model_id <<fk>>
-  prediction_id <<fk>>
-  actual_outcome
-  error_rate
+  log_id : int <<key>>
+  model_id : int <<fk>>
+  prediction_id : int<<fk>>
+  actual_outcome : string
+  error_rate : float
 }
 
 ' Relationships
-relationship Follows { 
-}
 relationship Plays_For { 
 }
 relationship Records { 
@@ -113,16 +105,25 @@ relationship Registers {
 }
 relationship Searches { 
 }
-relationship Favorite { 
+relationship Favorite_Player { 
+}
+
+relationship Favorite_Team {
+
+}
+
+relationship Get_Stats {
+
 }
 
 ' Connections
 User -N- Registers
 Registers -1- Registration
 
-User -N- Favorites
-Favorites -1- Team
-Favorites -1- Player
+User -N- Favorite_Team
+Favorite_Team -1- Team
+User -N- Favorite_Player
+Favorite_Player -1- Player
 
 User -N- Searches
 Searches -1- SearchHistory
@@ -141,5 +142,8 @@ Trains -1- MLLogs
 
 MLLogs -N- Evaluates
 Evaluates -1- Prediction
+
+Team -N- Get_Stats
+Get_Stats -N- Statistics
 
 @endchen
