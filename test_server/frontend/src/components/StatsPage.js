@@ -3,27 +3,98 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 
 function StatsPage() {
-  const { type, name } = useParams(); // Get 'type' and 'name' from the URL using useParams
-  const navigate = useNavigate(); // To navigate to StatsGraph page
+  const { type, name } = useParams(); // get 'type' (player or team) and 'name' from the URL using useParams
+  const navigate = useNavigate(); // navigate to statsGraph
   const [statsData, setStatsData] = useState([]);
   const [seasonalStats, setSeasonalStats] = useState([]);
   const [currentSeasonStats, setCurrentSeasonStats] = useState([]);
-  const [isSeasonal, setIsSeasonal] = useState(false); // Track if the user wants seasonal stats or game-by-game
+  const [isSeasonal, setIsSeasonal] = useState(false); // track if user wants seasonal stats or game-by-game
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch stats data for the player/team
     const fetchStats = async () => {
       try {
         const response = await axios.get(`http://localhost:8000/api/stats/${type}/${name}`);
+
         const stats = response.data.stats;
 
-        // Filter stats for the current season
-        const currentSeason = stats.filter(stat => stat.year === new Date().getFullYear());
+
+        // get current season (e.g. "2024-2025")
+        const getSeason = (date) => {
+          const month = new Date(date).getMonth() + 1;  // indexed at 1
+          const year = new Date(date).getFullYear();
+          
+          if (month >= 10) {
+            return `${year}-${year + 1}`; // Oct to Dec, season started this year
+          } else {
+            return `${year - 1}-${year}`; // Jan to Sep, season started last year
+          }
+        };
+
+        // group stats by season, doing this aggregation on frontend
+        const groupedBySeason = stats.reduce((acc, stat) => {
+          const season = getSeason(stat.date);
+          
+          if (!acc[season]) {
+            acc[season] = {
+              season: season,  // season is key
+              points: 0,
+              rebounds: 0,
+              assists: 0,
+              fieldGoalsMade: 0,
+              fieldGoalPercentage: 0,
+              threePointsMade: 0,
+              threePointPercentage: 0,
+              freeThrowsMade: 0,
+              freeThrowPercentage: 0,
+              steals: 0,
+              blocks: 0,
+              turnovers: 0,
+              gamesPlayed: 0
+            };
+          }
+          
+          acc[season].points += stat.points || 0;
+          acc[season].rebounds += stat.rebounds || 0;
+          acc[season].assists += stat.assists || 0;
+          acc[season].fieldGoalsMade += stat.fieldGoalsMade || 0;
+          acc[season].fieldGoalPercentage += stat.fieldGoalPercentage || 0;
+          acc[season].threePointsMade += stat.threePointsMade || 0;
+          acc[season].threePointPercentage += stat.threePointPercentage || 0;
+          acc[season].freeThrowsMade += stat.freeThrowsMade || 0;
+          acc[season].freeThrowPercentage += stat.freeThrowPercentage || 0;
+          acc[season].steals += stat.steals || 0;
+          acc[season].blocks += stat.blocks || 0;
+          acc[season].turnovers += stat.turnovers || 0;
+          acc[season].gamesPlayed += 1; // counter for num games
+
+          return acc;
+        }, {});
+
+        // convert object to array
+        const seasonalStatsArray = Object.values(groupedBySeason);
+
+        // get current season stats (what's displayed by default)
+        const currentSeason = stats.filter(stat => {
+          const statDate = new Date(stat.date);
+          const currentDate = new Date();
+          
+          // curr season start & end date
+          let seasonStart = new Date(currentDate.getFullYear(), 9, 1); // sept 1 of curr year
+          let seasonEnd = new Date(currentDate.getFullYear() + 1, 8, 31); // aug 31 of next year
+
+          // adjust season if current date is before September
+          if (currentDate.getMonth() < 9) {
+            seasonStart = new Date(currentDate.getFullYear() - 1, 9, 1); // sept 1st of previous year
+            seasonEnd = new Date(currentDate.getFullYear(), 8, 31); // aug 31 of curr year
+          }
+
+          return statDate >= seasonStart && statDate <= seasonEnd;
+        });
 
         setStatsData(stats);
+        setSeasonalStats(seasonalStatsArray);
         setCurrentSeasonStats(currentSeason);
-        setSeasonalStats(stats); // Set all stats for later use
         setLoading(false);
       } catch (error) {
         console.error("There was an error fetching the stats data:", error);
@@ -32,18 +103,18 @@ function StatsPage() {
     };
 
     fetchStats();
-  }, [type, name]); // Re-run the effect when the type or name changes
+  }, [type, name]); // re-run the effect when type or name changes  
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  // Toggle between seasonal stats and current season stats
+  // toggle between seasonal stats and current season stats
   const handleToggleStats = () => {
     setIsSeasonal(!isSeasonal);
   };
 
-  // Handle navigation to graph view
+  // handle navigation to graph view
   const handleGoToGraph = () => {
     navigate(`/stats-graph/${type}/${name}`);
   };
@@ -65,7 +136,7 @@ function StatsPage() {
         <table border="1">
           <thead>
             <tr>
-              <th>Year</th>
+              <th>{isSeasonal ? 'Season' : 'Date'}</th>
               <th>Points Scored</th>
               <th>Rebounds</th>
               <th>Assists</th>
@@ -81,21 +152,21 @@ function StatsPage() {
             </tr>
           </thead>
           <tbody>
-            {(isSeasonal ? seasonalStats : currentSeasonStats).map((yearStats, index) => (
+            {(isSeasonal ? seasonalStats : currentSeasonStats).map((gameStats, index) => (
               <tr key={index}>
-                <td>{yearStats.year}</td>
-                <td>{yearStats.points}</td>
-                <td>{yearStats.rebounds}</td>
-                <td>{yearStats.assists}</td>
-                <td>{yearStats.fieldGoalsMade}</td>
-                <td>{yearStats.fieldGoalPercentage}%</td>
-                <td>{yearStats.threePointsMade}</td>
-                <td>{yearStats.threePointPercentage}%</td>
-                <td>{yearStats.freeThrowsMade}</td>
-                <td>{yearStats.freeThrowPercentage}%</td>
-                <td>{yearStats.steals}</td>
-                <td>{yearStats.blocks}</td>
-                <td>{yearStats.turnovers}</td>
+                <td>{isSeasonal ? gameStats.season : new Date(gameStats.date).toLocaleDateString()}</td>
+                <td>{gameStats.points}</td>
+                <td>{gameStats.rebounds}</td>
+                <td>{gameStats.assists}</td>
+                <td>{gameStats.fieldGoalsMade}</td>
+                <td>{(gameStats.fieldGoalPercentage * 100).toFixed(1)}%</td>
+                <td>{gameStats.threePointsMade}</td>
+                <td>{(gameStats.threePointPercentage * 100).toFixed(1)}%</td>
+                <td>{gameStats.freeThrowsMade}</td>
+                <td>{(gameStats.freeThrowPercentage * 100).toFixed(1)}%</td>
+                <td>{gameStats.steals}</td>
+                <td>{gameStats.blocks}</td>
+                <td>{gameStats.turnovers}</td>
               </tr>
             ))}
           </tbody>

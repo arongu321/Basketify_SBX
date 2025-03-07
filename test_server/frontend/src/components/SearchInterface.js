@@ -71,6 +71,11 @@ function SearchInterface() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={`Enter ${searchType} name`}
+          onKeyDown={(e) => {  // perform search on 'Enter' key
+            if (e.key === 'Enter') {
+              handleSearch();
+            }
+          }}
         />
         <button onClick={handleSearch}>Search</button>
       </div>

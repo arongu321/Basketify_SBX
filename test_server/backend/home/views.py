@@ -3,17 +3,17 @@ import datetime
 from pymongo import MongoClient
 
 
-# Global variable to store MongoDB client
+# global to prevent having to connect multiple times
 mongo_client = None
 
 
 def get_mongo_client():
     global mongo_client
-    # Check if the MongoDB client is already initialized
+    # check if mongo client is already initialized
     if mongo_client is not None:
         return mongo_client
     
-    # MongoDB Atlas URI
+    # remote Atlas DB
     uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
 
     try:
@@ -43,7 +43,7 @@ def get_search_message(request):
 
 
 def search_player(request):
-    # get 'name' parameter from the GET request
+    # get 'name' param from the GET request
     name = request.GET.get('name', None)
 
     if not name:
@@ -55,9 +55,8 @@ def search_player(request):
         db = client['nba_stats']
         players_collection = db['players']
 
-        # '$regex' used for case-insensitive matching of player names
         matching_players = players_collection.find(
-            {"name": {"$regex": name, "$options": "i"}}
+            {"name": {"$regex": name, "$options": "i"}}  # case-insensitive and allows substring match
         )
 
         player_data_list = []
@@ -69,7 +68,6 @@ def search_player(request):
         if not player_data_list:
             return JsonResponse({'message': 'No players found'}, status=404)
 
-        # good return
         return JsonResponse({'players': player_data_list}, status=200)
 
     except Exception as e:
@@ -77,40 +75,116 @@ def search_player(request):
 
 
 def search_team(request):
-    # Get the 'name' parameter from the GET request
+    # get 'name' param from the GET request
     name = request.GET.get('name', None)
 
     if not name:
         return JsonResponse({'error': 'Name parameter is required'}, status=400)
 
-    # test data for now
-    team_data_list = []
-    team_data_list.append({
-        'name': "Lakers",
-        'location': "LA"
-    })
-    team_data_list.append({
-        'name': "Warriors",
-        'location': "San Francisco"
-    })
+    try:
+        client = get_mongo_client()
 
-    return JsonResponse({'teams': team_data_list}, status=200)
+        db = client['nba_stats']
+        teams_collection = db['teams']
+
+        matching_teams = teams_collection.find(
+            {"name": {"$regex": name, "$options": "i"}}  # case-insensitive and allows substring match
+        )
+
+        team_data_list = []
+        for team in matching_teams:
+            team_data_list.append({
+                'name': team.get('name', ''),
+                'location': team.get('location', '')
+            })
+
+        if not team_data_list:
+            return JsonResponse({'message': 'No teams found'}, status=404)
+        
+        return JsonResponse({'teams': team_data_list}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
+
+# Helper function to replace NaN with a default value
+def sanitize_value(value):
+    if isinstance(value, float) and (value != value):
+        return 0
+    return value
 
 
 def get_player_stats(request, name):
-    player_stats = {
-        "test_player": [
-            {"year": 2022, "points": 25, "rebounds": 5, "assists": 7, "fieldGoalsMade": 10, "fieldGoalPercentage": 50, "threePointsMade": 5, "threePointPercentage": 40, "freeThrowsMade": 8, "freeThrowPercentage": 80, "steals": 2, "blocks": 1, "turnovers": 3},
-            {"year": 2021, "points": 22, "rebounds": 4, "assists": 6, "fieldGoalsMade": 9, "fieldGoalPercentage": 45, "threePointsMade": 4, "threePointPercentage": 35, "freeThrowsMade": 6, "freeThrowPercentage": 75, "steals": 1, "blocks": 1, "turnovers": 2}
-        ]
-    }
-    return JsonResponse({"stats": player_stats["test_player"]}, status=200)
+    try:
+        client = get_mongo_client()
+        db = client['nba_stats']
+        players_collection = db['players']
+        
+        player = players_collection.find_one({"name": name})
+        
+        if not player:
+            return JsonResponse({'error': 'Player not found'}, status=404)
+        
+        # extract game stats from the player's data
+        player_stats = []
+        
+        for game_date, game_data in player['games'].items():
+            stats = {
+                "date": sanitize_value(game_date),
+                "points": sanitize_value(game_data.get("Points", 0)),
+                "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
+                "assists": sanitize_value(game_data.get("Assists", 0)),
+                "fieldGoalsMade": sanitize_value(game_data.get("FG_scored", 0)),
+                "fieldGoalPercentage": sanitize_value(game_data.get("FG_pctg", 0)),
+                "threePointsMade": sanitize_value(game_data.get("3_pts_scored", 0)),
+                "threePointPercentage": sanitize_value(game_data.get("3_pts_pctg", 0)),
+                "freeThrowsMade": sanitize_value(game_data.get("FT_made", 0)),
+                "freeThrowPercentage": sanitize_value(game_data.get("FT_pctg", 0)),
+                "steals": sanitize_value(game_data.get("Steals", 0)),
+                "blocks": sanitize_value(game_data.get("Blocks", 0)),
+                "turnovers": sanitize_value(game_data.get("Turnovers", 0))
+            }
+            player_stats.append(stats)
+        
+        return JsonResponse({"stats": player_stats}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 
 def get_team_stats(request, name):
-    team_stats = {
-        "test_team": [
-            {"year": 2022, "points": 105, "rebounds": 48, "assists": 23, "fieldGoalsMade": 40, "fieldGoalPercentage": 45, "threePointsMade": 12, "threePointPercentage": 35, "freeThrowsMade": 18, "freeThrowPercentage": 75, "steals": 8, "blocks": 5, "turnovers": 12},
-            {"year": 2021, "points": 100, "rebounds": 45, "assists": 22, "fieldGoalsMade": 38, "fieldGoalPercentage": 43, "threePointsMade": 10, "threePointPercentage": 30, "freeThrowsMade": 16, "freeThrowPercentage": 78, "steals": 7, "blocks": 4, "turnovers": 11}
-        ]
-    }
-    return JsonResponse({"stats": team_stats["test_team"]}, status=200)
+    try:
+        client = get_mongo_client()
+        db = client['nba_stats']
+        teams_collection = db['teams']
+        
+        team = teams_collection.find_one({"name": name})
+        
+        if not team:
+            return JsonResponse({'error': 'Team not found'}, status=404)
+        
+        # extract game stats from the team's data
+        team_stats = []
+        
+        for game_date, game_data in team['games'].items():
+            stats = {
+                "date": sanitize_value(game_date),
+                "points": sanitize_value(game_data.get("Points", 0)),
+                "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
+                "assists": sanitize_value(game_data.get("Assists", 0)),
+                "fieldGoalsMade": sanitize_value(game_data.get("FG_scored", 0)),
+                "fieldGoalPercentage": sanitize_value(game_data.get("FG_pctg", 0)),
+                "threePointsMade": sanitize_value(game_data.get("3_pts_scored", 0)),
+                "threePointPercentage": sanitize_value(game_data.get("3_pts_pctg", 0)),
+                "freeThrowsMade": sanitize_value(game_data.get("FT_made", 0)),
+                "freeThrowPercentage": sanitize_value(game_data.get("FT_pctg", 0)),
+                "steals": sanitize_value(game_data.get("Steals", 0)),
+                "blocks": sanitize_value(game_data.get("Blocks", 0)),
+                "turnovers": sanitize_value(game_data.get("Turnovers", 0))
+            }
+            team_stats.append(stats)
+        
+        return JsonResponse({"stats": team_stats}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
