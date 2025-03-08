@@ -145,18 +145,37 @@ start
 :Opens Search Interface;
 
 |System|
-:Enters player or team name;
+:Prompt search player or team;
+
+|User|
+:Click on player or team button;
 
 |System|
-:Processes search query;
-|Database|
-:Retrieves matching players/teams;
+if (Player or Team?) then (Player)
+    :Prompt for player name;
+    |User|
+    :Enters player name;
+    |System|
+    :Parses player name;
+    |Database|
+    :Retrieves matching players;
+else (Team)
+    :Prompt for team name;
+    |User|
+    :Enters team name;
+    |System|
+    :Parses team name;
+    |Database|
+    :Retrieves matching teams;
+endif
 
 |System|
 if (Matches found?) then (Yes)
-    :Displays results;
-    :User selects player/team;
-    :Redirects to stats view;
+    :Display matching names in list;
+    |User|
+    :Clicks on entry in list;
+    |System|
+    :Redirect to stats view page;
 else (No)
     :Show "No results found" message;
 endif
@@ -167,25 +186,68 @@ stop
 |User|
 start
 :Logs into Basketify;
+:Search for player/team. (See SearchFunctionality diagram);
 :Selects a player/team;
-:Views statistics table;
+
+|System|
+:Redirect user to stats table for player/team;
 
 |Database|
 :Retrieve statistics for player/team;
 
 |System|
-if (Graph View?) then (Yes)
-    :Displays time-series graph;
-    :User selects statistics to visualize;
-    
+:Display all stats in table;
+
+|User|
+if (User clicks button) then ("View seasonal stats" button click)
     |System|
-    :Updates graph with selected stats;
-    if (User hovers over graph?) then (Yes)
-        :Displays exact values;
-    endif
-else (No)
-    :Show table with statistics;
+    :Send request to get seasonal stats;
+    |Database|
+    :Retrieve seasonal stats for player/team;
+    |System|
+    :Display table of stats on seasonal basis;
+else ("View graph" button click)
+    |User|
+    switch(User clicks on?)
+        case(Select a new stat)
+            |System|
+            :Request stat for player/team;
+            |Database|
+            :Retrieve stat for player/team;
+            |System|
+            :Display stat on graph;
+            if (Number stats selected) then ('== 2')
+                :Display secondary y-axis on right of graph (different scale);
+                :Gray out and disable buttons for non-selected stats;
+            endif
+            stop
+        case(De-select a stat)
+            |System|
+            :Remove stat from graph;
+            :Re-calculate number of selected stats;
+            if (Number stats selected) then ('== 1')
+                :Remove secondary y-axis on right of graph (different scale);
+            endif
+            stop
+        case(Toggle seasonal/game-by-game view)
+            |System|
+            if (Current view) then (Seasonal view)
+                :Request stat(s) for player/team on game-by-game basis for current season;
+                |Database|
+                :Retrieve stat(s) for current season;
+                |System|
+                :Display stat(s) on graph;
+            else (Game-by-Game view)
+                ::Request stat(s) for player/team on seasonal basis;
+                |Database|
+                :Retrieve stat(s) for all seasons;
+                |System|
+                :Display stat(s) on graph;
+            endif
+            stop
+    endswitch
 endif
+
 stop
 @enduml
 
