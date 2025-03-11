@@ -345,7 +345,7 @@
 **** Ensure filtering does not breaking when user switches to other webpages
 **** Use indexing to optimize queries with multiple filters
 **** Log filters used to see results
-**** Add option for user to view recently user filters
+**** Add option for user to view recently used filters
 
 
 *** FR28 - Filter.Reset

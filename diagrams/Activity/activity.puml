@@ -1,82 +1,109 @@
-@startuml UserAuthentication
+@startuml RegistrationAndLogin
+|#LightBlue|Email System|
+|#LightSeaGreen|Frontend System|
+|#LightCoral|User|
+|#LightYellow|Database|
+|#LightPink|Backend System|
+
 |User|
 start
-:Opens Basketify website;
-:Chooses an action;
+  :Request Registration;
+|Backend System|
+repeat
+repeat
+:Redirect to Registration Form;
+|Frontend System|
+:Display Regiatration Form;
+|User|
+:Fill Email and Password In Form;
+:Submit Registration Form;
+|Frontend System|
+:Validate Email and Password;
+|Database|
+:Check if Email Already Exists;
+|Frontend System|
+backward :Display Email Error Message;
+repeat while (Valid and Unique Email?) is (No) 
+-> Yes;
+backward :Display Password Error Message;
+repeat while (Valid Password?) is (No)
+-> Yes;
+:Encrypt Password;
+|Database|
+:Store Email and Password Credentials;
+:Create Username for Specified Email;
+|Email System|
+:Send Email about Newly Created Username to User;
+|Backend System|
+:Redirect to Login Page;
 
-|System|
-if (Register, Log In, or Change Password?) then (Yes)
-    switch (Selected Action)
-        case (Register)
-            |User|
-            :Fills registration form;
-            
-            |System|
-            :Validates email format and password strength;
-            
-            |Database|
-            :Checks if email already exists;
-            
-            if (Email exists?) then (Yes)
-                |System|
-                :Show error message;
-                stop
-            else (No)
-                |Database|
-                :Store user details;
-                
-                |System|
-                :Redirect user to login;
-            endif
-        case (Log In)
-            |User|
-            :Enters email and password;
-            
-            |System|
-            :Sends credentials for validation;
-            
-            |Database|
-            :Checks credentials;
-            
-            if (Credentials valid?) then (Yes)
-                |System|
-                :Grant access to user dashboard;
-            else (No)
-                |System|
-                :Show error message - "Invalid login";
-            endif
-        case (Change Password)
-            |User|
-            :Requests password change;
-            :Enters old password;
-            
-            |System|
-            :Sends request to validate old password;
-            
-            |Database|
-            :Verifies old password;
-            
-            if (Old password matches?) then (Yes)
-                |User|
-                :Enters new password;
-                
-                |System|
-                :Sends update request;
-                
-                |Database|
-                :Updates password;
-                
-                |System|
-                :Confirm password change;
-            else (No)
-                |System|
-                :Show error message - "Incorrect old password";
-            endif
-    endswitch
-else (No)
-    stop
+|Frontend System|
+:Display Login Page;
+repeat
+if (Change Password?) then (yes)
+    :Request Password Change;
+    |Frontend System|
+    repeat
+    :Redirect to Change Password Form;
+    |User|
+    :Enter Current Password;
+    fork
+        :Re-Confirm Current Password;
+    fork again
+        |Database|
+        :Retrieve Current Encrypted Password for User;
+
+        |Backend System|
+        :Decrypt Password;
+    end fork
+    |Frontend System|
+    backward :Display Passwords Non-Matching Error;
+    repeat while (Password Confirmation Passed and Password Matches Corresponding User?) is (no)
+    -> yes;
+    repeat
+    |User|
+    :Enter New Password Twice(2nd time for Confirmation);
+    backward :Invalid New Password Error;
+    repeat while (New Password Valid?) is (no)
+    -> yes;
+    fork
+        |Frontend System|
+        :Display Password Change Success Message;
+    fork again
+        |Backend System|
+        :Encrypt New Password;
+        |Database|
+        :Update New Encrypted Password for User;
+    fork again
+        |Email System|
+        :Email User Password Change Confirmation;
+    end fork
+    |Backend System|
+    :Redirect to Login Page;
+    |Frontend System|
+    :Display Login Page;
+else (no)
 endif
+repeat while (Enter Login Credentials?) is (no)
+-> yes;
+|User|
+:Request Login;
+|Frontend System|
+repeat
+:Redirect to Login Page;
+|User|
+:Fill Username and Password on Login Form;
+:Submit Login Credentials;
+|Database|
+:Retrieve Matching Username and Encrypted Password;
+|Frontend System|
+:Validate Username and Password Credentials;
+backward :Display Login Error;
+repeat while (Matching Username and Password?) is (no)
+-> yes;
+:Redirect to Home CMS Page;
 stop
+
 @enduml
 
 @startuml DashboardNavigation
@@ -144,18 +171,18 @@ start
 :Logs into Basketify;
 :Opens Search Interface;
 
-|System|
+|Frontend System|
 :Prompt search player or team;
 
 |User|
 :Click on player or team button;
 
-|System|
+|Frontend System|
 if (Player or Team?) then (Player)
     :Prompt for player name;
     |User|
     :Enters player name;
-    |System|
+    |Frontend System|
     :Parses player name;
     |Database|
     :Retrieves matching players;
@@ -163,18 +190,18 @@ else (Team)
     :Prompt for team name;
     |User|
     :Enters team name;
-    |System|
+    |Frontend System|
     :Parses team name;
     |Database|
     :Retrieves matching teams;
 endif
 
-|System|
+|Frontend System|
 if (Matches found?) then (Yes)
     :Display matching names in list;
     |User|
     :Clicks on entry in list;
-    |System|
+    |Frontend System|
     :Redirect to stats view page;
 else (No)
     :Show "No results found" message;
@@ -189,32 +216,32 @@ start
 :Search for player/team. (See SearchFunctionality diagram);
 :Selects a player/team;
 
-|System|
+|Frontend System|
 :Redirect user to stats table for player/team;
 
 |Database|
 :Retrieve statistics for player/team;
 
-|System|
+|Frontend System|
 :Display all stats in table;
 
 |User|
 if (User clicks button) then ("View seasonal stats" button click)
-    |System|
+    |Frontend System|
     :Send request to get seasonal stats;
     |Database|
     :Retrieve seasonal stats for player/team;
-    |System|
+    |Frontend System|
     :Display table of stats on seasonal basis;
 else ("View graph" button click)
     |User|
     switch(User clicks on?)
         case(Select a new stat)
-            |System|
+            |Frontend System|
             :Request stat for player/team;
             |Database|
             :Retrieve stat for player/team;
-            |System|
+            |Frontend System|
             :Display stat on graph;
             if (Number stats selected) then ('== 2')
                 :Display secondary y-axis on right of graph (different scale);
@@ -222,7 +249,7 @@ else ("View graph" button click)
             endif
             stop
         case(De-select a stat)
-            |System|
+            |Frontend System|
             :Remove stat from graph;
             :Re-calculate number of selected stats;
             if (Number stats selected) then ('== 1')
@@ -230,18 +257,18 @@ else ("View graph" button click)
             endif
             stop
         case(Toggle seasonal/game-by-game view)
-            |System|
+            |Frontend System|
             if (Current view) then (Seasonal view)
                 :Request stat(s) for player/team on game-by-game basis for current season;
                 |Database|
                 :Retrieve stat(s) for current season;
-                |System|
+                |Frontend System|
                 :Display stat(s) on graph;
             else (Game-by-Game view)
                 ::Request stat(s) for player/team on seasonal basis;
                 |Database|
                 :Retrieve stat(s) for all seasons;
-                |System|
+                |Frontend System|
                 :Display stat(s) on graph;
             endif
             stop
@@ -258,12 +285,12 @@ start
 :Selects "Predict Player/Team Stats";
 :Chooses a player/team;
 
-|System|
+|Frontend System|
 :Processes data with ML model;
 |Database|
 :Fetches historical performance data;
 
-|System|
+|Frontend System|
 :Generates predicted stats;
 :Displays forecasted values with confidence score;
 stop
@@ -276,12 +303,12 @@ start
 :Selects "Predict Match Outcome";
 :Chooses a team;
 
-|System|
+|Frontend System|
 :Processes data with ML model;
 |Database|
 :Fetches team performance history;
 
-|System|
+|Frontend System|
 :Generates win/loss prediction;
 :Displays expected winner and confidence score;
 stop
@@ -293,19 +320,19 @@ start
 :Logs into Basketify;
 :Selects "Predict NBA Champion";
 
-|System|
+|Frontend System|
 :Runs ML model on all teams;
 |Database|
 :Fetches season performance data;
 
-|System|
+|Frontend System|
 :Generates NBA champion prediction;
 :Displays winner with confidence score;
 stop
 @enduml
 
 @startuml MLPerformanceLogging
-|System|
+|Frontend System|
 start
 :ML Model makes a prediction;
 :Logs prediction in system;
@@ -314,7 +341,7 @@ start
 :Compares prediction with actual result;
 :Calculates accuracy/error rate;
 
-|System|
+|Frontend System|
 :Updates ML feedback loop;
 if (Accuracy below threshold?) then (Yes)
     :Retrain model;
@@ -331,12 +358,12 @@ start
 :Opens player/team statistics;
 :Chooses filter criteria;
 
-|System|
+|Frontend System|
 :Applies filters;
 |Database|
 :Retrieves filtered stats;
 
-|System|
+|Frontend System|
 if (Filters applied?) then (Yes)
     :Update displayed statistics;
 else (No)
@@ -344,7 +371,7 @@ else (No)
 endif
 
 if (User resets filters?) then (Yes)
-    |System|
+    |Frontend System|
     :Clear applied filters;
     :Show unfiltered statistics;
 endif
