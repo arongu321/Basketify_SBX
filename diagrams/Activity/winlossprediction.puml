@@ -18,11 +18,12 @@ start
 :Displays Predict Match Page;
 |User|
 :Chooses a team;
-
 |Backend System|
-:Processes data with ML model;
+:Request team performance history;
 |Database|
 :Fetches team performance history;
+|Backend System|
+:Processes data with ML model using team performance history;
 
 |Backend System|
 :Generates win/loss prediction;

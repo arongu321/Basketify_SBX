@@ -1,9 +1,24 @@
 @startuml StatisticsFiltering
+title Filter Statistics Activity Diagram (FR25-FR28)
+|#LightCoral|User|
+|#LightYellow|Database|
+|#LightSeaGreen|Frontend System|
+|#LightBlue|Backend System|
 |User|
 start
 :Logs into Basketify;
-:Opens player/team statistics;
-:Chooses filter criteria;
+|Frontend System|
+:Redirects to Main Page;
+:Displays Main Page;
+|User|
+:Go to General NBA Statistics Page in Main Menu;
+|Frontend System|
+:Redirects to General NBA Statistics Page;
+:Displays General NBA Statistics Page;
+|User|
+repeat
+:Selects "Filter Statistics";
+:Choose filter criteria;
 
 |Frontend System|
 :Applies filters;
@@ -22,5 +37,7 @@ if (User resets filters?) then (Yes)
     :Clear applied filters;
     :Show unfiltered statistics;
 endif
+repeat while (User wants to continue filtering?) is (Yes)
+->No;
 stop
 @enduml

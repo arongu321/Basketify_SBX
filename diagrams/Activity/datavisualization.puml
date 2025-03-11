@@ -1,9 +1,9 @@
 @startuml DataVisualization
 title Data Visualization Activity Diagram (FR9-FR15)
 
-|#LightYellow|Database|
 |#LightCoral|User|
 |#LightSeaGreen|Frontend System|
+|#LightYellow|Database|
 
 |User|
 start
@@ -45,7 +45,7 @@ else ("View graph" button click)
             :Retrieve stat for player/team;
             |Frontend System|
             :Display stat on graph;
-            if (Number stats selected) then (== 2)
+            if (Number stats selected) then (equal to 2)
                 :Display secondary y-axis on right of graph (different scale);
                 :Gray out and disable buttons for non-selected stats;
             endif
@@ -54,7 +54,7 @@ else ("View graph" button click)
             |Frontend System|
             :Remove stat from graph;
             :Re-calculate number of selected stats;
-            if (Number stats selected) then (== 1)
+            if (Number stats selected) then (equal to 1)
                 :Remove secondary y-axis on right of graph (different scale);
             endif
         fork again

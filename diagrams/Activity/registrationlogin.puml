@@ -1,4 +1,5 @@
 @startuml RegistrationAndLogin
+title Registration and Login Activity Diagram (FR1-FR3)
 |#LightBlue|Email System|
 |#LightSeaGreen|Frontend System|
 |#LightCoral|User|
@@ -18,7 +19,7 @@ repeat
 :Fill Email and Password In Form;
 :Submit Registration Form;
 |Frontend System|
-:Validate Email and Password;
+:Request Validation of Email and Password;
 |Database|
 :Check if Email Already Exists;
 |Frontend System|
@@ -78,9 +79,8 @@ if (Change Password?) then (yes)
         |Email System|
         :Email User Password Change Confirmation;
     end fork
-    |Backend System|
-    :Redirect to Login Page;
     |Frontend System|
+    :Redirect to Login Page;
     :Display Login Page;
 else (no)
 endif

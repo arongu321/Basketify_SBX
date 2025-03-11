@@ -15,11 +15,12 @@ start
 |Frontend System|
 :Redirects to Predict NBA Champion Page;
 :Displays Predict NBA Champion Page;
-
 |Backend System|
-:Runs ML model on all teams;
+:Request season performance data;
 |Database|
 :Fetches season performance data;
+|Backend System|
+:Runs ML model on all teams using season performance data;
 
 |Backend System|
 :Generates NBA champion prediction;

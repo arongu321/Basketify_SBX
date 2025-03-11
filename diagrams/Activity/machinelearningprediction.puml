@@ -18,11 +18,12 @@ start
 :Displays Predict Player/Team Stats Page;
 |User|
 :Choose a player/team;
-
 |Backend System|
-:Processes data with ML model;
+:Request historical performance data;
 |Database|
 :Fetches historical performance data;
+|Backend System|
+:Processes data with ML model using historical performance data;
 
 |Backend System|
 :Generates predicted stats;
