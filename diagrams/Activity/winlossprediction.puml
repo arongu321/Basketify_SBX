@@ -1,0 +1,33 @@
+@startuml WinLossPrediction
+title Win/Loss Prediction Activity Diagram (FR19-FR20)
+|#LightCoral|User|
+|#LightSeaGreen|Frontend System|
+|#LightYellow|Database|
+|#LightBlue|Backend System|
+
+|User|
+start
+:Logs into Basketify;
+|Frontend System|
+:Redirects to Main Page;
+:Displays Main Page;
+|User|
+:Selects "Predict Match Outcome" in Navigation Menu;
+|Frontend System|
+:Redirects to Predict Match Page;
+:Displays Predict Match Page;
+|User|
+:Chooses a team;
+
+|Backend System|
+:Processes data with ML model;
+|Database|
+:Fetches team performance history;
+
+|Backend System|
+:Generates win/loss prediction;
+|Frontend System|
+:Retrieves expected winner and loser of match;
+:Displays expected winner and confidence score;
+stop
+@enduml

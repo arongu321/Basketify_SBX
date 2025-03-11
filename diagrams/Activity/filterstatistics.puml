@@ -1,0 +1,26 @@
+@startuml StatisticsFiltering
+|User|
+start
+:Logs into Basketify;
+:Opens player/team statistics;
+:Chooses filter criteria;
+
+|Frontend System|
+:Applies filters;
+|Database|
+:Retrieves filtered stats;
+
+|Frontend System|
+if (Filters applied?) then (Yes)
+    :Update displayed statistics;
+else (No)
+    :Show default view;
+endif
+
+if (User resets filters?) then (Yes)
+    |Frontend System|
+    :Clear applied filters;
+    :Show unfiltered statistics;
+endif
+stop
+@enduml

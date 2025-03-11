@@ -1,0 +1,33 @@
+@startuml MachineLearningPredictions
+title Player/Team Stats Prediction Activity Diagram (FR16-FR18)
+|#LightCoral|User|
+|#LightSeaGreen|Frontend System|
+|#LightYellow|Database|
+|#LightBlue|Backend System|
+
+|User|
+start
+:Logs into Basketify;
+|Frontend System|
+:Redirects to Main Page;
+:Displays in Navigation Menu;
+|User|
+:Selects "Predict Player/Team Stats";
+|Frontend System|
+:Redirects to Predict Player/Team Stats Page;
+:Displays Predict Player/Team Stats Page;
+|User|
+:Choose a player/team;
+
+|Backend System|
+:Processes data with ML model;
+|Database|
+:Fetches historical performance data;
+
+|Backend System|
+:Generates predicted stats;
+|Frontend System|
+:Retrieves predicted stats;
+:Displays forecasted values with confidence score;
+stop
+@enduml

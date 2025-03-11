@@ -1,0 +1,30 @@
+@startuml PredictNBAChampion
+title NBA Champion Prediction Activity Diagram (FR21-FR22)
+|#LightCoral|User|
+|#LightSeaGreen|Frontend System|
+|#LightYellow|Database|
+|#LightBlue|Backend System|
+|User|
+start
+:Logs into Basketify;
+|Frontend System|
+:Redirects to Main Page;
+:Displays Main Page;
+|User|
+:Selects "Predict NBA Champion" in Navigation Menu;
+|Frontend System|
+:Redirects to Predict NBA Champion Page;
+:Displays Predict NBA Champion Page;
+
+|Backend System|
+:Runs ML model on all teams;
+|Database|
+:Fetches season performance data;
+
+|Backend System|
+:Generates NBA champion prediction;
+|Frontend System|
+:Retrieves NBA Champion for this season;
+:Displays winner with confidence score;
+stop
+@enduml

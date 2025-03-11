@@ -1,0 +1,23 @@
+@startuml MLPerformanceLogging
+title ML Performance Logging (FR23-FR24)
+|#LightYellow|Database|
+|#LightBlue|Backend System|
+start
+repeat
+:ML Model makes a prediction;
+:Logs prediction in system;
+
+|Database|
+:Compares prediction with actual result;
+
+|Backend System|
+:Calculates accuracy/error rate;
+
+|Backend System|
+:Updates ML feedback loop;
+backward: Retrain model;
+repeat while (Accuracy below threshold?) is (Yes)
+->No;
+:Continue logging performance;
+stop
+@enduml

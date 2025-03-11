@@ -1,0 +1,107 @@
+@startuml RegistrationAndLogin
+|#LightBlue|Email System|
+|#LightSeaGreen|Frontend System|
+|#LightCoral|User|
+|#LightYellow|Database|
+|#LightPink|Backend System|
+
+|User|
+start
+  :Request Registration;
+|Backend System|
+repeat
+repeat
+:Redirect to Registration Form;
+|Frontend System|
+:Display Regiatration Form;
+|User|
+:Fill Email and Password In Form;
+:Submit Registration Form;
+|Frontend System|
+:Validate Email and Password;
+|Database|
+:Check if Email Already Exists;
+|Frontend System|
+backward :Display Email Error Message;
+repeat while (Valid and Unique Email?) is (No) 
+-> Yes;
+backward :Display Password Error Message;
+repeat while (Valid Password?) is (No)
+-> Yes;
+:Encrypt Password;
+|Database|
+:Store Email and Password Credentials;
+:Create Username for Specified Email;
+|Email System|
+:Send Email about Newly Created Username to User;
+|Backend System|
+:Redirect to Login Page;
+
+|Frontend System|
+:Display Login Page;
+repeat
+if (Change Password?) then (yes)
+    :Request Password Change;
+    |Frontend System|
+    repeat
+    :Redirect to Change Password Form;
+    |User|
+    :Enter Current Password;
+    fork
+        :Re-Confirm Current Password;
+    fork again
+        |Database|
+        :Retrieve Current Encrypted Password for User;
+
+        |Backend System|
+        :Decrypt Password;
+    end fork
+    |Frontend System|
+    backward :Display Passwords Non-Matching Error;
+    repeat while (Password Confirmation Passed and Password Matches Corresponding User?) is (no)
+    -> yes;
+    repeat
+    |User|
+    :Enter New Password Twice(2nd time for Confirmation);
+    backward :Invalid New Password Error;
+    repeat while (New Password Valid?) is (no)
+    -> yes;
+    fork
+        |Frontend System|
+        :Display Password Change Success Message;
+    fork again
+        |Backend System|
+        :Encrypt New Password;
+        |Database|
+        :Update New Encrypted Password for User;
+    fork again
+        |Email System|
+        :Email User Password Change Confirmation;
+    end fork
+    |Backend System|
+    :Redirect to Login Page;
+    |Frontend System|
+    :Display Login Page;
+else (no)
+endif
+repeat while (Enter Login Credentials?) is (no)
+-> yes;
+|User|
+:Request Login;
+|Frontend System|
+repeat
+:Redirect to Login Page;
+|User|
+:Fill Username and Password on Login Form;
+:Submit Login Credentials;
+|Database|
+:Retrieve Matching Username and Encrypted Password;
+|Frontend System|
+:Validate Username and Password Credentials;
+backward :Display Login Error;
+repeat while (Matching Username and Password?) is (no)
+-> yes;
+:Redirect to Home CMS Page;
+stop
+
+@enduml

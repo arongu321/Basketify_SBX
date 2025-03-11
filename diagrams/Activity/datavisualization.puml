@@ -1,0 +1,84 @@
+@startuml DataVisualization
+title Data Visualization Activity Diagram (FR9-FR15)
+
+|#LightYellow|Database|
+|#LightCoral|User|
+|#LightSeaGreen|Frontend System|
+
+|User|
+start
+:Logs into Basketify;
+:Search for player/team. (See SearchFunctionality diagram);
+:Selects a player/team;
+
+|Frontend System|
+:Redirect user to stats table for player/team;
+
+|Database|
+:Retrieve statistics for player/team;
+
+|Frontend System|
+:Display all stats in table;
+
+|User|
+if (User clicks button) then ("View seasonal stats" button click)
+    |Frontend System|
+    :Send request to get seasonal stats;
+    |Database|
+    :Retrieve seasonal stats for player/team;
+    |Frontend System|
+    :Display table of stats on seasonal basis;
+else ("View graph" button click)
+    |Frontend System|
+    :Initialize graph view;
+    
+    |User|
+    repeat
+        :User interacts with graph;
+        
+        |Frontend System|
+        fork
+            :Option: Select a new stat;
+            |Frontend System|
+            :Request stat for player/team;
+            |Database|
+            :Retrieve stat for player/team;
+            |Frontend System|
+            :Display stat on graph;
+            if (Number stats selected) then (== 2)
+                :Display secondary y-axis on right of graph (different scale);
+                :Gray out and disable buttons for non-selected stats;
+            endif
+        fork again
+            :Option: De-select a stat;
+            |Frontend System|
+            :Remove stat from graph;
+            :Re-calculate number of selected stats;
+            if (Number stats selected) then (== 1)
+                :Remove secondary y-axis on right of graph (different scale);
+            endif
+        fork again
+            :Option: Toggle view type;
+            |Frontend System|
+            if (Current view) then (Seasonal view)
+                :Request stat(s) for player/team on game-by-game basis for current season;
+                -[#blue]->
+                |Database|
+                :Retrieve stat(s) for current season;
+                |Frontend System|
+                :Display stat(s) on graph;
+            else (Game-by-Game view)
+                :Request stat(s) for player/team on seasonal basis;
+                -[#orange]->
+                |Database|
+                :Retrieve stat(s) for all seasons;
+                |Frontend System|
+                :Display stat(s) on graph;
+            endif
+        end fork
+    repeat while (Continue using graph?) is (yes)
+    -> no;
+endif
+
+stop
+@enduml

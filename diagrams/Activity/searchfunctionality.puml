@@ -1,0 +1,50 @@
+@startuml SearchFunctionality
+title Search Interface Activity Diagram (FR7-FR8)
+
+|#LightCoral|User|
+|#LightSeaGreen|Frontend System|
+|#LightYellow|Database|
+
+|User|
+start
+:Logs into Basketify;
+:Opens Search Interface;
+
+|Frontend System|
+:Prompt search player or team;
+
+|User|
+:Click on player or team button;
+
+|Frontend System|
+if (Player or Team?) then (Player)
+    :Prompt for player name;
+    |User|
+    :Enters player name;
+    |Frontend System|
+    :Parses player name;
+    |Database|
+    :Retrieves matching players;
+else (Team)
+    |Frontend System|
+    :Prompt for team name;
+    |User|
+    :Enters team name;
+    |Frontend System|
+    :Parses team name;
+    |Database|
+    :Retrieves matching teams;
+endif
+
+|Frontend System|
+if (Matches found?) then (Yes)
+    :Display matching names in list;
+    |User|
+    :Clicks on entry in list;
+    |Frontend System|
+    :Redirect to stats view page;
+else (No)
+    :Show "No results found" message;
+endif
+stop
+@enduml

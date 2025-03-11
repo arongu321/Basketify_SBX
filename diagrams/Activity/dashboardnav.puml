@@ -1,0 +1,79 @@
+@startuml DashboardNavigation
+title Main Dashboard Activity Diagram (FR4-FR6)
+
+|#LightCoral|User|
+|#LightSeaGreen|Frontend System|
+|#LightYellow|Database|
+|#LightBlue|Backend System|
+|User|
+start
+:Arrives at Dashboard;
+
+|Frontend System|
+if (User is logged in?) then (yes)
+    :Display favourite team widget;
+    :Display favourite player widget;
+    :Display search interface;
+    :Display logout button;
+else (no)
+    :Display search interface;
+    :Display login button;
+endif
+
+|User|
+:Select an Option;
+
+|Frontend System|
+switch(Selected Option)
+    case (Login)
+        if (User is logged in?) then (no)
+            |User|
+            :Logs into Basketify;
+            -[#orange]->
+            |Frontend System|
+            :Redirect to Main Dashboard;
+        endif
+    case (Search)
+        |Frontend System|
+        :Redirect to player/team search page;
+    case (Favourite Team)
+        if (Has a Fave Team) then (yes)
+            :Redirect to team statistics;
+        else (no)
+            :Prompt user to search for selecting favourite team;
+            -[#yellow]->
+            |User|
+            :Select a favourite team;
+            |Backend System|
+            :Retrieve list of teams from the database;
+            |Database|
+            :Get list of teams;
+            |Backend System|
+            :Send list to frontend;
+            |Frontend System|
+            :Display search interface for selecting a team;
+        endif
+    case (Favourite Player)
+        if (Has a Fave Player) then (yes)
+            :Redirect to player statistics;
+        else (no)
+            :Prompt user to search for selecting favourite player;
+            -[#blue]->
+            |User|
+            :Select a favourite player;
+            |Backend System|
+            :Retrieve list of players from the database;
+            |Database|
+            :Get list of players;
+            |Backend System|
+            :Send list to frontend;
+            |Frontend System|
+            :Display search interface for selecting a player;
+        endif
+    case (Logout)
+        :Logout user;
+        :Display login button;
+endswitch
+
+stop
+@enduml

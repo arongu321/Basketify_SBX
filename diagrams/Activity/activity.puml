@@ -1,4 +1,5 @@
 @startuml RegistrationAndLogin
+title Registration and Login Activity Diagram (FR1-FR3)
 |#LightBlue|Email System|
 |#LightSeaGreen|Frontend System|
 |#LightCoral|User|
