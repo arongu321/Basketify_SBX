@@ -107,7 +107,9 @@ function StatsGraph() {
       if (prevStats.includes(stat)) {
         return prevStats.filter(item => item !== stat);
       } else {
-        return [...prevStats, stat];
+        const newStats = [...prevStats, stat];
+        // Ensure we never exceed 2 stats
+        return newStats.length > 2 ? newStats.slice(1) : newStats;
       }
     });
   };
@@ -118,16 +120,15 @@ function StatsGraph() {
 
   if (loading) return <div>Loading...</div>;
 
+  const dataSource = isSeasonal ? seasonalStats : currentSeasonStats;
+
   const plotData = selectedStats.map((stat, index) => {
-    const xValues = isSeasonal 
-      ? seasonalStats.map((data) => data.season) 
-      : currentSeasonStats.map((data) => new Date(data.date).toLocaleDateString()); 
-
-    const yValues = isSeasonal 
-      ? seasonalStats.map((data) => data[stat.toLowerCase().replace(' ', '')]) 
-      : currentSeasonStats.map((data) => data[stat.toLowerCase().replace(' ', '')]); 
-
-    const yaxis = index === 0 ? { title: stat, side: 'left' } : { title: stat, side: 'right' };
+    const xValues = dataSource.map((data) => 
+      isSeasonal ? data.season : new Date(data.date).toLocaleDateString()
+    );
+    const yValues = dataSource.map((data) => 
+      data[stat] || 0
+    );
 
     return {
       type: 'scatter',
@@ -135,28 +136,41 @@ function StatsGraph() {
       name: stat,
       x: xValues,
       y: yValues,
-      yaxis: `y${index + 1}`,
+      yaxis: index === 1 ? 'y2' : 'y',
     };
   });
 
-  // 2 y axes if 2 stats are selected
+  
   const layout = {
     title: 'Stats Over Time',
-    xaxis: { title: isSeasonal ? 'Season' : 'Date' }, 
-    yaxis: { title: selectedStats[0], side: 'left' }, 
-    yaxis2: selectedStats.length > 1
-      ? {
-          title: selectedStats[1],
-          side: 'right',
-          overlaying: 'y',
-          range: [
-            0,
-            Math.max(
-              ...statsData.map((data) => data[selectedStats[1].toLowerCase().replace(' ', '')])
-            ),
-          ], 
-        }
-      : null,
+    xaxis: { title: isSeasonal ? 'Season' : 'Date' },
+    yaxis: {
+      title: selectedStats[0] || '',
+      side: 'left',
+      range: selectedStats.length > 0 ? [
+        0,
+        Math.max(
+          ...dataSource.map((data) => 
+            data[selectedStats[0]?.toLowerCase().replace(' ', '')] || 0
+          )
+        )
+      ] : undefined
+    },
+    ...(selectedStats.length === 2 && {
+      yaxis2: {
+        title: selectedStats[1],
+        side: 'right',
+        overlaying: 'y',
+        range: [
+          0,
+          Math.max(
+            ...dataSource.map((data) => 
+              data[selectedStats[1].toLowerCase().replace(' ', '')] || 0
+            )
+          )
+        ]
+      }
+    })
   };
 
   return (
@@ -165,63 +179,45 @@ function StatsGraph() {
 
       <div>
         <h3>Select stats to plot:</h3>
-        <label>
-          <input
-            type="checkbox"
-            value="points"
-            onChange={handleStatChange}
-            disabled={selectedStats.length === 2 && !selectedStats.includes("points")}
-          />
-          Points Scored
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            value="rebounds"
-            onChange={handleStatChange}
-            disabled={selectedStats.length === 2 && !selectedStats.includes("rebounds")}
-          />
-          Rebounds
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            value="assists"
-            onChange={handleStatChange}
-            disabled={selectedStats.length === 2 && !selectedStats.includes("assists")}
-          />
-          Assists
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            value="fieldGoalsMade"
-            onChange={handleStatChange}
-            disabled={selectedStats.length === 2 && !selectedStats.includes("fieldGoalsMade")}
-          />
-          Field Goals Made
-        </label>
-        <label>
-          <input
-            type="checkbox"
-            value="threePointsMade"
-            onChange={handleStatChange}
-            disabled={selectedStats.length === 2 && !selectedStats.includes("threePointsMade")}
-          />
-          3P Made
-        </label>
+        {['points', 'rebounds', 'assists', 'fieldGoalsMade', 'threePointsMade', 'fieldGoalPercentage', 'threePointPercentage', 'freeThrowsMade', 'freeThrowPercentage', 'steals', 'blocks', 'turnovers'].map(stat => (
+          <label key={stat}>
+            <input
+              type="checkbox"
+              value={stat}
+              checked={selectedStats.includes(stat)}
+              onChange={handleStatChange}
+              disabled={selectedStats.length === 2 && !selectedStats.includes(stat)}
+            />
+            {stat === 'points' ? 'Points Scored' : 
+            stat === 'rebounds' ? 'Rebounds' : 
+            stat === 'assists' ? 'Assists' : 
+            stat === 'fieldGoalsMade' ? 'Field Goals Made' :
+            stat === 'threePointsMade' ? '3P Made' :
+            stat === 'fieldGoalPercentage' ? 'Field Goal %' :
+            stat === 'threePointPercentage' ? '3P %' :
+            stat === 'freeThrowsMade' ? 'Free Throws Made' :
+            stat === 'freeThrowPercentage' ? 'Free Throw %' :
+            stat === 'steals' ? 'Steals' :
+            stat === 'blocks' ? 'Blocks' :
+            stat === 'turnovers' ? 'Turnovers' : stat}
+          </label>
+        ))}
       </div>
+
 
       <button onClick={handleToggleStats}>
         {isSeasonal ? 'Show Game-by-Game Stats' : 'Show Seasonal Stats'}
       </button>
 
-      <div>
+      {selectedStats.length > 0 && (
+        <div>
           <Plot
             data={plotData}
             layout={layout}
+            style={{ width: '100%', height: '600px' }}
           />
-      </div>
+        </div>
+      )}
     </div>
   );
 }
