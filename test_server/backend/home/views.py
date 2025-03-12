@@ -26,6 +26,11 @@ def get_mongo_client():
     return mongo_client
 
 
+def handle_load_db_request(request):
+    get_mongo_client()
+    return JsonResponse({'message': 'Connected to DB'})
+
+
 def welcome(request):
     return JsonResponse({'message': 'Welcome to Django with React!'})
 

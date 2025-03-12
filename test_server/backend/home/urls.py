@@ -6,6 +6,7 @@ from .views import search_player
 from .views import search_team
 from .views import get_player_stats
 from .views import get_team_stats
+from .views import handle_load_db_request
 
 urlpatterns = [
     path('', welcome, name='welcome'),
@@ -15,4 +16,5 @@ urlpatterns = [
     path('search-team/', search_team, name='search_team'),
     path('stats/player/<str:name>/', get_player_stats, name='player_stats'),
     path('stats/team/<str:name>/', get_team_stats, name='team_stats'),
+    path('load-database/', handle_load_db_request),
 ]

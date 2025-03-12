@@ -42,10 +42,13 @@ function StatsPage() {
               rebounds: 0,
               assists: 0,
               fieldGoalsMade: 0,
+              fieldGoalsAttempted: 0,
               fieldGoalPercentage: 0,
               threePointsMade: 0,
+              threePointsAttempted: 0,
               threePointPercentage: 0,
               freeThrowsMade: 0,
+              freeThrowsAttempted: 0,
               freeThrowPercentage: 0,
               steals: 0,
               blocks: 0,
@@ -58,15 +61,18 @@ function StatsPage() {
           acc[season].rebounds += stat.rebounds || 0;
           acc[season].assists += stat.assists || 0;
           acc[season].fieldGoalsMade += stat.fieldGoalsMade || 0;
-          acc[season].fieldGoalPercentage += stat.fieldGoalPercentage || 0;
+          acc[season].fieldGoalsAttempted += stat.fieldGoalsMade / stat.fieldGoalPercentage || 0;
+          acc[season].fieldGoalPercentage = acc[season].fieldGoalsMade / acc[season].fieldGoalsAttempted || 0;
           acc[season].threePointsMade += stat.threePointsMade || 0;
-          acc[season].threePointPercentage += stat.threePointPercentage || 0;
+          acc[season].threePointsAttempted += stat.threePointsMade / stat.threePointPercentage || 0;
+          acc[season].threePointPercentage = acc[season].threePointsMade / acc[season].threePointsAttempted || 0;
           acc[season].freeThrowsMade += stat.freeThrowsMade || 0;
-          acc[season].freeThrowPercentage += stat.freeThrowPercentage || 0;
+          acc[season].freeThrowsAttempted += stat.freeThrowsMade / stat.freeThrowPercentage || 0;
+          acc[season].freeThrowPercentage = acc[season].freeThrowsMade / acc[season].freeThrowsAttempted || 0;
           acc[season].steals += stat.steals || 0;
           acc[season].blocks += stat.blocks || 0;
           acc[season].turnovers += stat.turnovers || 0;
-          acc[season].gamesPlayed += 1; // counter for num games
+          acc[season].gamesPlayed += 1;
 
           return acc;
         }, {});

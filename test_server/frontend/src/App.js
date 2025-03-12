@@ -10,6 +10,7 @@ function App() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    axios.get('http://localhost:8000/api/load-database/');
     axios.get('http://localhost:8000/api/')
       .then(response => {
         setMessage(response.data.message);

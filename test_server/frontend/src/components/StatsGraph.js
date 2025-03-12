@@ -148,36 +148,28 @@ function StatsGraph() {
 
   
   const layout = {
-    title: 'Stats Over Time',
-    xaxis: { title: isSeasonal ? 'Season' : 'Date' },
-    yaxis: {
-      title: selectedStats[0] || '',
-      side: 'left',
-      range: selectedStats.length > 0 ? [
+  title: 'Stats Over Time',
+  xaxis: { title: isSeasonal ? 'Season' : 'Date' },
+  yaxis: {
+    title: selectedStats[0] ? selectedStats[0].replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) : '',
+    side: 'left',
+    range: selectedStats.length > 0 ? [
+      0,
+      Math.max(...dataSource.map((data) => data[selectedStats[0]] || 0)) * 1.2 // Add 20% buffer
+    ] : undefined
+  },
+  ...(selectedStats.length === 2 && {
+    yaxis2: {
+      title: selectedStats[1] ? selectedStats[1].replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) : '',
+      side: 'right',
+      overlaying: 'y',
+      range: [
         0,
-        Math.max(
-          ...dataSource.map((data) => 
-            data[selectedStats[0]] || 0
-          )
-        )
-      ] : undefined
-    },
-    ...(selectedStats.length === 2 && {
-      yaxis2: {
-        title: selectedStats[1],
-        side: 'right',
-        overlaying: 'y',
-        range: [
-          0,
-          Math.max(
-            ...dataSource.map((data) => 
-              data[selectedStats[1]] || 0
-            )
-          )
-        ]
-      }
-    })
-  };
+        Math.max(...dataSource.map((data) => data[selectedStats[1]] || 0)) * 1.2 // Add 20% buffer
+      ]
+    }
+  })};
+
 
   return (
     <div>
