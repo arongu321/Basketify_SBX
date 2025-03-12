@@ -17,6 +17,7 @@ function StatsGraph() {
       try {
         const response = await axios.get(`http://localhost:8000/api/stats/${type}/${name}`);
         setStatsData(response.data.stats);
+        setSeasonalStats(response.data.seasonal_stats);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching stats data:", error);
@@ -29,83 +30,24 @@ function StatsGraph() {
 
   useEffect(() => {
     if (statsData.length > 0) {
-      const groupedBySeason = statsData.reduce((acc, stat) => {
-        const season = getSeason(stat.date);
-        
-        if (!acc[season]) {
-          acc[season] = {
-            season: season,  
-            points: 0,
-            rebounds: 0,
-            assists: 0,
-            fieldGoalsMade: 0,
-            fieldGoalsAttempted: 0,
-            fieldGoalPercentage: 0,
-            threePointsMade: 0,
-            threePointsAttempted: 0,
-            threePointPercentage: 0,
-            freeThrowsMade: 0,
-            freeThrowsAttempted: 0,
-            freeThrowPercentage: 0,
-            steals: 0,
-            blocks: 0,
-            turnovers: 0,
-            gamesPlayed: 0
-          };
-        }
-        
-        acc[season].points += stat.points || 0;
-        acc[season].rebounds += stat.rebounds || 0;
-        acc[season].assists += stat.assists || 0;
-        acc[season].fieldGoalsMade += stat.fieldGoalsMade || 0;
-        acc[season].fieldGoalsAttempted += stat.fieldGoalsMade / stat.fieldGoalPercentage || 0;
-        acc[season].fieldGoalPercentage = acc[season].fieldGoalsMade / acc[season].fieldGoalsAttempted || 0;
-        acc[season].threePointsMade += stat.threePointsMade || 0;
-        acc[season].threePointsAttempted += stat.threePointsMade / stat.threePointPercentage || 0;
-        acc[season].threePointPercentage = acc[season].threePointsMade / acc[season].threePointsAttempted || 0;
-        acc[season].freeThrowsMade += stat.freeThrowsMade || 0;
-        acc[season].freeThrowsAttempted += stat.freeThrowsMade / stat.freeThrowPercentage || 0;
-        acc[season].freeThrowPercentage = acc[season].freeThrowsMade / acc[season].freeThrowsAttempted || 0;
-        acc[season].steals += stat.steals || 0;
-        acc[season].blocks += stat.blocks || 0;
-        acc[season].turnovers += stat.turnovers || 0;
-        acc[season].gamesPlayed += 1;
-
-        return acc;
-      }, {});
-
-      const seasonalStatsArray = Object.values(groupedBySeason);
-
       const currentSeason = statsData.filter(stat => {
         const statDate = new Date(stat.date);
         const currentDate = new Date();
         
-        let seasonStart = new Date(currentDate.getFullYear(), 9, 1); 
-        let seasonEnd = new Date(currentDate.getFullYear() + 1, 8, 31); 
+        let seasonStart = new Date(currentDate.getFullYear(), 9, 1);
+        let seasonEnd = new Date(currentDate.getFullYear() + 1, 8, 31);
 
         if (currentDate.getMonth() < 9) {
-          seasonStart = new Date(currentDate.getFullYear() - 1, 9, 1); 
-          seasonEnd = new Date(currentDate.getFullYear(), 8, 31); 
+          seasonStart = new Date(currentDate.getFullYear() - 1, 9, 1);
+          seasonEnd = new Date(currentDate.getFullYear(), 8, 31);
         }
 
         return statDate >= seasonStart && statDate <= seasonEnd;
       });
 
-      setSeasonalStats(seasonalStatsArray);
       setCurrentSeasonStats(currentSeason);
     }
   }, [statsData]);
-
-  const getSeason = (date) => {
-    const month = new Date(date).getMonth() + 1;
-    const year = new Date(date).getFullYear();
-    
-    if (month >= 10) {
-      return `${year}-${year + 1}`;
-    } else {
-      return `${year - 1}-${year}`;
-    }
-  };
 
   const handleStatChange = (event) => {
     const stat = event.target.value;
@@ -114,7 +56,7 @@ function StatsGraph() {
         return prevStats.filter(item => item !== stat);
       } else {
         const newStats = [...prevStats, stat];
-        // Ensure we never exceed 2 stats
+        // ensure we never exceed 2 stats
         return newStats.length > 2 ? newStats.slice(1) : newStats;
       }
     });
@@ -126,50 +68,62 @@ function StatsGraph() {
 
   if (loading) return <div>Loading...</div>;
 
-  const dataSource = isSeasonal ? seasonalStats : currentSeasonStats;
-
   const plotData = selectedStats.map((stat, index) => {
-    const xValues = dataSource.map((data) => 
+    const dataToUse = isSeasonal ? seasonalStats.slice().reverse() : currentSeasonStats;
+    const xValues = dataToUse.map((data) => 
       isSeasonal ? data.season : new Date(data.date).toLocaleDateString()
     );
-    const yValues = dataSource.map((data) => 
+    const yValues = dataToUse.map((data) => 
       data[stat] || 0
     );
+
+    const formattedStatName = stat.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
 
     return {
       type: 'scatter',
       mode: 'lines+markers',
-      name: stat,
+      name: formattedStatName,
       x: xValues,
       y: yValues,
       yaxis: index === 1 ? 'y2' : 'y',
     };
   });
 
-  
   const layout = {
-  title: 'Stats Over Time',
-  xaxis: { title: isSeasonal ? 'Season' : 'Date' },
-  yaxis: {
-    title: selectedStats[0] ? selectedStats[0].replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) : '',
-    side: 'left',
-    range: selectedStats.length > 0 ? [
-      0,
-      Math.max(...dataSource.map((data) => data[selectedStats[0]] || 0)) * 1.2 // Add 20% buffer
-    ] : undefined
-  },
-  ...(selectedStats.length === 2 && {
-    yaxis2: {
-      title: selectedStats[1] ? selectedStats[1].replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) : '',
-      side: 'right',
-      overlaying: 'y',
-      range: [
+    title: 'Stats Over Time',
+    xaxis: { title: isSeasonal ? 'Season' : 'Date' },
+    yaxis: {
+      title: {
+        text: selectedStats[0] ? selectedStats[0].replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) : '',
+        font: {
+          size: 20,
+          color: '#7f7f7f'
+        }
+      },
+      side: 'left',
+      range: selectedStats.length > 0 ? [
         0,
-        Math.max(...dataSource.map((data) => data[selectedStats[1]] || 0)) * 1.2 // Add 20% buffer
-      ]
-    }
-  })};
-
+        Math.max(...(isSeasonal ? seasonalStats.slice().reverse() : currentSeasonStats).map((data) => data[selectedStats[0]] || 0)) * 1.2
+      ] : undefined
+    },
+    ...(selectedStats.length === 2 && {
+      yaxis2: {
+        title: {
+          text: selectedStats[1] ? selectedStats[1].replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) : '',
+          font: {
+            size: 20,
+            color: '#7f7f7f'
+          }
+        },
+        side: 'right',
+        overlaying: 'y',
+        range: [
+          0,
+          Math.max(...(isSeasonal ? seasonalStats.slice().reverse() : currentSeasonStats).map((data) => data[selectedStats[1]] || 0)) * 1.2
+        ]
+      }
+    })
+  };
 
   return (
     <div>

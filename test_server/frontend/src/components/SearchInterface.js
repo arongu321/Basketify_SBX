@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Use useNavigate instead of useHistory
+import { useNavigate, useLocation } from 'react-router-dom';
 
 function SearchInterface() {
   const [message, setMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState('player'); // 'player' or 'team'
+  const [searchType, setSearchType] = useState('player');
   const [searchResults, setSearchResults] = useState([]);
-  const navigate = useNavigate(); // useNavigate hook to navigate to a new page
+  const navigate = useNavigate();
+  const location = useLocation(); // Get state passed from navigation
 
-  // Fetch the search message from the backend
+
   useEffect(() => {
     axios.get('http://localhost:8000/api/search-message/')
       .then(response => {
@@ -20,7 +21,7 @@ function SearchInterface() {
       });
   }, []);
 
-  // Function to handle the search
+
   const handleSearch = () => {
     const url = searchType === 'player'
       ? 'http://localhost:8000/api/search-player'
@@ -29,9 +30,9 @@ function SearchInterface() {
     axios.get(url, { params: { name: searchTerm } })
       .then(response => {
         if (searchType === 'player') {
-          setSearchResults(response.data.players); // Assume response contains 'players'
+          setSearchResults(response.data.players);
         } else {
-          setSearchResults(response.data.teams); // Assume response contains 'teams'
+          setSearchResults(response.data.teams);
         }
       })
       .catch(error => {
@@ -39,10 +40,25 @@ function SearchInterface() {
       });
   };
 
-  // Handle clicking on a player's or team's name
+
   const handleClick = (name) => {
-    // Navigate to the player's or team's stats page
-    navigate(`/stats/${searchType}/${name}`);
+    const setFavorite = location.state?.setFavorite;  // check if call is for setting a favorite
+    if (setFavorite) {
+      // save fave to the backend
+      axios.post('http://localhost:8000/api/set-favorite/', {
+        type: setFavorite,
+        name: name
+      })
+        .then(() => {
+          navigate('/'); // return to dashboard after saving
+        })
+        .catch(error => {
+          console.error("Error saving favorite:", error);
+        });
+    } else {
+      // normal navigation to stats page (want to see player/team stats)
+      navigate(`/stats/${searchType}/${name}`);
+    }
   };
 
   return (

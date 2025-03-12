@@ -16,90 +16,26 @@ function StatsPage() {
       try {
         const response = await axios.get(`http://localhost:8000/api/stats/${type}/${name}`);
 
-        const stats = response.data.stats;
+        const { stats, seasonal_stats } = response.data;
 
-
-        // get current season (e.g. "2024-2025")
-        const getSeason = (date) => {
-          const month = new Date(date).getMonth() + 1;  // indexed at 1
-          const year = new Date(date).getFullYear();
-          
-          if (month >= 10) {
-            return `${year}-${year + 1}`; // Oct to Dec, season started this year
-          } else {
-            return `${year - 1}-${year}`; // Jan to Sep, season started last year
-          }
-        };
-
-        // group stats by season, doing this aggregation on frontend
-        const groupedBySeason = stats.reduce((acc, stat) => {
-          const season = getSeason(stat.date);
-          
-          if (!acc[season]) {
-            acc[season] = {
-              season: season,  // season is key
-              points: 0,
-              rebounds: 0,
-              assists: 0,
-              fieldGoalsMade: 0,
-              fieldGoalsAttempted: 0,
-              fieldGoalPercentage: 0,
-              threePointsMade: 0,
-              threePointsAttempted: 0,
-              threePointPercentage: 0,
-              freeThrowsMade: 0,
-              freeThrowsAttempted: 0,
-              freeThrowPercentage: 0,
-              steals: 0,
-              blocks: 0,
-              turnovers: 0,
-              gamesPlayed: 0
-            };
-          }
-          
-          acc[season].points += stat.points || 0;
-          acc[season].rebounds += stat.rebounds || 0;
-          acc[season].assists += stat.assists || 0;
-          acc[season].fieldGoalsMade += stat.fieldGoalsMade || 0;
-          acc[season].fieldGoalsAttempted += stat.fieldGoalsMade / stat.fieldGoalPercentage || 0;
-          acc[season].fieldGoalPercentage = acc[season].fieldGoalsMade / acc[season].fieldGoalsAttempted || 0;
-          acc[season].threePointsMade += stat.threePointsMade || 0;
-          acc[season].threePointsAttempted += stat.threePointsMade / stat.threePointPercentage || 0;
-          acc[season].threePointPercentage = acc[season].threePointsMade / acc[season].threePointsAttempted || 0;
-          acc[season].freeThrowsMade += stat.freeThrowsMade || 0;
-          acc[season].freeThrowsAttempted += stat.freeThrowsMade / stat.freeThrowPercentage || 0;
-          acc[season].freeThrowPercentage = acc[season].freeThrowsMade / acc[season].freeThrowsAttempted || 0;
-          acc[season].steals += stat.steals || 0;
-          acc[season].blocks += stat.blocks || 0;
-          acc[season].turnovers += stat.turnovers || 0;
-          acc[season].gamesPlayed += 1;
-
-          return acc;
-        }, {});
-
-        // convert object to array
-        const seasonalStatsArray = Object.values(groupedBySeason);
-
-        // get current season stats (what's displayed by default)
+        // get current season stats
         const currentSeason = stats.filter(stat => {
           const statDate = new Date(stat.date);
           const currentDate = new Date();
           
-          // curr season start & end date
-          let seasonStart = new Date(currentDate.getFullYear(), 9, 1); // sept 1 of curr year
-          let seasonEnd = new Date(currentDate.getFullYear() + 1, 8, 31); // aug 31 of next year
+          let seasonStart = new Date(currentDate.getFullYear(), 9, 1);
+          let seasonEnd = new Date(currentDate.getFullYear() + 1, 8, 31);
 
-          // adjust season if current date is before September
           if (currentDate.getMonth() < 9) {
-            seasonStart = new Date(currentDate.getFullYear() - 1, 9, 1); // sept 1st of previous year
-            seasonEnd = new Date(currentDate.getFullYear(), 8, 31); // aug 31 of curr year
+            seasonStart = new Date(currentDate.getFullYear() - 1, 9, 1);
+            seasonEnd = new Date(currentDate.getFullYear(), 8, 31);
           }
 
           return statDate >= seasonStart && statDate <= seasonEnd;
         });
 
         setStatsData(stats);
-        setSeasonalStats(seasonalStatsArray);
+        setSeasonalStats(seasonal_stats);
         setCurrentSeasonStats(currentSeason);
         setLoading(false);
       } catch (error) {
@@ -109,7 +45,7 @@ function StatsPage() {
     };
 
     fetchStats();
-  }, [type, name]); // re-run the effect when type or name changes  
+  }, [type, name]); 
 
   if (loading) {
     return <div>Loading...</div>;
@@ -158,7 +94,7 @@ function StatsPage() {
             </tr>
           </thead>
           <tbody>
-            {(isSeasonal ? seasonalStats : currentSeasonStats).map((gameStats, index) => (
+            {(isSeasonal ? seasonalStats.slice().reverse() : currentSeasonStats.slice().reverse()).map((gameStats, index) => (
               <tr key={index}>
                 <td>{isSeasonal ? gameStats.season : new Date(gameStats.date).toLocaleDateString()}</td>
                 <td>{gameStats.points}</td>

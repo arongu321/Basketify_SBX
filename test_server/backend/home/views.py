@@ -112,12 +112,91 @@ def search_team(request):
         return JsonResponse({'error': str(e)}, status=500)
     
 
-# Helper function to replace NaN with a default value
+# helper function to replace NaN with a default value
 def sanitize_value(value):
     if isinstance(value, float) and (value != value):
         return 0
     return value
 
+
+def get_season_from_date(date_str):
+    try:
+        date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+        year = date_obj.year
+        month = date_obj.month
+        
+        # if month is October or later, season starts in current year
+        if month >= 10:
+            return f"{year}-{year + 1}"
+        # otherwise, season started in previous year
+        else:
+            return f"{year - 1}-{year}"
+    except ValueError:
+        return None
+
+def aggregate_seasonal_stats(stats):
+    grouped_by_season = {}
+    
+    for stat in stats:
+        season = get_season_from_date(stat['date'])
+        if not season:
+            continue
+            
+        if season not in grouped_by_season:
+            grouped_by_season[season] = {
+                'season': season,
+                'points': 0,
+                'rebounds': 0,
+                'assists': 0,
+                'fieldGoalsMade': 0,
+                'fieldGoalsAttempted': 0,
+                'fieldGoalPercentage': 0,
+                'threePointsMade': 0,
+                'threePointsAttempted': 0,
+                'threePointPercentage': 0,
+                'freeThrowsMade': 0,
+                'freeThrowsAttempted': 0,
+                'freeThrowPercentage': 0,
+                'steals': 0,
+                'blocks': 0,
+                'turnovers': 0,
+                'gamesPlayed': 0
+            }
+            
+        # aggregate game-by-game stats into seasons
+        season_stats = grouped_by_season[season]
+        season_stats['points'] += stat.get('points', 0) or 0
+        season_stats['rebounds'] += stat.get('rebounds', 0) or 0
+        season_stats['assists'] += stat.get('assists', 0) or 0
+        season_stats['fieldGoalsMade'] += stat.get('fieldGoalsMade', 0) or 0
+        season_stats['threePointsMade'] += stat.get('threePointsMade', 0) or 0
+        season_stats['freeThrowsMade'] += stat.get('freeThrowsMade', 0) or 0
+        season_stats['steals'] += stat.get('steals', 0) or 0
+        season_stats['blocks'] += stat.get('blocks', 0) or 0
+        season_stats['turnovers'] += stat.get('turnovers', 0) or 0
+        season_stats['gamesPlayed'] += 1
+
+        #calculate attempts based on made and percent (required to get seasonal percentage)
+        if stat.get('fieldGoalPercentage', 0) > 0:
+            attempts = stat.get('fieldGoalsMade', 0) / stat.get('fieldGoalPercentage', 0)
+            season_stats['fieldGoalsAttempted'] += attempts
+        if stat.get('threePointPercentage', 0) > 0:
+            attempts = stat.get('threePointsMade', 0) / stat.get('threePointPercentage', 0)
+            season_stats['threePointsAttempted'] += attempts
+        if stat.get('freeThrowPercentage', 0) > 0:
+            attempts = stat.get('freeThrowsMade', 0) / stat.get('freeThrowPercentage', 0)
+            season_stats['freeThrowsAttempted'] += attempts
+
+    # calculate percentages for each season
+    for season, stats in grouped_by_season.items():
+        if stats['fieldGoalsAttempted'] > 0:
+            stats['fieldGoalPercentage'] = stats['fieldGoalsMade'] / stats['fieldGoalsAttempted']
+        if stats['threePointsAttempted'] > 0:
+            stats['threePointPercentage'] = stats['threePointsMade'] / stats['threePointsAttempted']
+        if stats['freeThrowsAttempted'] > 0:
+            stats['freeThrowPercentage'] = stats['freeThrowsMade'] / stats['freeThrowsAttempted']
+
+    return list(grouped_by_season.values())
 
 def get_player_stats(request, name):
     try:
@@ -129,8 +208,7 @@ def get_player_stats(request, name):
         
         if not player:
             return JsonResponse({'error': 'Player not found'}, status=404)
-        
-        # extract game stats from the player's data
+
         player_stats = []
         
         for game_date, game_data in player['games'].items():
@@ -151,7 +229,12 @@ def get_player_stats(request, name):
             }
             player_stats.append(stats)
         
-        return JsonResponse({"stats": player_stats}, status=200)
+        seasonal_stats = aggregate_seasonal_stats(player_stats)
+        
+        return JsonResponse({
+            "stats": player_stats,
+            "seasonal_stats": seasonal_stats
+        }, status=200)
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -168,7 +251,6 @@ def get_team_stats(request, name):
         if not team:
             return JsonResponse({'error': 'Team not found'}, status=404)
         
-        # extract game stats from the team's data
         team_stats = []
         
         for game_date, game_data in team['games'].items():
@@ -189,7 +271,65 @@ def get_team_stats(request, name):
             }
             team_stats.append(stats)
         
-        return JsonResponse({"stats": team_stats}, status=200)
+        seasonal_stats = aggregate_seasonal_stats(team_stats)
+        
+        return JsonResponse({
+            "stats": team_stats,
+            "seasonal_stats": seasonal_stats
+        }, status=200)
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+def user_favorites(request):
+    try:
+        client = get_mongo_client()
+        db = client['nba_stats']
+        users_collection = db['users']
+
+        # TODO: replace with request email
+        user_email = "example@email.com"
+        user = users_collection.find_one({"email": user_email})
+
+        if not user:
+            return JsonResponse({'favorite_player': None, 'favorite_team': None}, status=200)
+
+        return JsonResponse({
+            'favorite_player': user.get('favourite_player', None),
+            'favorite_team': user.get('favourite_team', None)
+        }, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def set_favorite(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    try:
+        client = get_mongo_client()
+        db = client['nba_stats']
+        users_collection = db['users']
+
+        # TODO: replace with request email
+        user_email = "example@email.com"
+        data = request.POST
+        favorite_type = data.get('type')
+        name = data.get('name')
+
+        if not favorite_type or not name:
+            return JsonResponse({'error': 'Type and name are required'}, status=400)
+
+        update_field = 'favourite_player' if favorite_type == 'player' else 'favourite_team'
+        users_collection.update_one(
+            {"email": user_email},
+            {"$set": {update_field: name}}
+        )
+
+        return JsonResponse({'message': f'Set {favorite_type} to {name}'}, status=200)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    

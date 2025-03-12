@@ -7,6 +7,8 @@ from .views import search_team
 from .views import get_player_stats
 from .views import get_team_stats
 from .views import handle_load_db_request
+from .views import user_favorites
+from .views import set_favorite
 
 urlpatterns = [
     path('', welcome, name='welcome'),
@@ -16,5 +18,7 @@ urlpatterns = [
     path('search-team/', search_team, name='search_team'),
     path('stats/player/<str:name>/', get_player_stats, name='player_stats'),
     path('stats/team/<str:name>/', get_team_stats, name='team_stats'),
-    path('load-database/', handle_load_db_request),
+    path('load-database/', handle_load_db_request, name='load_db'),
+    path('api/user-favorites/', user_favorites, name='user_favorites'),
+    path('api/set-favorite/', set_favorite, name='set_favorite'),
 ]
