@@ -41,6 +41,12 @@ def get_login_message(request):
     return JsonResponse({"message": message})
 
 
+def get_ml_predictions_msg(request):
+    now = datetime.datetime.now()
+    message = f"Welcome to the ML Predictions Page! Current time from Django: {now}"
+    return JsonResponse({"message": message})
+
+
 def get_search_message(request):
     now = datetime.datetime.now()
     message = f"Welcome to the Login Page! Current time from Django: {now}"

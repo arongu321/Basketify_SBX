@@ -5,59 +5,52 @@ import Login from './components/Login';
 import SearchInterface from './components/SearchInterface';
 import StatsPage from './components/StatsPage';
 import StatsGraph from './components/StatsGraph';
+import MLPredictions from './components/MLPredictions';
+import logo from './assets/Basketify-Logo.png';
+import './App.css';
+
+document.title = "Basketify";
+const favicon = document.querySelector("link[rel='icon']") || document.createElement('link');
+favicon.rel = 'icon';
+favicon.href = logo;
+document.head.appendChild(favicon);
 
 function Home({ message }) {
-  const [favorites, setFavorites] = useState({ player: null, team: null });
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // fetch the user's favorite player and team from the backend
-    axios.get('http://localhost:8000/api/user-favorites/')
-      .then(response => {
-        setFavorites({
-          player: response.data.favorite_player,
-          team: response.data.favorite_team
-        });
-      })
-      .catch(error => {
-        console.log('Error fetching favorites!', error);
-      });
-  }, []);
-
-  const handleFavoriteClick = (type) => {
-    if (type === 'player' && favorites.player) {
-      navigate(`/stats/player/${favorites.player}`);
-    } else if (type === 'team' && favorites.team) {
-      navigate(`/stats/team/${favorites.team}`);
-    } else {
-      // pass a prop to indicate this is for setting a favorite
-      navigate('/search', { state: { setFavorite: type } });
-    }
-  };
+  const dashboardTiles = [
+    { title: "Search Player/Team", path: "/search" },
+    { title: "ML Predictions", path: "/ml-predictions" },
+    { title: "Favourite Player", path: "/stats/player/favorite" },
+    { title: "Favourite Team", path: "/stats/team/favorite" }
+  ];
 
   return (
-    <>
-      <h1>Message from Django server: {message}</h1>
-      <p>Click on the links below to go to other pages:</p>
-      <ul>
-        <li>
-          <Link to="/login">Go to Login</Link>
-        </li>
-        <li>
-          <Link to="/search">Go to Search Interface</Link>
-        </li>
-        <li>
-          <button onClick={() => handleFavoriteClick('player')}>
-            Favourite Player
-          </button>
-        </li>
-        <li>
-          <button onClick={() => handleFavoriteClick('team')}>
-            Favourite Team
-          </button>
-        </li>
-      </ul>
-    </>
+    <div className="dashboard-container">
+      <div className="top-banner">
+        <div className="header-content">
+          <div className="title-logo-container">
+            <img src={logo} alt="Basketify Logo" className="logo" />
+            <h1 className="title">Basketify</h1>
+          </div>
+          <Link to="/login" className="login-link">Login</Link>
+        </div>
+      </div>
+      
+      <div className="dashboard-grid">
+        {dashboardTiles.map((tile, index) => (
+          <div 
+            key={index} 
+            className="dashboard-tile"
+            onClick={() => navigate(tile.path)}
+          >
+            <h2>{tile.title}</h2>
+          </div>
+        ))}
+      </div>
+      
+      <div className="bottom-banner"></div>
+    </div>
   );
 }
 
@@ -65,7 +58,7 @@ function App() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/load-database/');  // set up connection to DB ahead of time
+    axios.get('http://localhost:8000/api/load-database/');
     axios.get('http://localhost:8000/api/')
       .then(response => {
         setMessage(response.data.message);
@@ -81,6 +74,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home message={message} />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/ml-predictions/" element={<MLPredictions />} />
           <Route path="/search" element={<SearchInterface />} />
           <Route path="/stats/:type/:name" element={<StatsPage />} />
           <Route path="/stats-graph/:type/:name" element={<StatsGraph />} />

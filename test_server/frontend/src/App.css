@@ -1,38 +1,99 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+.dashboard-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+.top-banner {
+  background-color: #8bd6ef;
+  padding: 20px;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.title {
+  color: white;
+  font-size: 48px;
+  margin: 0;
+}
+
+.logo {
+  max-width: 100px;
+  height: auto;
+}
+
+.login-link {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  padding: 8px 16px;
+  background-color: #ff6b6b;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+}
+
+.login-link:hover {
+  background-color: #ff8787;
+  text-decoration: none;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 30px;
+  padding: 120px 40px 100px;
+  max-width: 800px;
+  margin: 0 auto;
+  flex: 1;
+}
+
+.dashboard-tile {
+  background-color: #d3d3d3;
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  cursor: pointer;
+  min-height: 150px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
 }
 
-.App-link {
-  color: #61dafb;
+.dashboard-tile:hover {
+  transform: scale(1.05);
+  background-color: #c0c0c0;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.dashboard-tile h2 {
+  margin: 0;
+  text-align: center;
+  font-size: 24px;
+  color: #333;
+}
+
+.bottom-banner {
+  background-color: #8bd6ef;
+  height: 50px;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
 }
