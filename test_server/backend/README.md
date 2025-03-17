@@ -9,6 +9,9 @@ CREATE USER basketify_user WITH PASSWORD 'your_password';
 ALTER ROLE basketify_user SET client_encoding TO 'utf8';
 ALTER ROLE basketify_user SET default_transaction_isolation TO 'read committed';
 ALTER ROLE basketify_user SET timezone TO 'UTC';
+GRANT ALL ON SCHEMA public TO basketify_user;
+GRANT ALL ON DATABASE basketify TO basketify_user;
+ALTER USER basketify_user WITH SUPERUSER;
 GRANT ALL PRIVILEGES ON DATABASE basketify TO basketify_user;
 \q
 ```
