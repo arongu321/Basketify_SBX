@@ -14,7 +14,7 @@ start_django_server() {
     source ../.venv/bin/activate
 
     # install any dependencies not already installed in .venv
-    python3 -m pip install -r requirements.txt
+    python3 -m pip install -r ../requirements.txt
 
     # process any changes to Models
     python3 manage.py migrate
