@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# file written by Zach to automate Django + React devel server startup/shutdown
 start_django_server() {
     echo "Starting Django server..."
     cd backend
@@ -17,6 +18,7 @@ start_django_server() {
     python3 -m pip install -r ../requirements.txt
 
     # process any changes to Models
+    python3 manage.py makemigrations
     python3 manage.py migrate
 
     # run the Django server in the background
