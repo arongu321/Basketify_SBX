@@ -16,6 +16,7 @@ import SearchInterface from './components/SearchInterface';
 import StatsPage from './components/StatsPage';
 import StatsGraph from './components/StatsGraph';
 import MLPredictions from './components/MLPredictions';
+import EmailVerification from './components/EmailVerification';
 import logo from './assets/Basketify-Logo.png';
 import './App.css';
 
@@ -95,7 +96,7 @@ function App() {
                     <Route
                         path="/"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute requireVerified={true}>
                                 <Home />
                             </ProtectedRoute>
                         }
@@ -103,6 +104,10 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/logout" element={<Logout />} />
+                    <Route
+                        path="/verify-email"
+                        element={<EmailVerification />}
+                    />
                     <Route path="*" element={<NotFound />} />
                     <Route
                         path="/ml-predictions/"

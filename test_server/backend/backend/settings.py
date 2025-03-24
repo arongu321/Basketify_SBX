@@ -47,7 +47,9 @@ REST_FRAMEWORK = {
 # Lifetime for access and refresh JWT tokens
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1)
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
 }
 
 
@@ -81,7 +83,7 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -158,3 +160,16 @@ CORS_ALLOW_ALL_ORIGINS = True  # TODO: should change when ship to production
 # When set to True, this allows cookies, authorization headers, or TLS client certificates to be included in cross-origin requests. 
 # This is necessary if your application needs to handle authenticated requests from different origins.
 CORS_ALLOWS_CREDENTIALS = True
+
+# Setup custom user authentication model
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# Email settings
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST_USER = "aron.gu321@gmail.com"
+EMAIL_HOST_PASSWORD = "rngb rvfk iutp bxdo"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = "Delight aron.gu321@gmail.com"
