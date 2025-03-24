@@ -2,3 +2,4 @@
 /test_server/.basketify-venv/
 *__pycache__*
 /test_server/data_dir/*
+/test_server/.venv/
