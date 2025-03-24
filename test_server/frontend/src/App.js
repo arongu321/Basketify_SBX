@@ -23,6 +23,7 @@ import VerifyEmailConfirm from './components/VerifyEmailConfirm';
 import VerifyEmailComplete from './components/VerifyEmailComplete';
 import logo from './assets/Basketify-Logo.png';
 import './App.css';
+import { ACCESS_TOKEN } from './utils/constants';
 
 document.title = 'Basketify';
 const favicon =
@@ -34,12 +35,50 @@ document.head.appendChild(favicon);
 
 function Home({ message }) {
     const navigate = useNavigate();
+    const [favorites, setFavorites] = useState({ player: null, team: null });
+
+    useEffect(() => {
+        // fetch user favorites
+        axios
+            .get('http://localhost:8000/accounts/get-favorite/', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem(
+                        ACCESS_TOKEN
+                    )}`,
+                },
+            })
+            .then((response) => {
+                if (response.data) {
+                    setFavorites({
+                        player: response.data.player || null,
+                        team: response.data.team || null,
+                    });
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching user favorites:', error);
+            });
+    }, []);
 
     const dashboardTiles = [
         { title: 'Search Player/Team', path: '/search' },
         { title: 'ML Predictions', path: '/ml-predictions' },
-        { title: 'Favourite Player', path: '/stats/player/favorite' },
-        { title: 'Favourite Team', path: '/stats/team/favorite' },
+        {
+            title: favorites.player
+                ? `Favourite Player: ${favorites.player}`
+                : 'Favourite Player',
+            path: favorites.player
+                ? `/stats/player/${favorites.player}`
+                : '/search',
+            state: favorites.player ? null : { setFavorite: 'player' },
+        },
+        {
+            title: favorites.team
+                ? `Favourite Team: ${favorites.team}`
+                : 'Favourite Team',
+            path: favorites.team ? `/stats/team/${favorites.team}` : '/search',
+            state: favorites.team ? null : { setFavorite: 'team' },
+        },
     ];
 
     return (
@@ -61,7 +100,9 @@ function Home({ message }) {
                     <div
                         key={index}
                         className="dashboard-tile"
-                        onClick={() => navigate(tile.path)}
+                        onClick={() =>
+                            navigate(tile.path, { state: tile.state })
+                        }
                     >
                         <h2>{tile.title}</h2>
                     </div>
