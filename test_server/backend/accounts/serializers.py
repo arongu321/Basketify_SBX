@@ -2,6 +2,8 @@ from django.conf import settings
 from rest_framework import serializers
 from .models import UserFavorite
 
+User = settings.AUTH_USER_MODEL
+
 # written by zach
 class UserFavoriteSerializer(serializers.ModelSerializer):
     class Meta:

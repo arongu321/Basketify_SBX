@@ -24,7 +24,6 @@ import VerifyEmailComplete from './components/VerifyEmailComplete';
 import logo from './assets/Basketify-Logo.png';
 import './App.css';
 import { ACCESS_TOKEN } from './utils/constants';
-import { ACCESS_TOKEN } from './utils/constants';
 
 document.title = 'Basketify';
 const favicon =
@@ -60,7 +59,6 @@ function Home({ message }) {
                 console.error('Error fetching user favorites:', error);
             });
     }, []);
-    const [favorites, setFavorites] = useState({ player: null, team: null });
 
     useEffect(() => {
         // fetch user favorites

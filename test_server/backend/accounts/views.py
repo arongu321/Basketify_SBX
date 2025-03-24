@@ -146,6 +146,7 @@ def verify_email_complete(request):
 
 class SetFavoriteView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserFavoriteSerializer
 
     def post(self, request):
         user = request.user
@@ -169,6 +170,7 @@ class SetFavoriteView(APIView):
 # written by Zach
 class GetFavoriteView(APIView):
     permission_classes = [permissions.IsAuthenticated]  # user must be logged in to get their favourites
+    serializer_class = UserFavoriteSerializer
 
     def get(self, request):
         user = request.user
