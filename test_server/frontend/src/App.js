@@ -17,6 +17,10 @@ import StatsPage from './components/StatsPage';
 import StatsGraph from './components/StatsGraph';
 import MLPredictions from './components/MLPredictions';
 import EmailVerification from './components/EmailVerification';
+import VerifyEmail from './components/VerifyEmail';
+import VerifyEmailDone from './components/VerifyEmailDone';
+import VerifyEmailConfirm from './components/VerifyEmailConfirm';
+import VerifyEmailComplete from './components/VerifyEmailComplete';
 import logo from './assets/Basketify-Logo.png';
 import './App.css';
 
@@ -104,10 +108,28 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/logout" element={<Logout />} />
+
+                    {/* Email verification routes */}
+                    <Route path="/verify-email" element={<VerifyEmail />} />
                     <Route
-                        path="/verify-email"
+                        path="/verify-email-done"
+                        element={<VerifyEmailDone />}
+                    />
+                    <Route
+                        path="/verify-email-confirm/:uidb64/:token"
+                        element={<VerifyEmailConfirm />}
+                    />
+                    <Route
+                        path="/verify-email-complete"
+                        element={<VerifyEmailComplete />}
+                    />
+
+                    {/* Original EmailVerification component route (legacy) */}
+                    <Route
+                        path="/email-verification"
                         element={<EmailVerification />}
                     />
+
                     <Route path="*" element={<NotFound />} />
                     <Route
                         path="/ml-predictions/"
