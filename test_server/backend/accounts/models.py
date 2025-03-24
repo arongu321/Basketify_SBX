@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.base_user import BaseUserManager
 from django.utils import timezone
+from django.db import models
+from django.conf import settings
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password, **extra_fields):
@@ -51,3 +53,14 @@ class CustomUser(AbstractUser):
             
         expiration_time = self.verification_token_created + timezone.timedelta(minutes=2)
         return timezone.now() > expiration_time
+    
+class UserFavorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorites')
+    favorite_type = models.CharField(max_length=10, choices=[('player', 'Player'), ('team', 'Team')])
+    favorite_name = models.CharField(max_length=100)
+    
+    class Meta:
+        unique_together = ('user', 'favorite_type')  # ensures one fave team and one fave player per user in DB
+    
+    def __str__(self):
+        return f"{self.user.email} favorite {self.favorite_type}: {self.favorite_name}"
