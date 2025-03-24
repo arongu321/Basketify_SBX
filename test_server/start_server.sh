@@ -1,13 +1,24 @@
 #!/bin/bash
 
+# file written by Zach to automate Django + React devel server startup/shutdown
 start_django_server() {
     echo "Starting Django server..."
     cd backend
-  
+
+    # check if virtual environment exists, if not, create it
+    if [ ! -d "../.venv" ]; then
+        echo "Virtual environment not found, creating one..."
+        python3 -m venv ../.venv
+    fi
+
     # activate the virtual env
     source ../.venv/bin/activate
 
+    # install any dependencies not already installed in .venv
+    python3 -m pip install -r ../requirements.txt
+
     # process any changes to Models
+    python3 manage.py makemigrations
     python3 manage.py migrate
 
     # run the Django server in the background
@@ -23,6 +34,7 @@ start_django_server() {
     done
     echo "Django server is up and running!"
 }
+
 
 start_react_server() {
     echo "Starting React server..."

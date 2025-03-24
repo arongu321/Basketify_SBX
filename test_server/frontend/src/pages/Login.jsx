@@ -15,14 +15,18 @@ export default function Login() {
         e.preventDefault();
         setLoading(true);
         setError('');
-
+    
         try {
             const response = await api.post('/api/token/', {
                 email,
                 password,
             });
-            localStorage.setItem(ACCESS_TOKEN, response.data.access);
-            localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
+            const accessToken = response.data.access;
+            const refreshToken = response.data.refresh;
+            
+            localStorage.setItem(ACCESS_TOKEN, accessToken);
+            localStorage.setItem(REFRESH_TOKEN, refreshToken);
+            
             navigate('/');
         } catch (err) {
             setError('Invalid email or password');

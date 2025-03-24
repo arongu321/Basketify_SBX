@@ -2,18 +2,20 @@ from django.conf import settings
 from rest_framework import serializers
 from .models import UserFavorite
 
-User = settings.AUTH_USER_MODEL
-
 # written by zach
 class UserFavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFavorite
         fields = ['favorite_type', 'favorite_name']
 
+
+# written by Aron
 class UserSerializer(serializers.ModelSerializer):
+    favorites = UserFavoriteSerializer(many=True, read_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'email', 'email_is_verified']
+        fields = ['id', 'email', 'email_is_verified', 'favorites']
         read_only_fields = ['id', 'email_is_verified']
 
 class UserCreateSerializer(serializers.ModelSerializer):
