@@ -9,6 +9,11 @@ import SearchInterface from './components/SearchInterface';
 import StatsPage from './components/StatsPage';
 import StatsGraph from './components/StatsGraph';
 import MLPredictions from './components/MLPredictions';
+import EmailVerification from './components/EmailVerification';
+import VerifyEmail from './components/VerifyEmail';
+import VerifyEmailDone from './components/VerifyEmailDone';
+import VerifyEmailConfirm from './components/VerifyEmailConfirm';
+import VerifyEmailComplete from './components/VerifyEmailComplete';
 import logo from './assets/Basketify-Logo.png';
 import './App.css';
 import { ACCESS_TOKEN } from './utils/constants';
@@ -22,6 +27,7 @@ document.head.appendChild(favicon);
 function Home({ message }) {
     const navigate = useNavigate();
     const [favorites, setFavorites] = useState({ player: null, team: null });
+    const [loadingFavorites, setLoadingFavorites] = useState(true); // we only display dashboard when faves done loading
 
     useEffect(() => {
         // fetch user favorites
@@ -35,11 +41,23 @@ function Home({ message }) {
                     team: response.data.team || null
                 });
             }
+            setLoadingFavorites(false); // done loading, display dashboard
         })
         .catch(error => {
             console.error("Error fetching user favorites:", error);
+            setLoadingFavorites(false);
         });
     }, []);
+
+    // if faves still loading, show Basketify logo + msg
+    if (loadingFavorites) {
+        return (
+            <div className="dashboard-loading-screen">
+                <img src={logo} alt="Loading..." className="dashboard-loading-favicon" />
+                <h2>Loading...</h2>
+            </div>
+        );
+    }
 
     const dashboardTiles = [
         { title: 'Search Player/Team', path: '/search' },
@@ -58,13 +76,13 @@ function Home({ message }) {
 
     return (
         <div className="dashboard-container">
-            <div className="top-banner">
-                <div className="header-content">
-                    <div className="title-logo-container">
-                        <img src={logo} alt="Basketify Logo" className="logo" />
-                        <h1 className="title">Basketify</h1>
+            <div className="dashboard-top-banner">
+                <div className="dashboard-header-content">
+                    <div className="dashboard-title-logo-container">
+                        <img src={logo} alt="Basketify Logo" className="dashboard-logo" />
+                        <h1 className="dashboard-title">Basketify</h1>
                     </div>
-                    <Link to="/login" className="login-link">
+                    <Link to="/login" className="dashboard-login-link">
                         Login
                     </Link>
                 </div>
@@ -82,7 +100,7 @@ function Home({ message }) {
                 ))}
             </div>
 
-            <div className="bottom-banner"></div>
+            <div className="dashboard-bottom-banner"></div>
         </div>
     );
 }
@@ -114,7 +132,7 @@ function App() {
                     <Route
                         path="/"
                         element={
-                            <ProtectedRoute>
+                            <ProtectedRoute requireVerified={true}>
                                 <Home />
                             </ProtectedRoute>
                         }
@@ -122,6 +140,28 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/logout" element={<Logout />} />
+
+                    {/* Email verification routes */}
+                    <Route path="/verify-email" element={<VerifyEmail />} />
+                    <Route
+                        path="/verify-email-done"
+                        element={<VerifyEmailDone />}
+                    />
+                    <Route
+                        path="/verify-email-confirm/:uidb64/:token"
+                        element={<VerifyEmailConfirm />}
+                    />
+                    <Route
+                        path="/verify-email-complete"
+                        element={<VerifyEmailComplete />}
+                    />
+
+                    {/* Original EmailVerification component route (legacy) */}
+                    <Route
+                        path="/email-verification"
+                        element={<EmailVerification />}
+                    />
+
                     <Route path="*" element={<NotFound />} />
                     <Route path="/ml-predictions/" element={<MLPredictions />} />
                     <Route path="/search" element={<SearchInterface />} />

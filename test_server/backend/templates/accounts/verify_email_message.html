@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #c2c2c2;
+            padding: 15px;
+        }
+        .email-header {
+            margin: 0;
+            padding: 10px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            background-color: #5865F2;
+            color: #ffffff;
+        }
+        .email-content {
+            margin: 0;
+            padding: 15px;
+            background-color: #ffffff;
+        }
+        .verification-button {
+            display: inline-block;
+            border: 0;
+            color: #ffffff;
+            background-color: #5865F2;
+            padding: 15px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <h2 class="email-header">Verify Email</h2>
+        <div class="email-content">
+            <p>Hi there,</p>
+            <p>
+                You created an account on Basketify, and you need to verify your email. 
+                Please click on the button below to verify your email.
+            </p>
+            <a href="{{ verification_url }}" class="verification-button">Verify Email</a>
+            <p style="margin-top: 40px;">Or you can copy the link below to your browser</p>
+            <p>{{ verification_url }}</p>
+            <p>The Basketify Team</p>
+        </div>
+        <div class="footer">
+            <p>© {{ current_year }} Basketify</p>
+        </div>
+    </div>
+</body>
+</html>

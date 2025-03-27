@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+
 export default function Register() {
     const [formData, setFormData] = useState({
-        username: '',
         email: '',
         password: '',
-        first_name: '',
-        last_name: '',
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -25,7 +23,6 @@ export default function Register() {
         e.preventDefault();
         setLoading(true);
         setError('');
-        console.log(formData);
 
         try {
             await api.post('/api/register/', formData);
@@ -49,17 +46,6 @@ export default function Register() {
             <h2>Register for Basketify</h2>
             {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit} className="auth-form">
-                <div className="form-group">
-                    <label htmlFor="username">Username*</label>
-                    <input
-                        type="text"
-                        id="username"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
                 <div className="form-group">
                     <label htmlFor="email">Email*</label>
                     <input

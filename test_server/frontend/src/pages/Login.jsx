@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../utils/constants';
 
 export default function Login() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -18,7 +18,7 @@ export default function Login() {
     
         try {
             const response = await api.post('/api/token/', {
-                username,
+                email,
                 password,
             });
             const accessToken = response.data.access;
@@ -29,7 +29,7 @@ export default function Login() {
             
             navigate('/');
         } catch (err) {
-            setError('Invalid username or password');
+            setError('Invalid email or password');
             console.error(err);
         } finally {
             setLoading(false);
@@ -42,12 +42,12 @@ export default function Login() {
             {error && <div className="error-message">{error}</div>}
             <form onSubmit={handleSubmit} className="auth-form">
                 <div className="form-group">
-                    <label htmlFor="username">Username</label>
+                    <label htmlFor="email">Email</label>
                     <input
-                        type="text"
-                        id="username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        type="email"
+                        id="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                     />
                 </div>

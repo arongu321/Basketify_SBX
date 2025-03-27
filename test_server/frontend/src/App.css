@@ -5,7 +5,7 @@
   background-color: #f5f5f5;
 }
 
-.top-banner {
+.dashboard-top-banner {
   background-color: #8bd6ef;
   padding: 20px;
   width: 100%;
@@ -14,32 +14,33 @@
   left: 0;
 }
 
-.header-content {
+.dashboard-header-content {
   max-width: 1200px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 40px;
 }
 
-.title-logo-container {
+.dashboard-title-logo-container {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 25px;
 }
 
-.title {
+.dashboard-title {
   color: white;
   font-size: 48px;
   margin: 0;
 }
 
-.logo {
+.dashboard-logo {
   max-width: 100px;
   height: auto;
 }
 
-.login-link {
+.dashboard-login-link {
   color: white;
   text-decoration: none;
   font-size: 18px;
@@ -49,7 +50,7 @@
   transition: background-color 0.2s;
 }
 
-.login-link:hover {
+.dashboard-login-link:hover {
   background-color: #ff8787;
   text-decoration: none;
 }
@@ -89,11 +90,33 @@
   color: #333;
 }
 
-.bottom-banner {
+.dashboard-bottom-banner {
   background-color: #8bd6ef;
   height: 50px;
   width: 100%;
   position: fixed;
   bottom: 0;
   left: 0;
+}
+
+.dashboard-loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  flex-direction: column;
+  text-align: center;
+  background-color: #f7f7f7;
+}
+
+.dashboard-loading-favicon {
+  width: 100px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.dashboard-loading-screen h2 {
+  font-size: 24px;
+  font-weight: 500;
+  color: #333;
 }

@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { useParams, useNavigate } from "react-router-dom";
+import logo from "../assets/Basketify-Logo.png";
+import "./StatsPage.css";
 
 function StatsPage() {
   const { type, name } = useParams(); // get 'type' (player or team) and 'name' from the URL using useParams
@@ -14,15 +16,17 @@ function StatsPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/api/stats/${type}/${name}`);
+        const response = await axios.get(
+          `http://localhost:8000/api/stats/${type}/${name}`
+        );
 
         const { stats, seasonal_stats } = response.data;
 
         // get current season stats
-        const currentSeason = stats.filter(stat => {
+        const currentSeason = stats.filter((stat) => {
           const statDate = new Date(stat.date);
           const currentDate = new Date();
-          
+
           let seasonStart = new Date(currentDate.getFullYear(), 9, 1);
           let seasonEnd = new Date(currentDate.getFullYear() + 1, 8, 31);
 
@@ -45,10 +49,19 @@ function StatsPage() {
     };
 
     fetchStats();
-  }, [type, name]); 
+  }, [type, name]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="stats-page-loading-screen">
+        <img
+          src={logo}
+          alt="Loading..."
+          className="stats-page-loading-favicon"
+        />
+        <h2>Loading...</h2>
+      </div>
+    );
   }
 
   // toggle between seasonal stats and current season stats
@@ -62,58 +75,80 @@ function StatsPage() {
   };
 
   return (
-    <div>
-      <h1>{type.charAt(0).toUpperCase() + type.slice(1)} Stats: {name}</h1>
-      
-      <div className="button-container">
-        <button onClick={handleToggleStats}>
-          {isSeasonal ? 'Show Game-by-Game Stats' : 'Show Seasonal Stats'}
+    <div className="stats-page-container">
+      <div className="stats-page-top-banner">
+        <button className="stats-page-back-button" onClick={() => navigate(-1)}>
+          Back
         </button>
-        <button onClick={handleGoToGraph}>View Stats Graph</button>
+        <div className="stats-page-header-content">
+          <h1 className="stats-page-title">
+            {type.charAt(0).toUpperCase() + type.slice(1)} Stats: {name}
+          </h1>
+        </div>
       </div>
 
-      {statsData.length === 0 ? (
-        <p>No stats available for this {type}.</p>
-      ) : (
-        <table border="1">
-          <thead>
-            <tr>
-              <th>{isSeasonal ? 'Season' : 'Date'}</th>
-              <th>Points Scored</th>
-              <th>Rebounds</th>
-              <th>Assists</th>
-              <th>Field Goals Made</th>
-              <th>Field Goal %</th>
-              <th>3P Made</th>
-              <th>3P %</th>
-              <th>Free Throws Made</th>
-              <th>Free Throw %</th>
-              <th>Steals</th>
-              <th>Blocks</th>
-              <th>Turnovers</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(isSeasonal ? seasonalStats.slice().reverse() : currentSeasonStats.slice().reverse()).map((gameStats, index) => (
-              <tr key={index}>
-                <td>{isSeasonal ? gameStats.season : new Date(gameStats.date).toLocaleDateString()}</td>
-                <td>{gameStats.points}</td>
-                <td>{gameStats.rebounds}</td>
-                <td>{gameStats.assists}</td>
-                <td>{gameStats.fieldGoalsMade}</td>
-                <td>{(gameStats.fieldGoalPercentage * 100).toFixed(1)}%</td>
-                <td>{gameStats.threePointsMade}</td>
-                <td>{(gameStats.threePointPercentage * 100).toFixed(1)}%</td>
-                <td>{gameStats.freeThrowsMade}</td>
-                <td>{(gameStats.freeThrowPercentage * 100).toFixed(1)}%</td>
-                <td>{gameStats.steals}</td>
-                <td>{gameStats.blocks}</td>
-                <td>{gameStats.turnovers}</td>
+      <div className="stats-page-content">
+        <div className="stats-page-button-container">
+          <button onClick={handleToggleStats}>
+            {isSeasonal ? "Show Game-by-Game Stats" : "Show Seasonal Stats"}
+          </button>
+          <button onClick={handleGoToGraph}>View Stats Graph</button>
+        </div>
+
+        {statsData.length === 0 ? (
+          <p>No stats available for this {type}.</p>
+        ) : (
+          <table className="stats-page-table">
+            <thead>
+              <tr>
+                <th>{isSeasonal ? "Season" : "Date"}</th>
+                <th>Points Scored</th>
+                <th>Rebounds</th>
+                <th>Assists</th>
+                <th>Field Goals Made</th>
+                <th>Field Goal %</th>
+                <th>3P Made</th>
+                <th>3P %</th>
+                <th>Free Throws Made</th>
+                <th>Free Throw %</th>
+                <th>Steals</th>
+                <th>Blocks</th>
+                <th>Turnovers</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            </thead>
+            <tbody>
+              {(isSeasonal ? seasonalStats : currentSeasonStats)
+                .slice()
+                .reverse()
+                .map((gameStats, index) => (
+                  <tr key={index}>
+                    <td>
+                      {isSeasonal
+                        ? gameStats.season
+                        : new Date(gameStats.date).toLocaleDateString()}
+                    </td>
+                    <td>{gameStats.points}</td>
+                    <td>{gameStats.rebounds}</td>
+                    <td>{gameStats.assists}</td>
+                    <td>{gameStats.fieldGoalsMade}</td>
+                    <td>{(gameStats.fieldGoalPercentage * 100).toFixed(1)}%</td>
+                    <td>{gameStats.threePointsMade}</td>
+                    <td>
+                      {(gameStats.threePointPercentage * 100).toFixed(1)}%
+                    </td>
+                    <td>{gameStats.freeThrowsMade}</td>
+                    <td>{(gameStats.freeThrowPercentage * 100).toFixed(1)}%</td>
+                    <td>{gameStats.steals}</td>
+                    <td>{gameStats.blocks}</td>
+                    <td>{gameStats.turnovers}</td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div className="stats-page-bottom-banner"></div>
     </div>
   );
 }

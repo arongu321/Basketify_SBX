@@ -3,3 +3,5 @@
 *__pycache__*
 /test_server/pull_data_scripts/data_dir/*
 /test_server/.venv/
+/test_server/data_dir/*
+/test_server/.venv/
