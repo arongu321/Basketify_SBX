@@ -11,56 +11,94 @@ sys.path.append(backend_path)
 
 from home.views import get_mongo_client  # Import the existing connection function
 
-def get_player_game_stats(name):
+# def get_player_game_stats(name):
+#     """
+#     Fetch past game statistics for a given player.
+#     Extracts only the 'Points' from each game in the current season.
+#     """
+#     client = get_mongo_client()
+#     if client is None:
+#         print("Error: Could not connect to MongoDB")
+#         return []
+
+#     # Select the database and collection
+#     db = client['nba_stats']  # Ensure this is your correct DB name
+#     players_collection = db['players']  # Ensure this is your correct collection name
+
+#     # Query for the player (case-insensitive match)
+#     player_data = players_collection.find_one(
+#         {"name": {"$regex": name, "$options": "i"}},  # case-insensitive search
+#         {"games": 1, "_id": 0}  # Retrieve only the 'games' field
+#     )
+
+#     if not player_data or "games" not in player_data:
+#         print(f"No data found for player: {name}")
+#         return []
+
+#     game_stats = []
+#     for date, stats in player_data["games"].items():
+#         game_stats.append((
+#             date,
+#             {
+#                 "Points": stats.get("Points", 0),
+#                 "scoredRebounds": stats.get("scoredRebounds", 0),
+#                 "Assists": stats.get("Assists", 0)
+#             }
+#         ))
+
+#     game_stats.sort(key=lambda x: x[0])
+#     return game_stats[-10:]
+
+def get_game_stats(name, entity_type="player"):
     """
-    Fetch past game statistics for a given player.
-    Extracts only the 'Points' from each game in the current season.
+    Fetch past game statistics for a given player or team.
+    Returns Points, scoredRebounds, and Assists for the last 10 games.
     """
     client = get_mongo_client()
     if client is None:
         print("Error: Could not connect to MongoDB")
         return []
 
-    # Select the database and collection
-    db = client['nba_stats']  # Ensure this is your correct DB name
-    players_collection = db['players']  # Ensure this is your correct collection name
+    db = client['nba_stats']
+    collection = db['players'] if entity_type == "player" else db['teams']
 
-    # Query for the player (case-insensitive match)
-    player_data = players_collection.find_one(
-        {"name": {"$regex": name, "$options": "i"}},  # case-insensitive search
-        {"games": 1, "_id": 0}  # Retrieve only the 'games' field
+    data = collection.find_one(
+        {"name": {"$regex": name, "$options": "i"}},
+        {"games": 1, "_id": 0}
     )
 
-    if not player_data or "games" not in player_data:
-        print(f"No data found for player: {name}")
+    if not data or "games" not in data:
+        print(f"No data found for {entity_type}: {name}")
         return []
 
-    # Extract points per game from the 'games' dictionary
     game_stats = []
-    for date, stats in player_data["games"].items():
-        if date.startswith("2025"):  # Filter only 2025 season games
-            game_stats.append((date, stats.get("Points", 0)))  # Default to 0 if missing
+    for date, stats in data["games"].items():
+        if date.startswith("2025"):
+            game_stats.append((
+                date,
+                {
+                    "Points": stats.get("Points", 0),
+                    "scoredRebounds": stats.get("scoredRebounds", 0),
+                    "Assists": stats.get("Assists", 0)
+                }
+            ))
 
-    # Sort by date (oldest to newest)
     game_stats.sort(key=lambda x: x[0])
-
-    recent_games = game_stats[-10:]
-
-    return recent_games
+    return game_stats[-10:]
 
 
-def predict_next_game_points(player_name):
+def predict_next_game_points(name, stat_key, entity_type):
     """
     Predict the next game's points using Linear Regression and return confidence score.
     """
-    game_stats = get_player_game_stats(player_name)
+    game_stats = get_game_stats(name, entity_type)
 
     if len(game_stats) < 5:  # Ensure enough data points
-        return f"Not enough data to predict {player_name}'s next game points."
+        return f"Not enough data to predict {name}'s next game points."
 
     # Convert dates to sequential numbers (e.g., Game 1, Game 2, ...)
-    X = np.array(range(len(game_stats))).reshape(-1, 1)  # Game index
-    y = np.array([points for _, points in game_stats])  # Points scored
+    X = np.array(range(len(game_stats))).reshape(-1, 1)
+    y = np.array([game[1][stat_key] for game in game_stats])
 
     # Train linear regression model
     model = LinearRegression()
@@ -75,19 +113,19 @@ def predict_next_game_points(player_name):
 
     return round(predicted_points, 2), round(confidence * 100, 2)  # Return prediction & confidence %
 
-def predict_next_game_points_poly(player_name, degree=2):
+def predict_next_game_points_poly(name, stat_key, entity_type, degree=2):
     """
     Predict the next game's points using Polynomial Regression.
     Default degree = 2 (Quadratic fit).
     """
-    game_stats = get_player_game_stats(player_name)
+    game_stats = get_game_stats(name, entity_type)
 
     if len(game_stats) < 5:  # Ensure enough data points
-        return f"Not enough data to predict {player_name}'s next game points."
+        return f"Not enough data to predict {name}'s next game points."
 
     # Convert game indices to numerical values
     X = np.array(range(len(game_stats))).reshape(-1, 1)  # Game index
-    y = np.array([points for _, points in game_stats])  # Points scored
+    y = np.array([game[1][stat_key] for game in game_stats])
 
     # Transform features for Polynomial Regression
     poly = PolynomialFeatures(degree=degree)
@@ -107,19 +145,19 @@ def predict_next_game_points_poly(player_name, degree=2):
 
     return round(predicted_points, 2), round(confidence * 100, 2)  # Return prediction & confidence %
 
-def predict_point_ranges_poly(player_name, degree=2):
+def predict_point_ranges_poly(name, stat_key, entity_type, degree=2):
     """
     Predict the next game's points using Polynomial Regression.
     Returns confidence intervals at 80%, 85%, and 90%.
     """
-    game_stats = get_player_game_stats(player_name)
+    game_stats = get_game_stats(name, entity_type)
 
     if len(game_stats) < 5:  # Ensure enough data points
-        return f"Not enough data to predict {player_name}'s next game points."
+        return f"Not enough data to predict {name}'s next game points."
 
     # Convert game indices to numerical values
     X = np.array(range(len(game_stats))).reshape(-1, 1)  # Game index
-    y = np.array([points for _, points in game_stats])  # Points scored
+    y = np.array([game[1][stat_key] for game in game_stats])
 
     # Transform features for Polynomial Regression
     poly = PolynomialFeatures(degree=degree)
@@ -156,17 +194,17 @@ def predict_point_ranges_poly(player_name, degree=2):
 
     return round(predicted_points, 2), round(confidence * 100, 2), prediction_ranges
 
-def predict_next_game_vs_team(player_name, team, degree=2):
+def predict_next_game_vs_team(name, team, stat_key, entity_type, degree=2):
     """
     Predict the next game's points against a specific team using Polynomial Regression.
     Uses:
       - Player's overall season performance (2025)
       - Player's last 5 games against the given team (NOP)
     """
-    game_stats = get_player_game_stats(player_name)
+    game_stats = get_game_stats(name, entity_type)
     
     if len(game_stats) < 5:  # Ensure enough data points
-        return f"Not enough data to predict {player_name}'s next game against {team}."
+        return f"Not enough data to predict {name}'s next game against {team}."
 
     # Connect to MongoDB and fetch past games
     client = get_mongo_client()
@@ -174,22 +212,22 @@ def predict_next_game_vs_team(player_name, team, degree=2):
         return "Error: Could not connect to MongoDB"
 
     db = client['nba_stats']
-    players_collection = db['players']
+    collection = db['players'] if entity_type == "player" else db['teams']
 
-    # Fetch player data
-    player_data = players_collection.find_one(
-        {"name": {"$regex": player_name, "$options": "i"}},
+    # Fetch entity data
+    entity_data = collection.find_one(
+        {"name": {"$regex": name, "$options": "i"}},
         {"games": 1, "_id": 0}
     )
 
-    if not player_data or "games" not in player_data:
-        return f"No data found for player: {player_name}"
+    if not entity_data or "games" not in entity_data:
+        return f"No data found for {entity_type}: {name}"
 
     # Extract past 5 games against the specified team
     team_game_stats = []
-    for date, stats in player_data["games"].items():
+    for date, stats in entity_data["games"].items():
         if "Matchup" in stats and team in stats["Matchup"]:
-            team_game_stats.append((date, stats.get("Points", 0)))
+            team_game_stats.append((date, stats.get(stat_key, 0)))
 
     # Keep only the last 5 games against this team
     team_game_stats = sorted(team_game_stats, key=lambda x: x[0])[-5:]
@@ -203,7 +241,7 @@ def predict_next_game_vs_team(player_name, team, degree=2):
 
     # Convert to numerical indices
     X = np.array(range(len(combined_stats))).reshape(-1, 1)  # Game index
-    y = np.array([points for _, points in combined_stats])  # Points scored
+    y = np.array([game[1][stat_key] if isinstance(game[1], dict) else game[1] for game in combined_stats])
 
     # Transform features for Polynomial Regression
     poly = PolynomialFeatures(degree=degree)
@@ -223,9 +261,8 @@ def predict_next_game_vs_team(player_name, team, degree=2):
 
     return round(predicted_points, 2), round(confidence * 100, 2)  # Return prediction & confidence %
 
-import scipy.stats as stats
 
-def predict_next_game_vs_team_with_ci(player_name, team, degree=2):
+def predict_next_game_vs_team_with_ci(name, team, stat_key, entity_type, degree=2):
     """
     Predict the next game's points against a specific team using Polynomial Regression.
     Uses:
@@ -236,10 +273,10 @@ def predict_next_game_vs_team_with_ci(player_name, team, degree=2):
       - Confidence score (R²)
       - Confidence intervals (80%, 85%, 90%)
     """
-    game_stats = get_player_game_stats(player_name)
+    game_stats = get_game_stats(name, entity_type)
 
     if len(game_stats) < 5:  # Ensure enough data points
-        return f"Not enough data to predict {player_name}'s next game against {team}."
+        return f"Not enough data to predict {name}'s next game against {team}."
 
     # Connect to MongoDB and fetch past games
     client = get_mongo_client()
@@ -247,22 +284,22 @@ def predict_next_game_vs_team_with_ci(player_name, team, degree=2):
         return "Error: Could not connect to MongoDB"
 
     db = client['nba_stats']
-    players_collection = db['players']
+    collection = db['players'] if entity_type == "player" else db['teams']
 
-    # Fetch player data
-    player_data = players_collection.find_one(
-        {"name": {"$regex": player_name, "$options": "i"}},
+    # Fetch entity data
+    entity_data = collection.find_one(
+        {"name": {"$regex": name, "$options": "i"}},
         {"games": 1, "_id": 0}
     )
 
-    if not player_data or "games" not in player_data:
-        return f"No data found for player: {player_name}"
+    if not entity_data or "games" not in entity_data:
+        return f"No data found for {entity_type}: {name}"
 
     # Extract past 5 games against the specified team
     team_game_stats = []
-    for date, statis in player_data["games"].items():
+    for date, statis in entity_data["games"].items():
         if "Matchup" in statis and team in statis["Matchup"]:
-            team_game_stats.append((date, statis.get("Points", 0)))
+            team_game_stats.append((date, statis.get(stat_key, 0)))
 
     # Keep only the last 5 games against this team
     team_game_stats = sorted(team_game_stats, key=lambda x: x[0])[-5:]
@@ -276,7 +313,7 @@ def predict_next_game_vs_team_with_ci(player_name, team, degree=2):
 
     # Convert to numerical indices
     X = np.array(range(len(combined_stats))).reshape(-1, 1)  # Game index
-    y = np.array([points for _, points in combined_stats])  # Points scored
+    y = np.array([game[1][stat_key] if isinstance(game[1], dict) else game[1] for game in combined_stats])
 
     # Transform features for Polynomial Regression
     poly = PolynomialFeatures(degree=degree)
@@ -315,30 +352,31 @@ def predict_next_game_vs_team_with_ci(player_name, team, degree=2):
 
 
 if __name__ == "__main__":
-    predicted_ppg_linear, confidence_linear = predict_next_game_points("LeBron James")
-    predicted_ppg_poly, confidence_poly = predict_next_game_points_poly("LeBron James")
+    entities = [("LeBron James", "player"), ("Los Angeles Lakers", "team")]
+    stat_keys = ["Points", "scoredRebounds", "Assists"]
+    team = "NOP"
 
-    print(f"Linear Regression - Predicted points for LeBron James' next game: {predicted_ppg_linear} (Confidence: {confidence_linear}%)")
-    print(f"Polynomial Regression - Predicted points for LeBron James' next game: {predicted_ppg_poly} (Confidence: {confidence_poly}%)")
+    for name, entity_type in entities:
+        print(f"\n===== Predictions for {entity_type.upper()}: {name} =====")
+        for stat in stat_keys:
+            print(f"\n--- {stat} Predictions ---")
 
-    predicted_ppg_poly, confidence_poly, ranges_poly = predict_point_ranges_poly("LeBron James")
+            predicted_lr, conf_lr = predict_next_game_points(name, stat, entity_type)
+            print(f"Linear Regression - {stat}: {predicted_lr} (Confidence: {conf_lr}%)")
 
-    print(f"Polynomial Regression - Predicted points for LeBron James' next game: {predicted_ppg_poly} (Confidence: {confidence_poly}%)")
-    
-    print("Prediction Ranges:")
-    for level, (low, high) in ranges_poly.items():
-        print(f"{level} Confidence Interval: {low} - {high} points")
+            predicted_poly, conf_poly = predict_next_game_points_poly(name, stat, entity_type)
+            print(f"Polynomial Regression - {stat}: {predicted_poly} (Confidence: {conf_poly}%)")
 
-    team = "NOP"  # New Orleans Pelicans
-    predicted_ppg_vs_team, confidence_vs_team = predict_next_game_vs_team("LeBron James", team)
+            predicted_poly, conf_poly, ranges = predict_point_ranges_poly(name, stat, entity_type)
+            print(f"Polynomial Regression - {stat}: {predicted_poly} (Confidence: {conf_poly}%)")
+            for level, (low, high) in ranges.items():
+                print(f"{level} Confidence Interval: {low} - {high} {stat}")
 
-    print(f"Predicted points for LeBron James' next game against {team}: {predicted_ppg_vs_team} (Confidence: {confidence_vs_team}%)")
+            predicted_vs_team, conf_vs_team = predict_next_game_vs_team(name, team, stat, entity_type)
+            print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
 
-    team = "NOP"  # New Orleans Pelicans
-    predicted_ppg_vs_team, confidence_vs_team, ranges_vs_team = predict_next_game_vs_team_with_ci("LeBron James", team)
+            predicted_vs_team, conf_vs_team, ranges_vs_team = predict_next_game_vs_team_with_ci(name, team, stat, entity_type)
+            print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
+            for level, (low, high) in ranges_vs_team.items():
+                print(f"{level} Confidence Interval vs {team}: {low} - {high} {stat}")
 
-    print(f"Predicted points for LeBron James' next game against {team}: {predicted_ppg_vs_team} (Confidence: {confidence_vs_team}%)")
-
-    print("Prediction Ranges:")
-    for level, (low, high) in ranges_vs_team.items():
-        print(f"{level} Confidence Interval: {low} - {high} points")
