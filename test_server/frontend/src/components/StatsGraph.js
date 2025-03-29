@@ -9,6 +9,7 @@ function StatsGraph() {
   const { type, name } = useParams();
   const navigate = useNavigate();
   const [statsData, setStatsData] = useState([]);
+  const [futureGames, setFutureGames] = useState([]);
   const [seasonalStats, setSeasonalStats] = useState([]);
   const [currentSeasonStats, setCurrentSeasonStats] = useState([]);
   const [selectedStats, setSelectedStats] = useState([]);
@@ -47,10 +48,13 @@ function StatsGraph() {
           seasonEnd = new Date(currentDate.getFullYear(), 8, 31);
         }
 
-        return statDate >= seasonStart && statDate <= seasonEnd;
+        return statDate >= seasonStart && statDate <= seasonEnd && !stat.is_future_game;
       });
 
       setCurrentSeasonStats(currentSeason);
+
+      const futureGames = statsData.filter((stat) => stat.is_future_game);
+      setFutureGames(futureGames);
     }
   }, [statsData]);
 
@@ -80,27 +84,50 @@ function StatsGraph() {
   }
 
   const plotData = selectedStats.map((stat, index) => {
-    const dataToUse = isSeasonal
-      ? seasonalStats.slice().reverse()
-      : currentSeasonStats;
-    const xValues = dataToUse.map((data) =>
+    // For the current season stats
+    const currentSeasonX = currentSeasonStats.map((data) =>
       isSeasonal ? data.season : new Date(data.date).toLocaleDateString()
     );
-    const yValues = dataToUse.map((data) => data[stat] || 0);
+    const currentSeasonY = currentSeasonStats.map((data) => data[stat] || 0);
+
+    // For the future games stats
+    const futureGamesX = futureGames.map((data) =>
+      new Date(data.date).toLocaleDateString()
+    );
+    const futureGamesY = futureGames.map((data) => data[stat] || 0);
 
     const formattedStatName = stat
       .replace(/([A-Z])/g, " $1")
       .replace(/^./, (str) => str.toUpperCase());
 
-    return {
-      type: "scatter",
-      mode: "lines+markers",
-      name: formattedStatName,
-      x: xValues,
-      y: yValues,
-      yaxis: index === 1 ? "y2" : "y",
-    };
-  });
+    // Generate different colors for the stats
+    const colors = ['blue', 'green', 'orange', 'purple', 'red', 'cyan'];
+    const currentColor = colors[index % colors.length];
+    const futureColor = colors[(index + 2) % colors.length];
+
+    // Assigning each stat to a different Y-axis based on the index
+    return [
+      {
+        type: "scatter",
+        mode: "lines+markers",
+        name: `${formattedStatName} (Current Season)`,
+        x: currentSeasonX,
+        y: currentSeasonY,
+        line: { color: currentColor },
+        marker: { color: currentColor },
+        yaxis: index === 0 ? "y1" : "y2", // First stat uses left axis, second uses right axis
+      },
+      {
+        type: "scatter",
+        mode: "markers",
+        name: `${formattedStatName} (Future Games)`,
+        x: futureGamesX,
+        y: futureGamesY,
+        marker: { color: futureColor, symbol: "star" },
+        yaxis: index === 0 ? "y1" : "y2", // First stat uses left axis, second uses right axis
+      },
+    ];
+  }).flat(); // Flatten the array since we're returning an array of arrays
 
   const layout = {
     title: "Stats Over Time",
@@ -131,32 +158,35 @@ function StatsGraph() {
             ]
           : undefined,
     },
-    ...(selectedStats.length === 2 && {
-      yaxis2: {
-        title: {
-          text: selectedStats[1]
-            ? selectedStats[1]
-                .replace(/([A-Z])/g, " $1")
-                .replace(/^./, (str) => str.toUpperCase())
-            : "",
-          font: {
-            size: 20,
-            color: "#7f7f7f",
-          },
+    yaxis2: {
+      title: {
+        text: selectedStats[1]
+          ? selectedStats[1]
+              .replace(/([A-Z])/g, " $1")
+              .replace(/^./, (str) => str.toUpperCase())
+          : "",
+        font: {
+          size: 20,
+          color: "#7f7f7f",
         },
-        side: "right",
-        overlaying: "y",
-        range: [
-          0,
-          Math.max(
-            ...(isSeasonal
-              ? seasonalStats.slice().reverse()
-              : currentSeasonStats
-            ).map((data) => data[selectedStats[1]] || 0)
-          ) * 1.2,
-        ],
       },
-    }),
+      side: "right",
+      overlaying: "y",
+      range:
+        selectedStats.length > 1
+          ? [
+              0,
+              Math.max(
+                ...(isSeasonal
+                  ? seasonalStats.slice().reverse()
+                  : currentSeasonStats
+                ).map((data) => data[selectedStats[1]] || 0)
+              ) * 1.2,
+            ]
+          : undefined,
+    },
+    height: 650,
+    width: 1200,
   };
 
   return (
@@ -225,7 +255,7 @@ function StatsGraph() {
             <Plot
               data={plotData}
               layout={layout}
-              className="stats-graph-plotly-graph"
+              config={{ responsive: true }}
             />
           </div>
         )}

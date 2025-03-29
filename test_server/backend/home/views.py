@@ -231,11 +231,32 @@ def get_player_stats(request, name):
                 "freeThrowPercentage": sanitize_value(game_data.get("FT_pctg", 0)),
                 "steals": sanitize_value(game_data.get("Steals", 0)),
                 "blocks": sanitize_value(game_data.get("Blocks", 0)),
-                "turnovers": sanitize_value(game_data.get("Turnovers", 0))
+                "turnovers": sanitize_value(game_data.get("Turnovers", 0)),
+                "is_future_game": game_data.get('is_future_game', 0)
             }
             player_stats.append(stats)
         
         seasonal_stats = aggregate_seasonal_stats(player_stats)
+
+        for game_date, game_data in player.get('future_games', {}).items():
+            game_date = game_date[:10]
+            stats = {
+                "date": sanitize_value(game_date),
+                "points": sanitize_value(game_data.get("Predicted_Points", 0)),
+                "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
+                "assists": sanitize_value(game_data.get("Assists", 0)),
+                "fieldGoalsMade": sanitize_value(game_data.get("FG_scored", 0)),
+                "fieldGoalPercentage": sanitize_value(game_data.get("FG_pctg", 0)),
+                "threePointsMade": sanitize_value(game_data.get("3_pts_scored", 0)),
+                "threePointPercentage": sanitize_value(game_data.get("3_pts_pctg", 0)),
+                "freeThrowsMade": sanitize_value(game_data.get("FT_made", 0)),
+                "freeThrowPercentage": sanitize_value(game_data.get("FT_pctg", 0)),
+                "steals": sanitize_value(game_data.get("Steals", 0)),
+                "blocks": sanitize_value(game_data.get("Blocks", 0)),
+                "turnovers": sanitize_value(game_data.get("Turnovers", 0)),
+                "is_future_game": game_data.get('is_future_game', 0)
+            }
+            player_stats.append(stats)
         
         return JsonResponse({
             "stats": player_stats,
@@ -273,11 +294,32 @@ def get_team_stats(request, name):
                 "freeThrowPercentage": sanitize_value(game_data.get("FT_pctg", 0)),
                 "steals": sanitize_value(game_data.get("Steals", 0)),
                 "blocks": sanitize_value(game_data.get("Blocks", 0)),
-                "turnovers": sanitize_value(game_data.get("Turnovers", 0))
+                "turnovers": sanitize_value(game_data.get("Turnovers", 0)),
+                "is_future_game": game_data.get('is_future_game', 0)
             }
             team_stats.append(stats)
         
         seasonal_stats = aggregate_seasonal_stats(team_stats)
+
+        for game_date, game_data in team['future_games'].items():
+            game_date = game_date[:10]
+            stats = {
+                "date": sanitize_value(game_date),
+                "points": sanitize_value(game_data.get("Predicted_Points", 0)),
+                "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
+                "assists": sanitize_value(game_data.get("Assists", 0)),
+                "fieldGoalsMade": sanitize_value(game_data.get("FG_scored", 0)),
+                "fieldGoalPercentage": sanitize_value(game_data.get("FG_pctg", 0)),
+                "threePointsMade": sanitize_value(game_data.get("3_pts_scored", 0)),
+                "threePointPercentage": sanitize_value(game_data.get("3_pts_pctg", 0)),
+                "freeThrowsMade": sanitize_value(game_data.get("FT_made", 0)),
+                "freeThrowPercentage": sanitize_value(game_data.get("FT_pctg", 0)),
+                "steals": sanitize_value(game_data.get("Steals", 0)),
+                "blocks": sanitize_value(game_data.get("Blocks", 0)),
+                "turnovers": sanitize_value(game_data.get("Turnovers", 0)),
+                "is_future_game": game_data.get('is_future_game', 0)
+            }
+            team_stats.append(stats)
         
         return JsonResponse({
             "stats": team_stats,

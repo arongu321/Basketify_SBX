@@ -1,15 +1,31 @@
-import sys
-import os
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 import scipy.stats as stats
+from pymongo import MongoClient
 
-# Get the absolute path of the backend directory
-backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-sys.path.append(backend_path)
+# global to prevent having to connect multiple times
+mongo_client = None
 
-from home.views import get_mongo_client  # Import the existing connection function
+
+def get_mongo_client():
+    global mongo_client
+    # check if mongo client is already initialized
+    if mongo_client is not None:
+        return mongo_client
+    
+    # remote Atlas DB
+    uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
+
+    try:
+        mongo_client = MongoClient(uri)
+    except:
+        print("Couldn't connect to mongodb database at URI: " + uri)
+        return None
+    
+    print("Successfully connected")
+    return mongo_client
+
 
 # def get_player_game_stats(name):
 #     """
@@ -204,12 +220,14 @@ def predict_next_game_vs_team(name, team, stat_key, entity_type, degree=2):
     game_stats = get_game_stats(name, entity_type)
     
     if len(game_stats) < 5:  # Ensure enough data points
-        return f"Not enough data to predict {name}'s next game against {team}."
+        print(f"Not enough data to predict {name}'s next game against {team}.")
+        return None, None
 
     # Connect to MongoDB and fetch past games
     client = get_mongo_client()
     if client is None:
-        return "Error: Could not connect to MongoDB"
+        print("Error: Could not connect to MongoDB")
+        return None, None
 
     db = client['nba_stats']
     collection = db['players'] if entity_type == "player" else db['teams']
@@ -221,7 +239,8 @@ def predict_next_game_vs_team(name, team, stat_key, entity_type, degree=2):
     )
 
     if not entity_data or "games" not in entity_data:
-        return f"No data found for {entity_type}: {name}"
+        print(f"No data found for {entity_type}: {name}")
+        return None, None
 
     # Extract past 5 games against the specified team
     team_game_stats = []
@@ -234,7 +253,8 @@ def predict_next_game_vs_team(name, team, stat_key, entity_type, degree=2):
 
     # Ensure we have at least some history against the team
     if len(team_game_stats) < 2:
-        return f"Not enough games played against {team} for a meaningful prediction."
+       print(f"Not enough games played against {team} for a meaningful prediction.")
+       return None, None
 
     # Combine season stats & matchup stats
     combined_stats = 2*game_stats + team_game_stats
