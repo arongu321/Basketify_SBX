@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
+import {
+    BrowserRouter as Router,
+    Routes,
+    Route,
+    Link,
+    useNavigate,
+    Navigate,
+} from 'react-router-dom';
 import axios from 'axios';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
@@ -17,9 +24,15 @@ import VerifyEmailComplete from './components/VerifyEmailComplete';
 import logo from './assets/Basketify-Logo.png';
 import './App.css';
 import { ACCESS_TOKEN } from './utils/constants';
+import PasswordResetRequest from './pages/PasswordResetRequest';
+import PasswordResetDone from './pages/PasswordResetDone';
+import PasswordResetConfirm from './pages/PasswordResetConfirm';
+import PasswordResetComplete from './pages/PasswordResetComplete';
 
 document.title = 'Basketify';
-const favicon = document.querySelector("link[rel='icon']") || document.createElement('link');
+const favicon =
+    document.querySelector("link[rel='icon']") ||
+    document.createElement('link');
 favicon.rel = 'icon';
 favicon.href = logo;
 document.head.appendChild(favicon);
@@ -31,29 +44,38 @@ function Home({ message }) {
 
     useEffect(() => {
         // fetch user favorites
-        axios.get('http://localhost:8000/accounts/get-favorite/', {
-            headers: { Authorization: `Bearer ${localStorage.getItem(ACCESS_TOKEN)}` }
-        })
-        .then(response => {
-            if (response.data) {
-                setFavorites({
-                    player: response.data.player || null,
-                    team: response.data.team || null
-                });
-            }
-            setLoadingFavorites(false); // done loading, display dashboard
-        })
-        .catch(error => {
-            console.error("Error fetching user favorites:", error);
-            setLoadingFavorites(false);
-        });
+        axios
+            .get('http://localhost:8000/accounts/get-favorite/', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem(
+                        ACCESS_TOKEN
+                    )}`,
+                },
+            })
+            .then((response) => {
+                if (response.data) {
+                    setFavorites({
+                        player: response.data.player || null,
+                        team: response.data.team || null,
+                    });
+                }
+                setLoadingFavorites(false); // done loading, display dashboard
+            })
+            .catch((error) => {
+                console.error('Error fetching user favorites:', error);
+                setLoadingFavorites(false);
+            });
     }, []);
 
     // if faves still loading, show Basketify logo + msg
     if (loadingFavorites) {
         return (
             <div className="dashboard-loading-screen">
-                <img src={logo} alt="Loading..." className="dashboard-loading-favicon" />
+                <img
+                    src={logo}
+                    alt="Loading..."
+                    className="dashboard-loading-favicon"
+                />
                 <h2>Loading...</h2>
             </div>
         );
@@ -62,15 +84,21 @@ function Home({ message }) {
     const dashboardTiles = [
         { title: 'Search Player/Team', path: '/search' },
         { title: 'ML Predictions', path: '/ml-predictions' },
-        { 
-            title: favorites.player ? `Favourite Player: ${favorites.player}` : 'Favourite Player', 
-            path: favorites.player ? `/stats/player/${favorites.player}` : '/search',
-            state: favorites.player ? null : { setFavorite: 'player' }
+        {
+            title: favorites.player
+                ? `Favourite Player: ${favorites.player}`
+                : 'Favourite Player',
+            path: favorites.player
+                ? `/stats/player/${favorites.player}`
+                : '/search',
+            state: favorites.player ? null : { setFavorite: 'player' },
         },
-        { 
-            title: favorites.team ? `Favourite Team: ${favorites.team}` : 'Favourite Team', 
+        {
+            title: favorites.team
+                ? `Favourite Team: ${favorites.team}`
+                : 'Favourite Team',
             path: favorites.team ? `/stats/team/${favorites.team}` : '/search',
-            state: favorites.team ? null : { setFavorite: 'team' }
+            state: favorites.team ? null : { setFavorite: 'team' },
         },
     ];
 
@@ -79,7 +107,11 @@ function Home({ message }) {
             <div className="dashboard-top-banner">
                 <div className="dashboard-header-content">
                     <div className="dashboard-title-logo-container">
-                        <img src={logo} alt="Basketify Logo" className="dashboard-logo" />
+                        <img
+                            src={logo}
+                            alt="Basketify Logo"
+                            className="dashboard-logo"
+                        />
                         <h1 className="dashboard-title">Basketify</h1>
                     </div>
                     <Link to="/login" className="dashboard-login-link">
@@ -93,7 +125,9 @@ function Home({ message }) {
                     <div
                         key={index}
                         className="dashboard-tile"
-                        onClick={() => navigate(tile.path, { state: tile.state })}
+                        onClick={() =>
+                            navigate(tile.path, { state: tile.state })
+                        }
                     >
                         <h2>{tile.title}</h2>
                     </div>
@@ -162,11 +196,34 @@ function App() {
                         element={<EmailVerification />}
                     />
 
+                    <Route
+                        path="/password-reset"
+                        element={<PasswordResetRequest />}
+                    />
+                    <Route
+                        path="/password-reset-done"
+                        element={<PasswordResetDone />}
+                    />
+                    <Route
+                        path="/password-reset-confirm/:uidb64/:token"
+                        element={<PasswordResetConfirm />}
+                    />
+                    <Route
+                        path="/password-reset-complete"
+                        element={<PasswordResetComplete />}
+                    />
+
                     <Route path="*" element={<NotFound />} />
-                    <Route path="/ml-predictions/" element={<MLPredictions />} />
+                    <Route
+                        path="/ml-predictions/"
+                        element={<MLPredictions />}
+                    />
                     <Route path="/search" element={<SearchInterface />} />
                     <Route path="/stats/:type/:name" element={<StatsPage />} />
-                    <Route path="/stats-graph/:type/:name" element={<StatsGraph />} />
+                    <Route
+                        path="/stats-graph/:type/:name"
+                        element={<StatsGraph />}
+                    />
                 </Routes>
             </div>
         </Router>
