@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../utils/constants';
+import '../styles/Auth.css';
 
-export default function Login() {
+export default function PasswordResetRequest() {
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
     const navigate = useNavigate();
@@ -15,22 +15,22 @@ export default function Login() {
         e.preventDefault();
         setLoading(true);
         setError('');
+        setMessage('');
+        console.log('Trying to reset password');
 
         try {
-            const response = await api.post('/api/token/', {
+            const response = await api.post('/accounts/password-reset/', {
                 email,
-                password,
             });
-            const accessToken = response.data.access;
-            const refreshToken = response.data.refresh;
-
-            localStorage.setItem(ACCESS_TOKEN, accessToken);
-            localStorage.setItem(REFRESH_TOKEN, refreshToken);
-
-            navigate('/');
+            setMessage(response.data.message);
+            setTimeout(() => {
+                navigate('/password-reset-done');
+            }, 2000);
         } catch (err) {
-            setError('Invalid email or password');
-            console.error(err);
+            setError(
+                'There was an error processing your request. Please try again.'
+            );
+            console.error('Password reset error:', err);
         } finally {
             setLoading(false);
         }
@@ -38,8 +38,15 @@ export default function Login() {
 
     return (
         <div className="auth-form-container">
-            <h2>Login to Basketify</h2>
+            <h2>Reset Your Password</h2>
+            <p>
+                Enter your email address and we'll send you a link to reset your
+                password.
+            </p>
+
+            {message && <div className="success-message">{message}</div>}
             {error && <div className="error-message">{error}</div>}
+
             <form onSubmit={handleSubmit} className="auth-form">
                 <div className="form-group">
                     <label htmlFor="email">Email</label>
@@ -51,31 +58,16 @@ export default function Login() {
                         required
                     />
                 </div>
-                <div className="form-group">
-                    <label htmlFor="password">Password</label>
-                    <input
-                        type="password"
-                        id="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
                 <button
                     type="submit"
                     className="auth-button"
                     disabled={loading}
                 >
-                    {loading ? 'Logging in...' : 'Login'}
+                    {loading ? 'Processing...' : 'Reset Password'}
                 </button>
             </form>
             <p>
-                Don't have an account? <Link to="/register">Register here</Link>
-            </p>
-            <p>
-                <Link to="/password-reset" className="forgot-password-link">
-                    Forgot your password?
-                </Link>
+                Remember your password? <Link to="/login">Login here</Link>
             </p>
         </div>
     );

@@ -15,8 +15,10 @@ from django.core.mail import EmailMessage
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from datetime import datetime
+from django.contrib.auth.tokens import default_token_generator
 import json
 
+# Import the custom user model
 User = get_user_model()
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -186,3 +188,132 @@ def verify_email_confirm(request, uidb64, token):
 def verify_email_complete(request):
     """Legacy Django view - this will be handled by React frontend"""
     return render(request, 'accounts/verify_email_complete.html')
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def password_reset_request(request):
+    """API endpoint to initiate password reset process"""
+    email = request.data.get('email', '')
+    
+    if not email:
+        return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = User.objects.get(email=email)
+        
+        # Generate token and uid
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        # Build reset URL for frontend
+        current_site = get_current_site(request)
+        frontend_url = request.META.get('HTTP_REFERER', 'http://localhost:3000')
+        
+        # Extract base URL from referrer or use default
+        if frontend_url.endswith('/'):
+            frontend_url = frontend_url[:-1]
+        
+        try:
+            base_url = frontend_url.split('/')[0] + '//' + frontend_url.split('/')[2]
+        except (IndexError, AttributeError):
+            base_url = 'http://localhost:3000'
+        
+        reset_url = f"{base_url}/password-reset-confirm/{uid}/{token}"
+        
+        # Prepare email
+        subject = "Reset Your Password"
+        current_year = datetime.now().year
+        
+        # Use HTML email template
+        html_message = render_to_string('accounts/password_reset_email.html', {
+            'reset_url': reset_url,
+            'current_year': current_year,
+            'user': user,
+        })
+        
+        # Send email
+        email_message = EmailMessage(
+            subject, html_message, to=[user.email]
+        )
+        email_message.content_subtype = 'html'
+        email_message.send()
+        
+        return Response({
+            "status": "success",
+            "message": "Password reset email has been sent."
+        }, status=status.HTTP_200_OK)
+        
+    except User.DoesNotExist:
+        # For security reasons, don't reveal if email exists or not
+        return Response({
+            "status": "success",
+            "message": "If your email exists in our database, you will receive a password reset link."
+        }, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def password_reset_done(request):
+    """Return a success message when password reset email is sent"""
+    return Response({
+        "status": "success",
+        "message": "Password reset email has been sent."
+    })
+
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.AllowAny])
+def password_reset_confirm(request, uidb64, token):
+    """Verify the reset token and allow password reset"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    # For GET requests, validate token
+    if request.method == 'GET':
+        if user is not None and default_token_generator.check_token(user, token):
+            return Response({
+                "status": "success",
+                "message": "Token is valid",
+                "uidb64": uidb64,
+                "token": token
+            })
+        else:
+            return Response({
+                "status": "error",
+                "message": "Invalid reset link"
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # For POST requests, set new password
+    elif request.method == 'POST':
+        if user is not None and default_token_generator.check_token(user, token):
+            password = request.data.get('password')
+            
+            if not password:
+                return Response({
+                    "status": "error",
+                    "message": "Password is required"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user.set_password(password)
+            user.save()
+            
+            return Response({
+                "status": "success",
+                "message": "Password has been reset successfully"
+            })
+        else:
+            return Response({
+                "status": "error",
+                "message": "Invalid reset link"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def password_reset_complete(request):
+    """Return a success message when password reset is complete"""
+    return Response({
+        "status": "success",
+        "message": "Password has been reset successfully"
+    })
+    
