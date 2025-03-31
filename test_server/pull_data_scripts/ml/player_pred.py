@@ -89,13 +89,22 @@ def get_game_stats(name, entity_type="player"):
 
     game_stats = []
     for date, stats in data["games"].items():
-        if date.startswith("2025"):
+        if date.startswith("2025") or date.startswith("2024"):
             game_stats.append((
                 date,
                 {
                     "Points": stats.get("Points", 0),
                     "scoredRebounds": stats.get("scoredRebounds", 0),
-                    "Assists": stats.get("Assists", 0)
+                    "Assists": stats.get("Assists", 0),
+                    "FG_scored": stats.get("FG_scored", 0),
+                    "FG_pctg": stats.get("FG_pctg", 0),
+                    "3_pts_scored": stats.get("3_pts_scored", 0),
+                    "3_pts_pctg": stats.get("3_pts_pctg", 0),
+                    "FT_made": stats.get("FT_made", 0),
+                    "FT_pctg": stats.get("FT_pctg", 0),
+                    "Steals": stats.get("Steals", 0),
+                    "Blocks": stats.get("Blocks", 0),
+                    "Turnovers": stats.get("Turnovers", 0),
                 }
             ))
 
@@ -261,7 +270,20 @@ def predict_next_game_vs_team(name, team, stat_key, entity_type, degree=2):
 
     # Convert to numerical indices
     X = np.array(range(len(combined_stats))).reshape(-1, 1)  # Game index
-    y = np.array([game[1][stat_key] if isinstance(game[1], dict) else game[1] for game in combined_stats])
+    y = np.array([
+    game[1][stat_key] if isinstance(game[1], dict) and isinstance(game[1].get(stat_key), (int, float)) 
+    else np.nan 
+    for game in combined_stats
+])
+
+    # remove any rows where the target var y is NaN
+    valid_indices = ~np.isnan(y)  # mask that lists rows where target y is NaN
+    X = X[valid_indices]
+    y = y[valid_indices]
+
+    if X.shape[0] == 0:
+        print(f"Error: No valid data available for prediction for {name} against {team}.")
+        return None, None
 
     # Transform features for Polynomial Regression
     poly = PolynomialFeatures(degree=degree)
@@ -278,6 +300,8 @@ def predict_next_game_vs_team(name, team, stat_key, entity_type, degree=2):
 
     # Calculate confidence score (R² value)
     confidence = model.score(X_poly, y)  # Ranges from 0 to 1
+
+    predicted_points = max(predicted_points, 0)  # no stat can be < 0
 
     return round(predicted_points, 2), round(confidence * 100, 2)  # Return prediction & confidence %
 

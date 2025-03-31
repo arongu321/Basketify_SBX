@@ -34,7 +34,11 @@ function StatsPage() {
             seasonEnd = new Date(currentDate.getFullYear(), 8, 31);
           }
 
-          return statDate >= seasonStart && statDate <= seasonEnd && !stat.is_future_game;
+          return (
+            statDate >= seasonStart &&
+            statDate <= seasonEnd &&
+            !stat.is_future_game
+          );
         });
 
         const futureGames = stats.filter((stat) => stat.is_future_game);
@@ -132,11 +136,17 @@ function StatsPage() {
                       <td>{gameStats.rebounds}</td>
                       <td>{gameStats.assists}</td>
                       <td>{gameStats.fieldGoalsMade}</td>
-                      <td>{(gameStats.fieldGoalPercentage * 100).toFixed(1)}%</td>
+                      <td>
+                        {(gameStats.fieldGoalPercentage * 100).toFixed(1)}%
+                      </td>
                       <td>{gameStats.threePointsMade}</td>
-                      <td>{(gameStats.threePointPercentage * 100).toFixed(1)}%</td>
+                      <td>
+                        {(gameStats.threePointPercentage * 100).toFixed(1)}%
+                      </td>
                       <td>{gameStats.freeThrowsMade}</td>
-                      <td>{(gameStats.freeThrowPercentage * 100).toFixed(1)}%</td>
+                      <td>
+                        {(gameStats.freeThrowPercentage * 100).toFixed(1)}%
+                      </td>
                       <td>{gameStats.steals}</td>
                       <td>{gameStats.blocks}</td>
                       <td>{gameStats.turnovers}</td>
@@ -145,45 +155,55 @@ function StatsPage() {
               </tbody>
             </table>
 
-            <h2>Future Games</h2>
-            <table className="stats-page-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Points Scored</th>
-                  <th>Rebounds</th>
-                  <th>Assists</th>
-                  <th>Field Goals Made</th>
-                  <th>Field Goal %</th>
-                  <th>3P Made</th>
-                  <th>3P %</th>
-                  <th>Free Throws Made</th>
-                  <th>Free Throw %</th>
-                  <th>Steals</th>
-                  <th>Blocks</th>
-                  <th>Turnovers</th>
-                </tr>
-              </thead>
-              <tbody>
-                {futureGames.map((gameStats, index) => (
-                  <tr key={index}>
-                    <td>{new Date(gameStats.date).toLocaleDateString()}</td>
-                    <td>{gameStats.points}</td>
-                    <td>{gameStats.rebounds}</td>
-                    <td>{gameStats.assists}</td>
-                    <td>{gameStats.fieldGoalsMade}</td>
-                    <td>{(gameStats.fieldGoalPercentage * 100).toFixed(1)}%</td>
-                    <td>{gameStats.threePointsMade}</td>
-                    <td>{(gameStats.threePointPercentage * 100).toFixed(1)}%</td>
-                    <td>{gameStats.freeThrowsMade}</td>
-                    <td>{(gameStats.freeThrowPercentage * 100).toFixed(1)}%</td>
-                    <td>{gameStats.steals}</td>
-                    <td>{gameStats.blocks}</td>
-                    <td>{gameStats.turnovers}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {!isSeasonal && (
+              <>
+                <h2>Future Games</h2>
+                <table className="stats-page-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Points Scored</th>
+                      <th>Rebounds</th>
+                      <th>Assists</th>
+                      <th>Field Goals Made</th>
+                      <th>Field Goal %</th>
+                      <th>3P Made</th>
+                      <th>3P %</th>
+                      <th>Free Throws Made</th>
+                      <th>Free Throw %</th>
+                      <th>Steals</th>
+                      <th>Blocks</th>
+                      <th>Turnovers</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {futureGames.map((gameStats, index) => (
+                      <tr key={index}>
+                        <td>{new Date(gameStats.date).toLocaleDateString()}</td>
+                        <td>{gameStats.points}</td>
+                        <td>{gameStats.rebounds}</td>
+                        <td>{gameStats.assists}</td>
+                        <td>{gameStats.fieldGoalsMade}</td>
+                        <td>
+                          {(gameStats.fieldGoalPercentage * 100).toFixed(1)}%
+                        </td>
+                        <td>{gameStats.threePointsMade}</td>
+                        <td>
+                          {(gameStats.threePointPercentage * 100).toFixed(1)}%
+                        </td>
+                        <td>{gameStats.freeThrowsMade}</td>
+                        <td>
+                          {(gameStats.freeThrowPercentage * 100).toFixed(1)}%
+                        </td>
+                        <td>{gameStats.steals}</td>
+                        <td>{gameStats.blocks}</td>
+                        <td>{gameStats.turnovers}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
           </div>
         )}
       </div>

@@ -6,7 +6,7 @@ from datetime import datetime
 from time import sleep
 from ml.player_pred import predict_next_game_vs_team
 
-# Setup MongoDB
+
 try:
     client = MongoClient('mongodb://localhost:27017', serverSelectionTimeoutMS=5000)
     print("Connected to MongoDB!")
@@ -18,13 +18,13 @@ game_collection = db['games']
 player_collection = db['players']
 team_collection = db['teams']
 
+
 def get_player_data():
     all_players = players.get_players()
     
     for player in all_players:
         player_name = player['full_name']
         
-        # Example: Get games for the player (You can specify season and filters here)
         try:
             game_finder = leaguegamefinder.LeagueGameFinder(player_id_nullable=player['id'], timeout=3, date_from_nullable="09/30/2009")
         except:
@@ -65,17 +65,16 @@ def get_player_data():
                 "is_future_game": False
             }
 
-            # Write to MongoDB after each game (update the player's document with a nested 'games' field)
             player_collection.update_one(
                 {"name": player_name},
                 {"$set": {
                     "team": current_team,
                     "games." + formatted_date: player_data
                 }},
-                upsert=True  # Keyword argument for upsert
+                upsert=True
             )
 
-        sleep(0.5)
+        sleep(0.5)  # prevent API rate limiting
 
         print("Finished stats for player " + player['full_name'])
 
@@ -86,7 +85,6 @@ def get_team_data():
     for team in all_teams:
         team_name = team['full_name']
         
-        # Example: Get games for the team (You can specify season and filters here)
         try:
             game_finder = leaguegamefinder.LeagueGameFinder(team_id_nullable=team['id'], timeout=3, date_from_nullable = "09/30/2009")
         except:
@@ -121,7 +119,6 @@ def get_team_data():
                 "is_future_game": False
             }
 
-            # Write to MongoDB after each game (update the team's document with a nested 'games' field)
             team_collection.update_one(
                 {"name": team_name},
                 {"$set": {
@@ -131,7 +128,7 @@ def get_team_data():
                 upsert=True
             )
 
-        sleep(0.5)
+        sleep(0.5)  # prevent API rate limiting
 
         print("Finished stats for team " + team['full_name'])
 
@@ -143,19 +140,16 @@ def get_upcoming_games():
     url = "https://cdn.nba.com/static/json/staticData/scheduleLeagueV2.json"
     
     try:
-        # Fetch the data from the URL
         response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for HTTP errors
+        response.raise_for_status()
         data = response.json()
 
-        # Extract the list of games from the JSON response
         upcoming_games = []
 
         for game_date in data["leagueSchedule"]["gameDates"]:
             for game in game_date["games"]:
                 game_date_utc = datetime.strptime(game["gameDateUTC"], "%Y-%m-%dT%H:%M:%SZ")
                 
-                # Only add games that are after the current date and time
                 if game_date_utc >= datetime.utcnow():
                     if game["homeTeam"]["teamCity"] is not None:
                         game_info = {
@@ -175,44 +169,60 @@ def get_upcoming_games():
         print(f"Error fetching schedule: {e}")
         return []
 
+
 def make_future_predictions():
     """
     This function makes predictions for upcoming games for both players and teams.
     """
-    # Fetch upcoming games
     upcoming_games = get_upcoming_games()
     
-    # For each player, predict points for their upcoming games
     all_players = db['players'].find()
     
     for player in all_players:
         player_name = player['name']
         
         for game in upcoming_games:
-            # Check if the player is involved in this upcoming game
             if game['homeTeam'] in player['team'] or game['awayTeam'] in player['team']:
-                team = game['homeTeam'] if game['homeTeam'] in player['team'] else game['awayTeam']
+                opponent_team = game['homeTeam'] if game['homeTeam'] in player['team'] else game['awayTeam']
                 
-                # Predict points for the player in the next game
-                predicted_points, confidence = predict_next_game_vs_team(player_name, team, "Points", "player")
+                predicted_points, _ = predict_next_game_vs_team(player_name, opponent_team, "Points", "player")
+                predicted_rebounds, _ = predict_next_game_vs_team(player_name, opponent_team, "scoredRebounds", "player")
+                predicted_assists, _ = predict_next_game_vs_team(player_name, opponent_team, "Assists", "player")
+                predicted_fg, _ = predict_next_game_vs_team(player_name, opponent_team, "FG_scored", "player")
+                predicted_fg_pctg, _ = predict_next_game_vs_team(player_name, opponent_team, "FG_pctg", "player")
+                predicted_3, _ = predict_next_game_vs_team(player_name, opponent_team, "3_pts_scored", "player")
+                predicted_3_pctg, _ = predict_next_game_vs_team(player_name, opponent_team, "3_pts_pctg", "player")
+                predicted_ft, _ = predict_next_game_vs_team(player_name, opponent_team, "FT_made", "player")
+                predicted_ft_pctg, _ = predict_next_game_vs_team(player_name, opponent_team, "FT_pctg", "player")
+                predicted_steals, _ = predict_next_game_vs_team(player_name, opponent_team, "Steals", "player")
+                predicted_blocks, _ = predict_next_game_vs_team(player_name, opponent_team, "Blocks", "player")
+                predicted_turnovers, _ = predict_next_game_vs_team(player_name, opponent_team, "Turnovers", "player")
                 
                 formatted_date = game['gameDateUTC'].strftime("%Y-%m-%d_%H-%M-%S")
                 player_data = {
                     "Matchup": f"{game['homeTeam']} vs {game['awayTeam']}",
-                    "Predicted_Points": predicted_points,
-                    "Confidence": confidence,
+                    "Points": predicted_points,
+                    "scoredRebounds": predicted_rebounds,
+                    "Assists": predicted_assists,
+                    "FG_scored": predicted_fg,
+                    "FG_pctg": predicted_fg_pctg,
+                    "3_pts_scored": predicted_3,
+                    "3_pts_pctg": predicted_3_pctg,
+                    "FT_made": predicted_ft,
+                    "FT_pctg": predicted_ft_pctg,
+                    "Steals": predicted_steals,
+                    "Blocks": predicted_blocks,
+                    "Turnovers": predicted_turnovers,
                     "is_future_game": True
                 }
                 
-                # Store the predicted data for this game in MongoDB
                 db['players'].update_one(
                     {"name": player_name},
-                    {"$set": {"future_games." + formatted_date: player_data}},  # Store predictions under 'future_games'
+                    {"$set": {"future_games." + formatted_date: player_data}},  # create new future_games collection
                     upsert=True
                 )
                 print(f"Predicted points for {player_name} in upcoming game: {predicted_points}")
 
-    # For each team, predict points for their upcoming games
     all_teams = db['teams'].find()
     
     for team in all_teams:
@@ -220,34 +230,51 @@ def make_future_predictions():
         team_name = team['abbrev_name']
         
         for game in upcoming_games:
-            # Check if the team is playing in the upcoming game
             if game['homeTeam'] == team_name or game['awayTeam'] == team_name:
                 opponent_team = game['awayTeam'] if game['homeTeam'] == team_name else game['homeTeam']
                 
-                # Predict points for the team in the next game
-                predicted_points, confidence = predict_next_game_vs_team(team_name, opponent_team, "Points", "team")
+                predicted_points, _ = predict_next_game_vs_team(team_name, opponent_team, "Points", "team")
+                predicted_rebounds, _ = predict_next_game_vs_team(team_name, opponent_team, "scoredRebounds", "team")
+                predicted_assists, _ = predict_next_game_vs_team(team_name, opponent_team, "Assists", "team")
+                predicted_fg, _ = predict_next_game_vs_team(team_name, opponent_team, "FG_scored", "team")
+                predicted_fg_pctg, _ = predict_next_game_vs_team(team_name, opponent_team, "FG_pctg", "team")
+                predicted_3, _ = predict_next_game_vs_team(team_name, opponent_team, "3_pts_scored", "team")
+                predicted_3_pctg, _ = predict_next_game_vs_team(team_name, opponent_team, "3_pts_pctg", "team")
+                predicted_ft, _ = predict_next_game_vs_team(team_name, opponent_team, "FT_made", "team")
+                predicted_ft_pctg, _ = predict_next_game_vs_team(team_name, opponent_team, "FT_pctg", "team")
+                predicted_steals, _ = predict_next_game_vs_team(team_name, opponent_team, "Steals", "team")
+                predicted_blocks, _ = predict_next_game_vs_team(team_name, opponent_team, "Blocks", "team")
+                predicted_turnovers, _ = predict_next_game_vs_team(team_name, opponent_team, "Turnovers", "team")
                 
                 formatted_date = game['gameDateUTC'].strftime("%Y-%m-%d_%H-%M-%S")
                 team_data = {
                     "Matchup": f"{game['homeTeam']} vs {game['awayTeam']}",
-                    "Predicted_Points": predicted_points,
-                    "Confidence": confidence,
+                    "Points": predicted_points,
+                    "scoredRebounds": predicted_rebounds,
+                    "Assists": predicted_assists,
+                    "FG_scored": predicted_fg,
+                    "FG_pctg": predicted_fg_pctg,
+                    "3_pts_scored": predicted_3,
+                    "3_pts_pctg": predicted_3_pctg,
+                    "FT_made": predicted_ft,
+                    "FT_pctg": predicted_ft_pctg,
+                    "Steals": predicted_steals,
+                    "Blocks": predicted_blocks,
+                    "Turnovers": predicted_turnovers,
                     "is_future_game": True
                 }
-                
-                # Store the predicted data for this game in MongoDB
+
                 db['teams'].update_one(
                     {"name": full_team_name},
-                    {"$set": {"future_games." + formatted_date: team_data}},  # Store predictions under 'future_games'
+                    {"$set": {"future_games." + formatted_date: team_data}},  # create new future_games collection
                     upsert=True
                 )
                 print(f"Predicted points for {team_name} in upcoming game: {predicted_points}")
 
 
 def upload_to_mongodb():
-    # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
-    #get_player_data()
-    #get_team_data()
+    get_player_data()
+    get_team_data()
     make_future_predictions()
     
 

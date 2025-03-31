@@ -242,7 +242,7 @@ def get_player_stats(request, name):
             game_date = game_date[:10]
             stats = {
                 "date": sanitize_value(game_date),
-                "points": sanitize_value(game_data.get("Predicted_Points", 0)),
+                "points": sanitize_value(game_data.get("Points", 0)),
                 "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
                 "assists": sanitize_value(game_data.get("Assists", 0)),
                 "fieldGoalsMade": sanitize_value(game_data.get("FG_scored", 0)),
@@ -305,7 +305,7 @@ def get_team_stats(request, name):
             game_date = game_date[:10]
             stats = {
                 "date": sanitize_value(game_date),
-                "points": sanitize_value(game_data.get("Predicted_Points", 0)),
+                "points": sanitize_value(game_data.get("Points", 0)),
                 "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
                 "assists": sanitize_value(game_data.get("Assists", 0)),
                 "fieldGoalsMade": sanitize_value(game_data.get("FG_scored", 0)),

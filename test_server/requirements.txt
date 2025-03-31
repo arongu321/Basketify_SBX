@@ -8,7 +8,6 @@ djangorestframework==3.15.2
 djangorestframework_simplejwt==5.5.0
 dnspython==2.7.0
 idna==3.10
-joblib==1.4.2
 nba_api==1.7.0
 numpy==1.26.4
 pandas==2.2.3
