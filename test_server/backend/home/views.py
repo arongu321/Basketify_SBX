@@ -271,20 +271,33 @@ def get_player_stats(request, name):
         if last_n_games:
             try:
                 n = int(last_n_games)
-                # Sort by date in descending order (newest first)
-                past_games = [game for game in player_stats if not game['is_future_game'] and game['date_obj'] is not None]
-                past_games.sort(key=lambda x: x['date_obj'], reverse=True)
+                # Create a list of past games (non-future games)
+                past_games = [game for game in player_stats if not game.get('is_future_game', False)]
+                
+                # Sort games by date (handling cases where date_obj might be None)
+                def get_date_for_sorting(game):
+                    if game.get('date_obj') is not None:
+                        return game['date_obj']
+                    # Fallback: Try to parse the date directly
+                    try:
+                        date_str = game['date'].split('_')[0] if '_' in game['date'] else game['date']
+                        return datetime.datetime.strptime(date_str, '%Y-%m-%d')
+                    except (ValueError, AttributeError):
+                        # If parsing fails, return a very old date to sort to the end
+                        return datetime.datetime(1900, 1, 1)
+                
+                past_games.sort(key=get_date_for_sorting, reverse=True)
                 
                 # Take only the first N games
                 filtered_past_games = past_games[:n]
                 
                 # Add future games (they're not affected by Last N Games filter)
-                future_games = [game for game in player_stats if game['is_future_game']]
+                future_games = [game for game in player_stats if game.get('is_future_game', False)]
                 
                 # Replace player_stats with the filtered list
                 player_stats = filtered_past_games + future_games
-            except (ValueError, TypeError):
-                print(f"Invalid last_n_games parameter: {last_n_games}")
+            except (ValueError, TypeError) as e:
+                print(f"Invalid last_n_games parameter: {last_n_games}, Error: {e}")
                 # Just continue without applying this filter if there's an error
         
         # Remove temporary date_obj used for sorting
@@ -369,22 +382,36 @@ def get_team_stats(request, name):
         
         # Apply the "Last N Games" filter if specified (excluding future games)
         if last_n_games:
+            print("Fuck")
             try:
                 n = int(last_n_games)
-                # Sort by date in descending order (newest first)
-                past_games = [game for game in team_stats if not game['is_future_game'] and game['date_obj'] is not None]
-                past_games.sort(key=lambda x: x['date_obj'], reverse=True)
+                # Create a list of past games (non-future games)
+                past_games = [game for game in team_stats if not game.get('is_future_game', False)]
+                
+                # Sort games by date (handling cases where date_obj might be None)
+                def get_date_for_sorting(game):
+                    if game.get('date_obj') is not None:
+                        return game['date_obj']
+                    # Fallback: Try to parse the date directly
+                    try:
+                        date_str = game['date'].split('_')[0] if '_' in game['date'] else game['date']
+                        return datetime.datetime.strptime(date_str, '%Y-%m-%d')
+                    except (ValueError, AttributeError):
+                        # If parsing fails, return a very old date to sort to the end
+                        return datetime.datetime(1900, 1, 1)
+                
+                past_games.sort(key=get_date_for_sorting, reverse=True)
                 
                 # Take only the first N games
                 filtered_past_games = past_games[:n]
                 
                 # Add future games (they're not affected by Last N Games filter)
-                future_games = [game for game in team_stats if game['is_future_game']]
+                future_games = [game for game in team_stats if game.get('is_future_game', False)]
                 
-                # Replace team_stats with the filtered list
+                # Replace player_stats with the filtered list
                 team_stats = filtered_past_games + future_games
-            except (ValueError, TypeError):
-                print(f"Invalid last_n_games parameter: {last_n_games}")
+            except (ValueError, TypeError) as e:
+                print(f"Invalid last_n_games parameter: {last_n_games}, Error: {e}")
                 # Just continue without applying this filter if there's an error
         
         # Remove temporary date_obj used for sorting
