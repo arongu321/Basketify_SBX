@@ -382,7 +382,6 @@ def get_team_stats(request, name):
         
         # Apply the "Last N Games" filter if specified (excluding future games)
         if last_n_games:
-            print("Fuck")
             try:
                 n = int(last_n_games)
                 # Create a list of past games (non-future games)
