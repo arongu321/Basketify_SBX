@@ -1,0 +1,124 @@
+.filter-section {
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 15px 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    animation: slideDown 0.3s ease-in-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.filter-section h3 {
+    color: #333;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.filter-content {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.filter-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.filter-group label {
+    width: 120px;
+    font-weight: 500;
+    color: #555;
+    padding-top: 5px;
+}
+
+.filter-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.filter-controls input[type='date'],
+.filter-controls input[type='number'] {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    flex: 1;
+}
+
+/* Specific styling for the number input */
+.filter-controls input[type='number'] {
+    max-width: 150px;
+}
+
+.filter-controls span {
+    color: #777;
+}
+
+.filter-help-text {
+    font-size: 12px;
+    color: #888;
+    font-style: italic;
+}
+
+/* Buttons container */
+.filter-section .filter-buttons {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 15px !important;
+    margin-top: 20px !important;
+}
+
+/* Common button styles */
+.filter-section .filter-button {
+    min-width: 120px !important;
+    padding: 10px 15px !important;
+    border: none !important;
+    border-radius: 5px !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    transition: background-color 0.3s, transform 0.1s !important;
+}
+
+/* Apply Filter button */
+.filter-section .apply-filter-button {
+    background-color: #8bd6ef !important;
+    color: white !important;
+}
+
+.filter-section .apply-filter-button:hover {
+    background-color: #62bbd6 !important;
+}
+
+/* Clear Filter button */
+.filter-section .clear-filter-button {
+    background-color: #e6e6e6 !important;
+    color: #333 !important;
+}
+
+.filter-section .clear-filter-button:hover {
+    background-color: #d1d1d1 !important;
+}
+
+/* Active state for both buttons */
+.filter-section .filter-button:active {
+    transform: translateY(1px) !important;
+}

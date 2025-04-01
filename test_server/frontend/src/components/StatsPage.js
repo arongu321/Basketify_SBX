@@ -1,196 +1,342 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useParams, useNavigate } from "react-router-dom";
-import logo from "../assets/Basketify-Logo.png";
-import "./StatsPage.css";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import logo from '../assets/Basketify-Logo.png';
+import FilterSection from './FilterSection';
+import './StatsPage.css';
 
 function StatsPage() {
-  const { type, name } = useParams();
-  const navigate = useNavigate();
-  const [statsData, setStatsData] = useState([]);
-  const [seasonalStats, setSeasonalStats] = useState([]);
-  const [currentSeasonStats, setCurrentSeasonStats] = useState([]);
-  const [futureGames, setFutureGames] = useState([]);
-  const [isSeasonal, setIsSeasonal] = useState(false);
-  const [loading, setLoading] = useState(true);
+    const { type, name } = useParams();
+    const navigate = useNavigate();
+    const [statsData, setStatsData] = useState([]);
+    const [seasonalStats, setSeasonalStats] = useState([]);
+    const [currentSeasonStats, setCurrentSeasonStats] = useState([]);
+    const [futureGames, setFutureGames] = useState([]);
+    const [isSeasonal, setIsSeasonal] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [activeFilters, setActiveFilters] = useState({});
+    const [isFiltered, setIsFiltered] = useState(false);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8000/api/stats/${type}/${name}`
-        );
+    const fetchStats = async (filters = {}) => {
+        setLoading(true);
+        try {
+            // Construct the URL with query parameters for filtering
+            let url = `http://localhost:8000/api/stats/${type}/${name}`;
 
-        const { stats, seasonal_stats } = response.data;
+            // Add filter parameters to the URL if they exist
+            if (Object.keys(filters).length > 0) {
+                const queryParams = new URLSearchParams(filters);
+                url += `?${queryParams.toString()}`;
+                setIsFiltered(true);
+            } else {
+                setIsFiltered(false);
+            }
 
-        const currentSeason = stats.filter((stat) => {
-          const statDate = new Date(stat.date);
-          const currentDate = new Date();
-          let seasonStart = new Date(currentDate.getFullYear(), 9, 1);
-          let seasonEnd = new Date(currentDate.getFullYear() + 1, 8, 31);
+            const response = await axios.get(url);
+            const { stats, seasonal_stats } = response.data;
 
-          if (currentDate.getMonth() < 9) {
-            seasonStart = new Date(currentDate.getFullYear() - 1, 9, 1);
-            seasonEnd = new Date(currentDate.getFullYear(), 8, 31);
-          }
+            // Process current season stats
+            const currentSeason = stats.filter((stat) => {
+                const statDate = new Date(stat.date);
+                const currentDate = new Date();
+                let seasonStart = new Date(currentDate.getFullYear(), 9, 1);
+                let seasonEnd = new Date(currentDate.getFullYear() + 1, 8, 31);
 
-          return statDate >= seasonStart && statDate <= seasonEnd && !stat.is_future_game;
-        });
+                if (currentDate.getMonth() < 9) {
+                    seasonStart = new Date(currentDate.getFullYear() - 1, 9, 1);
+                    seasonEnd = new Date(currentDate.getFullYear(), 8, 31);
+                }
 
-        const futureGames = stats.filter((stat) => stat.is_future_game);
+                return (
+                    statDate >= seasonStart &&
+                    statDate <= seasonEnd &&
+                    !stat.is_future_game
+                );
+            });
 
-        setStatsData(stats);
-        setSeasonalStats(seasonal_stats);
-        setCurrentSeasonStats(currentSeason);
-        setFutureGames(futureGames);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching stats data:", error);
-        setLoading(false);
-      }
+            const futureGames = stats.filter((stat) => stat.is_future_game);
+
+            setStatsData(stats);
+            setSeasonalStats(seasonal_stats);
+            setCurrentSeasonStats(currentSeason);
+            setFutureGames(futureGames);
+        } catch (error) {
+            console.error('Error fetching stats data:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    fetchStats();
-  }, [type, name]);
+    useEffect(() => {
+        fetchStats();
+    }, [type, name]);
 
-  const handleToggleStats = () => {
-    setIsSeasonal(!isSeasonal);
-  };
+    const handleApplyFilters = (filters, isClearOperation = false) => {
+        setActiveFilters(filters);
 
-  const handleGoToGraph = () => {
-    navigate(`/stats-graph/${type}/${name}`);
-  };
+        // Only make API call if there are filters or if this isn't a clear operation
+        // when clearing filters and no filters were active before, no need to reload
+        if (
+            Object.keys(filters).length > 0 ||
+            (Object.keys(activeFilters).length > 0 && isClearOperation)
+        ) {
+            fetchStats(filters);
+        } else if (isClearOperation) {
+            // Just update the filter status without making API call
+            setIsFiltered(false);
+        }
+    };
 
-  if (loading) {
+    const handleToggleStats = () => {
+        setIsSeasonal(!isSeasonal);
+    };
+
+    const handleGoToGraph = () => {
+        navigate(`/stats-graph/${type}/${name}`);
+    };
+
+    const toggleFilter = () => {
+        setIsFilterOpen(!isFilterOpen);
+    };
+
+    if (loading) {
+        return (
+            <div className="stats-page-loading-screen">
+                <img
+                    src={logo}
+                    alt="Loading..."
+                    className="stats-page-loading-favicon"
+                />
+                <h2>Loading...</h2>
+            </div>
+        );
+    }
+
+    // Display filter status
+    const renderFilterStatus = () => {
+        if (!isFiltered) return null;
+
+        const dateFrom = activeFilters.date_from || '';
+        const dateTo = activeFilters.date_to || '';
+        const lastNGames = activeFilters.last_n_games || '';
+
+        let filterMessages = [];
+
+        if (dateFrom && dateTo) {
+            filterMessages.push(`Date range from ${dateFrom} to ${dateTo}`);
+        } else if (dateFrom) {
+            filterMessages.push(`Dates from ${dateFrom} onwards`);
+        } else if (dateTo) {
+            filterMessages.push(`Dates up to ${dateTo}`);
+        }
+
+        if (lastNGames) {
+            filterMessages.push(`Last ${lastNGames} games`);
+        }
+
+        return (
+            <div className="filter-status">
+                <span>Filtering: {filterMessages.join(' • ')}</span>
+            </div>
+        );
+    };
+
     return (
-      <div className="stats-page-loading-screen">
-        <img
-          src={logo}
-          alt="Loading..."
-          className="stats-page-loading-favicon"
-        />
-        <h2>Loading...</h2>
-      </div>
-    );
-  }
+        <div className="stats-page-container">
+            <div className="stats-page-top-banner">
+                <button
+                    className="stats-page-back-button"
+                    onClick={() => navigate(-1)}
+                >
+                    Back
+                </button>
+                <div className="stats-page-header-content">
+                    <h1 className="stats-page-title">
+                        {type.charAt(0).toUpperCase() + type.slice(1)} Stats:{' '}
+                        {name}
+                    </h1>
+                </div>
+            </div>
 
-  return (
-    <div className="stats-page-container">
-      <div className="stats-page-top-banner">
-        <button className="stats-page-back-button" onClick={() => navigate(-1)}>
-          Back
-        </button>
-        <div className="stats-page-header-content">
-          <h1 className="stats-page-title">
-            {type.charAt(0).toUpperCase() + type.slice(1)} Stats: {name}
-          </h1>
-        </div>
-      </div>
-
-      <div className="stats-page-content">
-        <div className="stats-page-button-container">
-          <button onClick={handleToggleStats}>
-            {isSeasonal ? "Show Game-by-Game Stats" : "Show Seasonal Stats"}
-          </button>
-          <button onClick={handleGoToGraph}>View Stats Graph</button>
-        </div>
-
-        {statsData.length === 0 ? (
-          <p>No stats available for this {type}.</p>
-        ) : (
-          <div>
-            <table className="stats-page-table">
-              <thead>
-                <tr>
-                  <th>{isSeasonal ? "Season" : "Date"}</th>
-                  <th>Points Scored</th>
-                  <th>Rebounds</th>
-                  <th>Assists</th>
-                  <th>Field Goals Made</th>
-                  <th>Field Goal %</th>
-                  <th>3P Made</th>
-                  <th>3P %</th>
-                  <th>Free Throws Made</th>
-                  <th>Free Throw %</th>
-                  <th>Steals</th>
-                  <th>Blocks</th>
-                  <th>Turnovers</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(isSeasonal ? seasonalStats : currentSeasonStats)
-                  .slice()
-                  .reverse()
-                  .map((gameStats, index) => (
-                    <tr key={index}>
-                      <td>
+            <div className="stats-page-content">
+                <div className="stats-page-button-container">
+                    <button onClick={handleToggleStats}>
                         {isSeasonal
-                          ? gameStats.season
-                          : new Date(gameStats.date).toLocaleDateString()}
-                      </td>
-                      <td>{gameStats.points}</td>
-                      <td>{gameStats.rebounds}</td>
-                      <td>{gameStats.assists}</td>
-                      <td>{gameStats.fieldGoalsMade}</td>
-                      <td>{(gameStats.fieldGoalPercentage * 100).toFixed(1)}%</td>
-                      <td>{gameStats.threePointsMade}</td>
-                      <td>{(gameStats.threePointPercentage * 100).toFixed(1)}%</td>
-                      <td>{gameStats.freeThrowsMade}</td>
-                      <td>{(gameStats.freeThrowPercentage * 100).toFixed(1)}%</td>
-                      <td>{gameStats.steals}</td>
-                      <td>{gameStats.blocks}</td>
-                      <td>{gameStats.turnovers}</td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
+                            ? 'Show Game-by-Game Stats'
+                            : 'Show Seasonal Stats'}
+                    </button>
+                    <button onClick={handleGoToGraph}>View Stats Graph</button>
+                    <button
+                        onClick={toggleFilter}
+                        className={
+                            isFilterOpen
+                                ? 'active-filter-button filter-button'
+                                : 'filter-button'
+                        }
+                    >
+                        {isFilterOpen ? 'Hide Filters' : 'Filter'}
+                    </button>
+                </div>
 
-            <h2>Future Games</h2>
-            <table className="stats-page-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Points Scored</th>
-                  <th>Rebounds</th>
-                  <th>Assists</th>
-                  <th>Field Goals Made</th>
-                  <th>Field Goal %</th>
-                  <th>3P Made</th>
-                  <th>3P %</th>
-                  <th>Free Throws Made</th>
-                  <th>Free Throw %</th>
-                  <th>Steals</th>
-                  <th>Blocks</th>
-                  <th>Turnovers</th>
-                </tr>
-              </thead>
-              <tbody>
-                {futureGames.map((gameStats, index) => (
-                  <tr key={index}>
-                    <td>{new Date(gameStats.date).toLocaleDateString()}</td>
-                    <td>{gameStats.points}</td>
-                    <td>{gameStats.rebounds}</td>
-                    <td>{gameStats.assists}</td>
-                    <td>{gameStats.fieldGoalsMade}</td>
-                    <td>{(gameStats.fieldGoalPercentage * 100).toFixed(1)}%</td>
-                    <td>{gameStats.threePointsMade}</td>
-                    <td>{(gameStats.threePointPercentage * 100).toFixed(1)}%</td>
-                    <td>{gameStats.freeThrowsMade}</td>
-                    <td>{(gameStats.freeThrowPercentage * 100).toFixed(1)}%</td>
-                    <td>{gameStats.steals}</td>
-                    <td>{gameStats.blocks}</td>
-                    <td>{gameStats.turnovers}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                <FilterSection
+                    isOpen={isFilterOpen}
+                    onApplyFilters={handleApplyFilters}
+                />
 
-      <div className="stats-page-bottom-banner"></div>
-    </div>
-  );
+                {renderFilterStatus()}
+
+                {statsData.length === 0 ? (
+                    <p>No stats available for this {type}.</p>
+                ) : (
+                    <div>
+                        <table className="stats-page-table">
+                            <thead>
+                                <tr>
+                                    <th>{isSeasonal ? 'Season' : 'Date'}</th>
+                                    <th>Points Scored</th>
+                                    <th>Rebounds</th>
+                                    <th>Assists</th>
+                                    <th>Field Goals Made</th>
+                                    <th>Field Goal %</th>
+                                    <th>3P Made</th>
+                                    <th>3P %</th>
+                                    <th>Free Throws Made</th>
+                                    <th>Free Throw %</th>
+                                    <th>Steals</th>
+                                    <th>Blocks</th>
+                                    <th>Turnovers</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(isSeasonal
+                                    ? seasonalStats
+                                    : currentSeasonStats
+                                )
+                                    .slice()
+                                    .reverse()
+                                    .map((gameStats, index) => (
+                                        <tr key={index}>
+                                            <td>
+                                                {isSeasonal
+                                                    ? gameStats.season
+                                                    : new Date(
+                                                          gameStats.date
+                                                      ).toLocaleDateString()}
+                                            </td>
+                                            <td>{gameStats.points}</td>
+                                            <td>{gameStats.rebounds}</td>
+                                            <td>{gameStats.assists}</td>
+                                            <td>{gameStats.fieldGoalsMade}</td>
+                                            <td>
+                                                {(
+                                                    gameStats.fieldGoalPercentage *
+                                                    100
+                                                ).toFixed(1)}
+                                                %
+                                            </td>
+                                            <td>{gameStats.threePointsMade}</td>
+                                            <td>
+                                                {(
+                                                    gameStats.threePointPercentage *
+                                                    100
+                                                ).toFixed(1)}
+                                                %
+                                            </td>
+                                            <td>{gameStats.freeThrowsMade}</td>
+                                            <td>
+                                                {(
+                                                    gameStats.freeThrowPercentage *
+                                                    100
+                                                ).toFixed(1)}
+                                                %
+                                            </td>
+                                            <td>{gameStats.steals}</td>
+                                            <td>{gameStats.blocks}</td>
+                                            <td>{gameStats.turnovers}</td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
+
+                        {!isSeasonal && futureGames.length > 0 && (
+                            <>
+                                <h2>Future Games</h2>
+                                <table className="stats-page-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Points Scored</th>
+                                            <th>Rebounds</th>
+                                            <th>Assists</th>
+                                            <th>Field Goals Made</th>
+                                            <th>Field Goal %</th>
+                                            <th>3P Made</th>
+                                            <th>3P %</th>
+                                            <th>Free Throws Made</th>
+                                            <th>Free Throw %</th>
+                                            <th>Steals</th>
+                                            <th>Blocks</th>
+                                            <th>Turnovers</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {futureGames.map((gameStats, index) => (
+                                            <tr key={index}>
+                                                <td>
+                                                    {new Date(
+                                                        gameStats.date
+                                                    ).toLocaleDateString()}
+                                                </td>
+                                                <td>{gameStats.points}</td>
+                                                <td>{gameStats.rebounds}</td>
+                                                <td>{gameStats.assists}</td>
+                                                <td>
+                                                    {gameStats.fieldGoalsMade}
+                                                </td>
+                                                <td>
+                                                    {(
+                                                        gameStats.fieldGoalPercentage *
+                                                        100
+                                                    ).toFixed(1)}
+                                                    %
+                                                </td>
+                                                <td>
+                                                    {gameStats.threePointsMade}
+                                                </td>
+                                                <td>
+                                                    {(
+                                                        gameStats.threePointPercentage *
+                                                        100
+                                                    ).toFixed(1)}
+                                                    %
+                                                </td>
+                                                <td>
+                                                    {gameStats.freeThrowsMade}
+                                                </td>
+                                                <td>
+                                                    {(
+                                                        gameStats.freeThrowPercentage *
+                                                        100
+                                                    ).toFixed(1)}
+                                                    %
+                                                </td>
+                                                <td>{gameStats.steals}</td>
+                                                <td>{gameStats.blocks}</td>
+                                                <td>{gameStats.turnovers}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            <div className="stats-page-bottom-banner"></div>
+        </div>
+    );
 }
 
 export default StatsPage;

@@ -244,11 +244,30 @@ def make_future_predictions():
                 print(f"Predicted points for {team_name} in upcoming game: {predicted_points}")
 
 
+def get_seasons():
+    """
+    Fetch all seasons from the NBA API and return them as a list.
+    """
+    all_teams = teams.get_teams()
+    
+    for team in all_teams:
+        team_name = team['full_name']
+        
+        # Example: Get games for the team (You can specify season and filters here)
+        try:
+            game_finder = leaguegamefinder.LeagueGameFinder(team_id_nullable=team['id'], timeout=3, date_from_nullable = "09/30/2009")
+        except:
+            print("Skip: " + team_name)
+            continue
+        games = game_finder.get_data_frames()[0]
+        print(games)
+
 def upload_to_mongodb():
     # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
     #get_player_data()
     #get_team_data()
-    make_future_predictions()
+    #make_future_predictions()
+    get_seasons()
     
 
 if __name__ == "__main__":
