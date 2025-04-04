@@ -84,50 +84,54 @@ function StatsGraph() {
   }
 
   const plotData = selectedStats.map((stat, index) => {
-    // For the current season stats
-    const currentSeasonX = currentSeasonStats.map((data) =>
+    const dataSource = isSeasonal ? seasonalStats.slice().reverse() : currentSeasonStats;
+  
+    const currentSeasonX = dataSource.map((data) =>
       isSeasonal ? data.season : new Date(data.date).toLocaleDateString()
     );
-    const currentSeasonY = currentSeasonStats.map((data) => data[stat] || 0);
-
-    // For the future games stats
-    const futureGamesX = futureGames.map((data) =>
-      new Date(data.date).toLocaleDateString()
-    );
-    const futureGamesY = futureGames.map((data) => data[stat] || 0);
-
+    const currentSeasonY = dataSource.map((data) => data[stat] || 0);
+  
     const formattedStatName = stat
       .replace(/([A-Z])/g, " $1")
       .replace(/^./, (str) => str.toUpperCase());
-
-    // Generate different colors for the stats
+  
     const colors = ['blue', 'green', 'orange', 'purple', 'red', 'cyan'];
     const currentColor = colors[index % colors.length];
     const futureColor = colors[(index + 2) % colors.length];
-
-    // Assigning each stat to a different Y-axis based on the index
-    return [
+  
+    const traces = [
       {
         type: "scatter",
         mode: "lines+markers",
-        name: `${formattedStatName} (Current Season)`,
+        name: `${formattedStatName} (${isSeasonal ? "Seasons" : "Current Season"})`,
         x: currentSeasonX,
         y: currentSeasonY,
         line: { color: currentColor },
         marker: { color: currentColor },
-        yaxis: index === 0 ? "y1" : "y2", // First stat uses left axis, second uses right axis
+        yaxis: index === 0 ? "y1" : "y2",
       },
-      {
+    ];
+  
+    // Only add future games if not in seasonal mode
+    if (!isSeasonal) {
+      const futureGamesX = futureGames.map((data) =>
+        new Date(data.date).toLocaleDateString()
+      );
+      const futureGamesY = futureGames.map((data) => data[stat] || 0);
+  
+      traces.push({
         type: "scatter",
         mode: "markers",
         name: `${formattedStatName} (Future Games)`,
         x: futureGamesX,
         y: futureGamesY,
         marker: { color: futureColor, symbol: "star" },
-        yaxis: index === 0 ? "y1" : "y2", // First stat uses left axis, second uses right axis
-      },
-    ];
-  }).flat(); // Flatten the array since we're returning an array of arrays
+        yaxis: index === 0 ? "y1" : "y2",
+      });
+    }
+  
+    return traces;
+  }).flat();   
 
   const layout = {
     title: "Stats Over Time",

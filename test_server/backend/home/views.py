@@ -221,9 +221,12 @@ def get_player_stats(request, name):
         last_n_games = request.GET.get('last_n_games', None)
         
         player_stats = []
+
+        # Combine past and future games
+        all_games = {**player.get('games', {}), **player.get('future_games', {})}
         
         # Process all games with date filters
-        for game_date, game_data in player['games'].items():
+        for game_date, game_data in all_games.items():
             # Apply date filters if specified
             if date_from or date_to:
                 try:
@@ -248,6 +251,8 @@ def get_player_stats(request, name):
                     print(f"Skipping game with invalid date format: {game_date}")
                     continue
             
+            date_parts = game_date.split('_')
+            game_date = date_parts[0] if len(date_parts) > 0 else game_date
             stats = {
                 "date": sanitize_value(game_date),
                 "date_obj": datetime.datetime.strptime(game_date.split('_')[0], '%Y-%m-%d') if '_' in game_date else None,
@@ -334,9 +339,11 @@ def get_team_stats(request, name):
         last_n_games = request.GET.get('last_n_games', None)
         
         team_stats = []
+
+        all_games = {**team.get('games', {}), **team.get('future_games', {})}
         
         # Process all games with date filters
-        for game_date, game_data in team['games'].items():
+        for game_date, game_data in all_games.items():
             # Apply date filters if specified
             if date_from or date_to:
                 try:
@@ -361,6 +368,8 @@ def get_team_stats(request, name):
                     print(f"Skipping game with invalid date format: {game_date}")
                     continue
             
+            date_parts = game_date.split('_')
+            game_date = date_parts[0] if len(date_parts) > 0 else game_date
             stats = {
                 "date": sanitize_value(game_date),
                 "date_obj": datetime.datetime.strptime(game_date.split('_')[0], '%Y-%m-%d') if '_' in game_date else None,
