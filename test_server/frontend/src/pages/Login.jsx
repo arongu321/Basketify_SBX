@@ -77,6 +77,11 @@ export default function Login() {
                     Forgot your password?
                 </Link>
             </p>
+            <p>
+                <Link to="/email-reset" className="change-email-link">
+                    Change email?
+                </Link>
+            </p>
         </div>
     );
 }

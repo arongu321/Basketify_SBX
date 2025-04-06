@@ -117,27 +117,78 @@ function StatsPage() {
     const renderFilterStatus = () => {
         if (!isFiltered) return null;
 
+        const filterMessages = [];
+
+        // Date filters
         const dateFrom = activeFilters.date_from || '';
         const dateTo = activeFilters.date_to || '';
-        const lastNGames = activeFilters.last_n_games || '';
-
-        let filterMessages = [];
-
         if (dateFrom && dateTo) {
-            filterMessages.push(`Date range from ${dateFrom} to ${dateTo}`);
+            filterMessages.push(`Date range: ${dateFrom} to ${dateTo}`);
         } else if (dateFrom) {
-            filterMessages.push(`Dates from ${dateFrom} onwards`);
+            filterMessages.push(`From date: ${dateFrom}`);
         } else if (dateTo) {
-            filterMessages.push(`Dates up to ${dateTo}`);
+            filterMessages.push(`To date: ${dateTo}`);
         }
 
+        // Last N Games
+        const lastNGames = activeFilters.last_n_games || '';
         if (lastNGames) {
             filterMessages.push(`Last ${lastNGames} games`);
+        }
+
+        // Season
+        if (activeFilters.season) {
+            filterMessages.push(`Season: ${activeFilters.season}`);
+        }
+
+        // Season Type
+        if (activeFilters.season_type) {
+            filterMessages.push(`Season Type: ${activeFilters.season_type}`);
+        }
+
+        // Conference
+        if (activeFilters.conference) {
+            filterMessages.push(`Conference: ${activeFilters.conference}`);
+        }
+
+        // Division
+        if (activeFilters.division) {
+            filterMessages.push(`Division: ${activeFilters.division}`);
+        }
+
+        // Game Type
+        if (activeFilters.game_type && activeFilters.game_type !== 'All') {
+            filterMessages.push(`Game Type: ${activeFilters.game_type}`);
+        }
+
+        // Outcome
+        if (activeFilters.outcome && activeFilters.outcome !== 'All') {
+            filterMessages.push(`Outcome: ${activeFilters.outcome}`);
+        }
+
+        // Opponents
+        if (activeFilters.opponents) {
+            const opponentsList = activeFilters.opponents.split(',');
+            if (opponentsList.length > 2) {
+                filterMessages.push(
+                    `Opponents: ${opponentsList.length} teams selected`
+                );
+            } else {
+                filterMessages.push(
+                    `Opponents: ${activeFilters.opponents.replace(/,/g, ', ')}`
+                );
+            }
         }
 
         return (
             <div className="filter-status">
                 <span>Filtering: {filterMessages.join(' • ')}</span>
+                <button
+                    className="clear-filter-button"
+                    onClick={() => handleApplyFilters({}, true)}
+                >
+                    Clear
+                </button>
             </div>
         );
     };
@@ -179,10 +230,13 @@ function StatsPage() {
                     </button>
                 </div>
 
-                <FilterSection
-                    isOpen={isFilterOpen}
-                    onApplyFilters={handleApplyFilters}
-                />
+                {!isSeasonal && (
+                    <FilterSection
+                        isOpen={isFilterOpen}
+                        onApplyFilters={handleApplyFilters}
+                        entityType={type}
+                    />
+                )}
 
                 {renderFilterStatus()}
 

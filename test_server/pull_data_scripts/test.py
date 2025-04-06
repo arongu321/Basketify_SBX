@@ -143,6 +143,28 @@ def get_team_data():
         json.dump(teams_json, f, indent=4)
     print("Saved teams data to teams_data.json")
 
+def get_teams():
+    from nba_api.stats.endpoints import FranchiseHistory
+    import pandas as pd
+
+    franchise_history = FranchiseHistory().get_data_frames()
+    print(franchise_history)
+
+def get_active_players():
+    active_players = players.get_active_players()
+    print("Number of active players:", len(active_players))
+    print("Active players:")
+    for player in active_players:
+        print(f"{player['full_name']} - {player['id']}")
+
+def get_number_players_json():
+    with open("nba_players_filtered.json", "r") as f:
+        data = json.load(f)
+        print("Number of players in JSON file:", len(data))
+
 if __name__ == "__main__":
-    get_player_data()
-    get_team_data()
+    # get_player_data()
+    # get_team_data()
+    # get_teams()
+    # get_active_players()
+    get_number_players_json()

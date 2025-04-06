@@ -4,17 +4,14 @@ from pymongo import MongoClient
 import requests
 from datetime import datetime
 from time import sleep
-from ml.player_pred import predict_next_game_vs_team
-
 
 try:
-    client = MongoClient('mongodb://localhost:27017', serverSelectionTimeoutMS=5000)
+    client = MongoClient("mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net" serverSelectionTimeoutMS=5000)
     print("Connected to MongoDB!")
 except Exception as e:
     print("Error connecting to MongoDB:", e)
 
-db = client['nba_stats']
-game_collection = db['games']
+db = client['nba_stats_all']
 player_collection = db['players']
 team_collection = db['teams']
 
