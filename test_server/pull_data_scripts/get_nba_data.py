@@ -20,13 +20,13 @@ team_collection = db['teams']
 
 
 def get_player_data():
-    all_players = players.get_players()
+    all_players = players.get_active_players()
     
     for player in all_players:
         player_name = player['full_name']
         
         try:
-            game_finder = leaguegamefinder.LeagueGameFinder(player_id_nullable=player['id'], timeout=3, date_from_nullable="09/30/2009")
+            game_finder = leaguegamefinder.LeagueGameFinder(player_id_nullable=player['id'], timeout=3, date_from_nullable="10/01/2022")
         except:
             print("Skipped")
             continue
@@ -37,7 +37,9 @@ def get_player_data():
 
         for _, game in games.iterrows():
             date = game['GAME_DATE']
-            if datetime.strptime(date, "%Y-%m-%d") > most_recent_game:
+            game_date = datetime.strptime(date, "%Y-%m-%d")
+            if game_date > most_recent_game:
+                most_recent_game = game_date
                 current_team = game['TEAM_ABBREVIATION']
             
             # Sanitize date format
@@ -183,7 +185,7 @@ def make_future_predictions():
         
         for game in upcoming_games:
             if game['homeTeam'] in player['team'] or game['awayTeam'] in player['team']:
-                opponent_team = game['homeTeam'] if game['homeTeam'] in player['team'] else game['awayTeam']
+                opponent_team = game['awayTeam'] if game['homeTeam'] in player['team'] else game['homeTeam']
                 
                 predicted_points, _ = predict_next_game_vs_team(player_name, opponent_team, "Points", "player")
                 predicted_rebounds, _ = predict_next_game_vs_team(player_name, opponent_team, "scoredRebounds", "player")
@@ -233,18 +235,18 @@ def make_future_predictions():
             if game['homeTeam'] == team_name or game['awayTeam'] == team_name:
                 opponent_team = game['awayTeam'] if game['homeTeam'] == team_name else game['homeTeam']
                 
-                predicted_points, _ = predict_next_game_vs_team(team_name, opponent_team, "Points", "team")
-                predicted_rebounds, _ = predict_next_game_vs_team(team_name, opponent_team, "scoredRebounds", "team")
-                predicted_assists, _ = predict_next_game_vs_team(team_name, opponent_team, "Assists", "team")
-                predicted_fg, _ = predict_next_game_vs_team(team_name, opponent_team, "FG_scored", "team")
-                predicted_fg_pctg, _ = predict_next_game_vs_team(team_name, opponent_team, "FG_pctg", "team")
-                predicted_3, _ = predict_next_game_vs_team(team_name, opponent_team, "3_pts_scored", "team")
-                predicted_3_pctg, _ = predict_next_game_vs_team(team_name, opponent_team, "3_pts_pctg", "team")
-                predicted_ft, _ = predict_next_game_vs_team(team_name, opponent_team, "FT_made", "team")
-                predicted_ft_pctg, _ = predict_next_game_vs_team(team_name, opponent_team, "FT_pctg", "team")
-                predicted_steals, _ = predict_next_game_vs_team(team_name, opponent_team, "Steals", "team")
-                predicted_blocks, _ = predict_next_game_vs_team(team_name, opponent_team, "Blocks", "team")
-                predicted_turnovers, _ = predict_next_game_vs_team(team_name, opponent_team, "Turnovers", "team")
+                predicted_points, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Points", "team")
+                predicted_rebounds, _ = predict_next_game_vs_team(full_team_name, opponent_team, "scoredRebounds", "team")
+                predicted_assists, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Assists", "team")
+                predicted_fg, _ = predict_next_game_vs_team(full_team_name, opponent_team, "FG_scored", "team")
+                predicted_fg_pctg, _ = predict_next_game_vs_team(full_team_name, opponent_team, "FG_pctg", "team")
+                predicted_3, _ = predict_next_game_vs_team(full_team_name, opponent_team, "3_pts_scored", "team")
+                predicted_3_pctg, _ = predict_next_game_vs_team(full_team_name, opponent_team, "3_pts_pctg", "team")
+                predicted_ft, _ = predict_next_game_vs_team(full_team_name, opponent_team, "FT_made", "team")
+                predicted_ft_pctg, _ = predict_next_game_vs_team(full_team_name, opponent_team, "FT_pctg", "team")
+                predicted_steals, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Steals", "team")
+                predicted_blocks, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Blocks", "team")
+                predicted_turnovers, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Turnovers", "team")
                 
                 formatted_date = game['gameDateUTC'].strftime("%Y-%m-%d_%H-%M-%S")
                 team_data = {
