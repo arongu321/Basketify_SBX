@@ -1,5 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import '../styles/FilterSection.css';
+import {
+    NBA_SEASONS,
+    SEASON_TYPES,
+    NBA_DIVISIONS,
+    NBA_CONFERENCES,
+    GAME_TYPES,
+    GAME_OUTCOMES,
+    NBA_TEAMS,
+} from '../utils/constants';
 
 const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
     const [dateFrom, setDateFrom] = useState('');
@@ -14,82 +23,6 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
     const [selectedGameType, setSelectedGameType] = useState('');
     const [selectedOutcome, setSelectedOutcome] = useState('');
     const [selectedOpponents, setSelectedOpponents] = useState([]);
-    const [availableOpponents, setAvailableOpponents] = useState([]);
-
-    // Predefined options for filters
-    const seasons = [
-        '2015-16',
-        '2016-17',
-        '2017-18',
-        '2018-19',
-        '2019-20',
-        '2020-21',
-        '2021-22',
-        '2022-23',
-        '2023-24',
-        '2024-25',
-    ];
-
-    const seasonTypes = [
-        'Regular Season',
-        'Postseason',
-        'NBA Cup',
-        'Play-In Tournament',
-    ];
-
-    const divisions = [
-        'Atlantic',
-        'Central',
-        'Southeast',
-        'Northwest',
-        'Pacific',
-        'Southwest',
-    ];
-
-    const conferences = ['East', 'West'];
-
-    const gameTypes = ['All', 'Interconference', 'Intraconference'];
-
-    const outcomes = ['All', 'Win', 'Loss'];
-
-    // Fetch all available teams for the opponents filter
-    useEffect(() => {
-        // In a real implementation, you would fetch this from your API
-        // For now, using a static list of teams
-        const teams = [
-            'Atlanta Hawks',
-            'Boston Celtics',
-            'Brooklyn Nets',
-            'Charlotte Hornets',
-            'Chicago Bulls',
-            'Cleveland Cavaliers',
-            'Dallas Mavericks',
-            'Denver Nuggets',
-            'Detroit Pistons',
-            'Golden State Warriors',
-            'Houston Rockets',
-            'Indiana Pacers',
-            'Los Angeles Clippers',
-            'Los Angeles Lakers',
-            'Memphis Grizzlies',
-            'Miami Heat',
-            'Milwaukee Bucks',
-            'Minnesota Timberwolves',
-            'New Orleans Pelicans',
-            'New York Knicks',
-            'Oklahoma City Thunder',
-            'Orlando Magic',
-            'Philadelphia 76ers',
-            'Phoenix Suns',
-            'Portland Trail Blazers',
-            'Sacramento Kings',
-            'San Antonio Spurs',
-            'Toronto Raptors',
-            'Utah Jazz',
-            'Washington Wizards',
-        ];
-        setAvailableOpponents(teams);
-    }, []);
 
     const handleApplyFilters = () => {
         // Construct query parameters for backend filtering
@@ -179,7 +112,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                             onChange={(e) => setSelectedSeason(e.target.value)}
                         >
                             <option value="">All Seasons</option>
-                            {seasons.map((season) => (
+                            {NBA_SEASONS.map((season) => (
                                 <option key={season} value={season}>
                                     {season}
                                 </option>
@@ -199,7 +132,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                             }
                         >
                             <option value="">All Types</option>
-                            {seasonTypes.map((type) => (
+                            {SEASON_TYPES.map((type) => (
                                 <option key={type} value={type}>
                                     {type}
                                 </option>
@@ -216,7 +149,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                             value={selectedOutcome}
                             onChange={(e) => setSelectedOutcome(e.target.value)}
                         >
-                            {outcomes.map((outcome) => (
+                            {GAME_OUTCOMES.map((outcome) => (
                                 <option key={outcome} value={outcome}>
                                     {outcome}
                                 </option>
@@ -254,7 +187,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                             }
                         >
                             <option value="">All Conferences</option>
-                            {conferences.map((conf) => (
+                            {NBA_CONFERENCES.map((conf) => (
                                 <option key={conf} value={conf}>
                                     {conf}
                                 </option>
@@ -274,7 +207,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                             }
                         >
                             <option value="">All Divisions</option>
-                            {divisions.map((div) => (
+                            {NBA_DIVISIONS.map((div) => (
                                 <option key={div} value={div}>
                                     {div}
                                 </option>
@@ -293,7 +226,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                                 setSelectedGameType(e.target.value)
                             }
                         >
-                            {gameTypes.map((type) => (
+                            {GAME_TYPES.map((type) => (
                                 <option key={type} value={type}>
                                     {type}
                                 </option>
@@ -333,7 +266,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                                 )}
                             </div>
                             <div className="opponents-list">
-                                {availableOpponents.map((team) => (
+                                {NBA_TEAMS.map((team) => (
                                     <div
                                         key={team}
                                         className={`opponent-option ${
