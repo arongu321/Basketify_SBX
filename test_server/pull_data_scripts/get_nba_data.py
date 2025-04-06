@@ -4,17 +4,15 @@ from pymongo import MongoClient
 import requests
 from datetime import datetime
 from time import sleep
-from ml.player_pred import predict_next_game_vs_team
-
+from test_server.pull_data_scripts.ml.player_pred import predict_next_game_vs_team
 
 try:
-    client = MongoClient('mongodb://localhost:27017', serverSelectionTimeoutMS=5000)
+    client = MongoClient("mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net", serverSelectionTimeoutMS=5000)
     print("Connected to MongoDB!")
 except Exception as e:
     print("Error connecting to MongoDB:", e)
 
-db = client['nba_stats']
-game_collection = db['games']
+db = client['nba_stats_all']
 player_collection = db['players']
 team_collection = db['teams']
 
@@ -274,10 +272,30 @@ def make_future_predictions():
                 print(f"Predicted points for {team_name} in upcoming game: {predicted_points}")
 
 
+def get_seasons():
+    """
+    Fetch all seasons from the NBA API and return them as a list.
+    """
+    all_teams = teams.get_teams()
+    
+    for team in all_teams:
+        team_name = team['full_name']
+        
+        # Example: Get games for the team (You can specify season and filters here)
+        try:
+            game_finder = leaguegamefinder.LeagueGameFinder(team_id_nullable=team['id'], timeout=3, date_from_nullable = "09/30/2009")
+        except:
+            print("Skip: " + team_name)
+            continue
+        games = game_finder.get_data_frames()[0]
+        print(games)
+
 def upload_to_mongodb():
-    get_player_data()
-    get_team_data()
-    make_future_predictions()
+    # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
+    #get_player_data()
+    #get_team_data()
+    #make_future_predictions()
+    get_seasons()
     
 
 if __name__ == "__main__":
