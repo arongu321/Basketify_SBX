@@ -1,3 +1,5 @@
+# created by Django during server initialization: needed for a working web app (all FRs)
+
 from django.apps import AppConfig
 
 

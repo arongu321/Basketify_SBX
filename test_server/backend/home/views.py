@@ -7,6 +7,7 @@ from pymongo import MongoClient
 mongo_client = None
 
 
+# connect to MongoDB database, required for all data-related tasks (practically all FRs)
 def get_mongo_client():
     global mongo_client
     # check if mongo client is already initialized
@@ -26,19 +27,15 @@ def get_mongo_client():
     return mongo_client
 
 
+# used to asynchronously pre-fetch connection to MongoDB
 def handle_load_db_request(request):
     get_mongo_client()
     return JsonResponse({'message': 'Connected to DB'})
 
 
+# left for debugging purposes: frontend tests connection by this route
 def welcome(request):
     return JsonResponse({'message': 'Welcome to Django with React!'})
-
-
-def get_login_message(request):
-    now = datetime.datetime.now()
-    message = f"Welcome to the Login Page! Current time from Django: {now}"
-    return JsonResponse({"message": message})
 
 
 def get_ml_predictions_msg(request):
@@ -47,12 +44,8 @@ def get_ml_predictions_msg(request):
     return JsonResponse({"message": message})
 
 
-def get_search_message(request):
-    now = datetime.datetime.now()
-    message = f"Welcome to the Login Page! Current time from Django: {now}"
-    return JsonResponse({"message": message})
-
-
+# backend to query MongoDB for player name, returns all players where name partially
+# matches. Fulfills FR7
 def search_player(request):
     # get 'name' param from the GET request
     name = request.GET.get('name', None)
@@ -85,6 +78,8 @@ def search_player(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+# backend to query MongoDB for team name, returns all team where name partially
+# matches. Fulfills FR8
 def search_team(request):
     # get 'name' param from the GET request
     name = request.GET.get('name', None)
@@ -118,13 +113,16 @@ def search_team(request):
         return JsonResponse({'error': str(e)}, status=500)
     
 
-# helper function to replace NaN with a default value
+# helper function to replace NaN with a default value, used in get_player_stats and get_team_stats.
+# Contributes to fulfilling FR9, FR11
 def sanitize_value(value):
     if isinstance(value, float) and (value != value):
         return 0
     return value
 
 
+# helper function to extract season based on yyy-mm-dd string (e.g. 2025-03-12 falls in '2024-2025' season).
+# Contributes to fulfilling FR10, FR15
 def get_season_from_date(date_str):
     try:
         date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d')
@@ -140,6 +138,8 @@ def get_season_from_date(date_str):
     except ValueError:
         return None
 
+
+# groups game-by-game data into seasons. Contributes to fulfilling FR10, FR15
 def aggregate_seasonal_stats(stats):
     grouped_by_season = {}
     
@@ -193,7 +193,7 @@ def aggregate_seasonal_stats(stats):
             attempts = stat.get('freeThrowsMade', 0) / stat.get('freeThrowPercentage', 0)
             season_stats['freeThrowsAttempted'] += attempts
 
-    # calculate percentages for each season
+    # percentage = total season made / total season attempts
     for season, stats in grouped_by_season.items():
         if stats['fieldGoalsAttempted'] > 0:
             stats['fieldGoalPercentage'] = stats['fieldGoalsMade'] / stats['fieldGoalsAttempted']
@@ -204,6 +204,9 @@ def aggregate_seasonal_stats(stats):
 
     return list(grouped_by_season.values())
 
+
+# main backend route which receieves an HTTP request with a player name and returns
+# the game-by-game and aggregated seasonal stats for that player. Fulfills FR9, FR10, FR11, FR15
 def get_player_stats(request, name):
     try:
         client = get_mongo_client()
@@ -215,26 +218,25 @@ def get_player_stats(request, name):
         if not player:
             return JsonResponse({'error': 'Player not found'}, status=404)
 
-        # Parse filter parameters from request
+        # parse filter params from request
         date_from = request.GET.get('date_from', None)
         date_to = request.GET.get('date_to', None)
         last_n_games = request.GET.get('last_n_games', None)
         
         player_stats = []
 
-        # Combine past and future games
+        # combine past and future game
         all_games = {**player.get('games', {}), **player.get('future_games', {})}
         
-        # Process all games with date filters
         for game_date, game_data in all_games.items():
-            # Apply date filters if specified
+            # apply date filters if specified
             if date_from or date_to:
                 try:
-                    # Extract the date part if the format is YYYY-MM-DD_HH-MM-SS
+                    # extract the date part if the format is YYYY-MM-DD_HH-MM-SS
                     date_parts = game_date.split('_')
                     date_only = date_parts[0] if len(date_parts) > 0 else game_date
                     
-                    # Check if the date is in valid format
+                    # check if the date is in valid format
                     game_date_obj = datetime.datetime.strptime(date_only, '%Y-%m-%d')
                     
                     if date_from:
@@ -247,7 +249,7 @@ def get_player_stats(request, name):
                         if game_date_obj > date_to_obj:
                             continue
                 except (ValueError, IndexError):
-                    # Skip games with invalid date format
+                    # skip games with invalid date format
                     print(f"Skipping game with invalid date format: {game_date}")
                     continue
             
@@ -272,45 +274,45 @@ def get_player_stats(request, name):
             }
             player_stats.append(stats)
         
-        # Apply the "Last N Games" filter if specified (excluding future games)
+        # apply the "Last N Games" filter if specified (excluding future games)
         if last_n_games:
             try:
                 n = int(last_n_games)
-                # Create a list of past games (non-future games)
+                # create a list of past games (non-future games)
                 past_games = [game for game in player_stats if not game.get('is_future_game', False)]
                 
-                # Sort games by date (handling cases where date_obj might be None)
+                # sort games by date (handling cases where date_obj might be None)
                 def get_date_for_sorting(game):
                     if game.get('date_obj') is not None:
                         return game['date_obj']
-                    # Fallback: Try to parse the date directly
+                    # fallback is to try to parse the date directly
                     try:
                         date_str = game['date'].split('_')[0] if '_' in game['date'] else game['date']
                         return datetime.datetime.strptime(date_str, '%Y-%m-%d')
                     except (ValueError, AttributeError):
-                        # If parsing fails, return a very old date to sort to the end
+                        # if parsing fails, return a very old date to sort to the end
                         return datetime.datetime(1900, 1, 1)
                 
                 past_games.sort(key=get_date_for_sorting, reverse=True)
                 
-                # Take only the first N games
+                # take only the first N games
                 filtered_past_games = past_games[:n]
                 
-                # Add future games (they're not affected by Last N Games filter)
+                # add future games (they're not affected by Last N Games filter)
                 future_games = [game for game in player_stats if game.get('is_future_game', False)]
                 
-                # Replace player_stats with the filtered list
+                # replace player_stats with the filtered list
                 player_stats = filtered_past_games + future_games
             except (ValueError, TypeError) as e:
                 print(f"Invalid last_n_games parameter: {last_n_games}, Error: {e}")
-                # Just continue without applying this filter if there's an error
+                # just continue without applying this filter if there's an error
         
-        # Remove temporary date_obj used for sorting
+        # remove temporary date_obj used for sorting
         for game in player_stats:
             if 'date_obj' in game:
                 del game['date_obj']
         
-        # Generate seasonal stats from the filtered game stats
+        # generate seasonal stats from the filtered game stats
         seasonal_stats = aggregate_seasonal_stats(player_stats)
         
         return JsonResponse({
@@ -322,6 +324,8 @@ def get_player_stats(request, name):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+# main backend route which receieves an HTTP request with a team name and returns
+# the game-by-game and aggregated seasonal stats for that team. Fulfills FR9, FR10, FR11, FR15
 def get_team_stats(request, name):
     try:
         client = get_mongo_client()
@@ -333,7 +337,7 @@ def get_team_stats(request, name):
         if not team:
             return JsonResponse({'error': 'Team not found'}, status=404)
         
-        # Parse filter parameters from request
+        # parse filter parameters from request
         date_from = request.GET.get('date_from', None)
         date_to = request.GET.get('date_to', None)
         last_n_games = request.GET.get('last_n_games', None)
@@ -342,16 +346,15 @@ def get_team_stats(request, name):
 
         all_games = {**team.get('games', {}), **team.get('future_games', {})}
         
-        # Process all games with date filters
         for game_date, game_data in all_games.items():
-            # Apply date filters if specified
+            # apply date filters if specified
             if date_from or date_to:
                 try:
-                    # Extract the date part if the format is YYYY-MM-DD_HH-MM-SS
+                    # extract the date part if the format is YYYY-MM-DD_HH-MM-SS
                     date_parts = game_date.split('_')
                     date_only = date_parts[0] if len(date_parts) > 0 else game_date
                     
-                    # Check if the date is in valid format
+                    # check if the date is in valid format
                     game_date_obj = datetime.datetime.strptime(date_only, '%Y-%m-%d')
                     
                     if date_from:
@@ -364,7 +367,7 @@ def get_team_stats(request, name):
                         if game_date_obj > date_to_obj:
                             continue
                 except (ValueError, IndexError):
-                    # Skip games with invalid date format
+                    # skip games with invalid date format
                     print(f"Skipping game with invalid date format: {game_date}")
                     continue
             
@@ -389,103 +392,51 @@ def get_team_stats(request, name):
             }
             team_stats.append(stats)
         
-        # Apply the "Last N Games" filter if specified (excluding future games)
+        # apply the "Last N Games" filter if specified (excluding future games)
         if last_n_games:
             try:
                 n = int(last_n_games)
-                # Create a list of past games (non-future games)
+                # create a list of past games (non-future games)
                 past_games = [game for game in team_stats if not game.get('is_future_game', False)]
                 
-                # Sort games by date (handling cases where date_obj might be None)
+                # sort games by date (handling cases where date_obj might be None)
                 def get_date_for_sorting(game):
                     if game.get('date_obj') is not None:
                         return game['date_obj']
-                    # Fallback: Try to parse the date directly
+                    # fallback: Try to parse the date directly
                     try:
                         date_str = game['date'].split('_')[0] if '_' in game['date'] else game['date']
                         return datetime.datetime.strptime(date_str, '%Y-%m-%d')
                     except (ValueError, AttributeError):
-                        # If parsing fails, return a very old date to sort to the end
+                        # if parsing fails, return a very old date to sort to the end
                         return datetime.datetime(1900, 1, 1)
                 
                 past_games.sort(key=get_date_for_sorting, reverse=True)
                 
-                # Take only the first N games
+                # take only the first N games
                 filtered_past_games = past_games[:n]
                 
-                # Add future games (they're not affected by Last N Games filter)
+                # add future games (they're not affected by Last N Games filter)
                 future_games = [game for game in team_stats if game.get('is_future_game', False)]
                 
-                # Replace player_stats with the filtered list
+                # replace player_stats with the filtered list
                 team_stats = filtered_past_games + future_games
             except (ValueError, TypeError) as e:
                 print(f"Invalid last_n_games parameter: {last_n_games}, Error: {e}")
-                # Just continue without applying this filter if there's an error
+                # just continue without applying this filter if there's an error
         
-        # Remove temporary date_obj used for sorting
+        # remove temporary date_obj used for sorting
         for game in team_stats:
             if 'date_obj' in game:
                 del game['date_obj']
         
-        # Generate seasonal stats from the filtered game stats
+        # generate seasonal stats from the filtered game stats
         seasonal_stats = aggregate_seasonal_stats(team_stats)
         
         return JsonResponse({
             "stats": team_stats,
             "seasonal_stats": seasonal_stats
         }, status=200)
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-def user_favorites(request):
-    try:
-        client = get_mongo_client()
-        db = client['nba_stats']
-        users_collection = db['users']
-
-        # TODO: replace with request email
-        user_email = "example@email.com"
-        user = users_collection.find_one({"email": user_email})
-
-        if not user:
-            return JsonResponse({'favorite_player': None, 'favorite_team': None}, status=200)
-
-        return JsonResponse({
-            'favorite_player': user.get('favourite_player', None),
-            'favorite_team': user.get('favourite_team', None)
-        }, status=200)
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-
-def set_favorite(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-    try:
-        client = get_mongo_client()
-        db = client['nba_stats']
-        users_collection = db['users']
-
-        # TODO: replace with request email
-        user_email = "example@email.com"
-        data = request.POST
-        favorite_type = data.get('type')
-        name = data.get('name')
-
-        if not favorite_type or not name:
-            return JsonResponse({'error': 'Type and name are required'}, status=400)
-
-        update_field = 'favourite_player' if favorite_type == 'player' else 'favourite_team'
-        users_collection.update_one(
-            {"email": user_email},
-            {"$set": {update_field: name}}
-        )
-
-        return JsonResponse({'message': f'Set {favorite_type} to {name}'}, status=200)
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

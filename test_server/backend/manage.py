@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+# created by Django during server initialization: needed for a working web app (all FRs)
 import os
 import sys
 

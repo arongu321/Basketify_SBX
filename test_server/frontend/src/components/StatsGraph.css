@@ -1,3 +1,5 @@
+/* Styling for frontend of stats graph: FR11, FR12, FR13, FR14, FR15 */
+
 .stats-graph-container {
   display: flex;
   flex-direction: row;
