@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import './VerifyEmail.css';
+import '../styles/VerifyEmail.css';
 
 export default function VerifyEmailDone() {
     return (

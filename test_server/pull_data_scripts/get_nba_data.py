@@ -271,6 +271,8 @@ def make_future_predictions():
                     "Steals": predicted_steals,
                     "Blocks": predicted_blocks,
                     "Turnovers": predicted_turnovers,
+                    "Team": player['team'],
+                    "SEASON_ID": "22024",
                     "is_future_game": True
                 }
 

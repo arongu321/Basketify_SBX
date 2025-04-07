@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import './VerifyEmail.css';
+import '../styles/VerifyEmail.css';
 
 export default function VerifyEmailConfirm() {
     const [message, setMessage] = useState('Verifying your email...');
