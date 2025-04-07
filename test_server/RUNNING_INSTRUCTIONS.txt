@@ -30,6 +30,16 @@ $ npm -v
 $ pip install -r requirements.txt
 
 
+- Install and set up PostgreSQL connection:
+$ sudo apt install postgresql
+Create a file at path: test_server/backend/.env with these contents:
+   DB_NAME=basketify
+   DB_USER=basketify_user
+   DB_PWD=your_password
+   DB_HOST=localhost
+   DB_PORT=5433
+
+
 - Start the Django server on port 8000 & React server on port 3000:
 $ chmod +x start_server.sh
 $ ./start_server.sh

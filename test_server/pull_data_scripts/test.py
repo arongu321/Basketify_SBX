@@ -1,170 +1,59 @@
-from nba_api.stats.endpoints import leaguegamefinder
-from nba_api.stats.static import players, teams
-import json
+from pymongo import MongoClient
 from datetime import datetime
-from time import sleep
 
-def get_player_data():
-    all_players = players.get_players()
-    players_json = {}
+# Connect to MongoDB
+client = MongoClient("mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net")
+db = client["nba_stats_all"]
+teams_collection = db["teams"]
 
-    for player in all_players:
-        player_name = player['full_name']
-        player_entry = {
-            "name": player_name,
-            "team": None,
-            "games": {}
-        }
+# Define the date range
+start_date = datetime(2000, 8, 1)
+end_date = datetime(2009, 7, 1)
 
+season_years = ["2000-1", "2001-2", "2002-3", "2003-4", "2004-5", "2005-6", "2006-7", "2007-8", "2008-9"]
+season_year_dict = {
+    "2000-1": "2000-01",
+    "2001-2": "2001-02",
+    "2002-3": "2002-03",
+    "2003-4": "2003-04",
+    "2004-5": "2004-05",
+    "2005-6": "2005-06",
+    "2006-7": "2006-07",
+    "2007-8": "2007-08",
+    "2008-9": "2008-09",
+}
+# Track how many updates we make
+updated_count = 0
+
+# Loop through all teams
+for team_doc in teams_collection.find():
+    team_id = team_doc["_id"]
+    games = team_doc.get("games", {})
+
+    # Prepare a dictionary of updates
+    updated_games = {}
+
+    for date_str, game_data in games.items():
         try:
-            game_finder = leaguegamefinder.LeagueGameFinder(player_id_nullable=player['id'], timeout=3, date_from_nullable="09/30/2009")
-        except:
-            print("Skipped")
-            continue
+            game_date = datetime.strptime(date_str, "%Y-%m-%d")
 
-        games = game_finder.get_data_frames()[0]
+            if start_date < game_date < end_date:
+                if game_data.get("SEASON_YEAR") in season_years:
+                    old_season_year = game_data["SEASON_YEAR"]
+                    game_data["SEASON_YEAR"] = season_year_dict[old_season_year]
+                    updated_games[date_str] = game_data
 
-        most_recent_game = datetime(2000,1,1)
-        current_team = None
+        except Exception as e:
+            print(f"Skipping invalid date format in {team_id}: {date_str} - {e}")
 
-        for _, game in games.iterrows():
-            date = game['GAME_DATE']
-            if datetime.strptime(date, "%Y-%m-%d") > most_recent_game:
-                current_team = game['TEAM_ABBREVIATION']
+    # If any games were updated, push the new subdocuments back to MongoDB
+    if updated_games:
+        for date_str, updated_game_data in updated_games.items():
+            teams_collection.update_one(
+                {"_id": team_id},
+                {"$set": {f"games.{date_str}": updated_game_data}}
+            )
+            updated_count += 1
+            print(f"Updated SEASON_YEAR for {team_id} on {date_str}")
 
-            if not date or not isinstance(date, str):
-                print(f"Skipping game with invalid date: {date}")
-                continue
-            formatted_date = date.replace('/', '-').replace(' ', '_')
-
-            player_data = {
-                "Season_ID": game["SEASON_ID"],
-                "Game_ID": game["GAME_ID"],
-                "Game_Date": game["GAME_DATE"],
-                "Team_ID": game["TEAM_ID"],
-                "Team": game["TEAM_ABBREVIATION"],
-                "Team_Name": game["TEAM_NAME"],
-                "Matchup": game["MATCHUP"],
-                "WinLoss": game["WL"],
-                "Minutes": game["MIN"],
-                "Points": game["PTS"],
-                "FG_Made": game["FGM"],
-                "FG_Attempted": game["FGA"],
-                "FG_Percentage": game["FG_PCT"],
-                "3PT_Made": game["FG3M"],
-                "3PT_Attempted": game["FG3A"],
-                "3PT_Percentage": game["FG3_PCT"],
-                "FT_Made": game["FTM"],
-                "FT_Attempted": game["FTA"],
-                "FT_Percentage": game["FT_PCT"],
-                "Offensive_Rebounds": game["OREB"],
-                "Defensive_Rebounds": game["DREB"],
-                "Total_Rebounds": game["REB"],
-                "Assists": game["AST"],
-                "Steals": game["STL"],
-                "Blocks": game["BLK"],
-                "Turnovers": game["TOV"],
-                "Personal_Fouls": game["PF"],
-                "PlusMinus": game["PLUS_MINUS"],
-                "is_future_game": False
-            }
-
-
-            player_entry["games"][formatted_date] = player_data
-
-        player_entry["team"] = current_team
-        players_json[player_name] = player_entry
-
-        sleep(0.5)
-        print("Finished stats for player " + player['full_name'])
-
-    # Save to JSON file
-    with open("players_data.json", "w") as f:
-        json.dump(players_json, f, indent=4)
-    print("Saved players data to players_data.json")
-
-
-def get_team_data():
-    all_teams = teams.get_teams()
-    teams_json = {}
-
-    for team in all_teams:
-        team_name = team['full_name']
-        team_entry = {
-            "name": team_name,
-            "abbrev_name": None,
-            "games": {}
-        }
-
-        try:
-            game_finder = leaguegamefinder.LeagueGameFinder(team_id_nullable=team['id'], timeout=3, date_from_nullable="09/30/2009")
-        except:
-            print("Skip: " + team_name)
-            continue
-
-        games = game_finder.get_data_frames()[0]
-
-        for _, game in games.iterrows():
-            date = game['GAME_DATE']
-
-            if not date or not isinstance(date, str):
-                print(f"Skipping game with invalid date: {date}")
-                continue
-            formatted_date = date.replace('/', '-').replace(' ', '_')
-
-            team_data = {
-                "Matchup": game["MATCHUP"],
-                "Points": game['PTS'],
-                "scoredRebounds": game['REB'],
-                "Assists": game['AST'],
-                "FG_scored": game['FGM'],
-                "FG_pctg": game['FG_PCT'],
-                "3_pts_scored": game['FG3M'],
-                "3_pts_pctg": game['FG3_PCT'],
-                "FT_made": game['FTM'],
-                "FT_pctg": game['FT_PCT'],
-                "Steals": game['STL'],
-                "Blocks": game['BLK'],
-                "Turnovers": game['TOV'],
-                "WinLoss": game['WL'],
-                "is_future_game": False
-            }
-
-            team_entry["games"][formatted_date] = team_data
-            team_entry["abbrev_name"] = game['TEAM_ABBREVIATION']
-
-        teams_json[team_name] = team_entry
-
-        sleep(0.5)
-        print("Finished stats for team " + team['full_name'])
-
-    # Save to JSON file
-    with open("teams_data.json", "w") as f:
-        json.dump(teams_json, f, indent=4)
-    print("Saved teams data to teams_data.json")
-
-def get_teams():
-    from nba_api.stats.endpoints import FranchiseHistory
-    import pandas as pd
-
-    franchise_history = FranchiseHistory().get_data_frames()
-    print(franchise_history)
-
-def get_active_players():
-    active_players = players.get_active_players()
-    print("Number of active players:", len(active_players))
-    print("Active players:")
-    for player in active_players:
-        print(f"{player['full_name']} - {player['id']}")
-
-def get_number_players_json():
-    with open("nba_players_filtered.json", "r") as f:
-        data = json.load(f)
-        print("Number of players in JSON file:", len(data))
-
-if __name__ == "__main__":
-    # get_player_data()
-    # get_team_data()
-    # get_teams()
-    # get_active_players()
-    get_number_players_json()
+print(f"Total games updated: {updated_count}")

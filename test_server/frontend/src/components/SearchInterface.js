@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from "react";
+/* 
+This is the JS (+ HTML which gets dynamically returned) for the search interface. It is also
+re-used for selecting a favourite player & team.
+The code fulfills the frontend for FR7 and FR8.
+*/
+
+import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ACCESS_TOKEN } from "../utils/constants";
 import "./SearchInterface.css";
 
 function SearchInterface() {
-  const [message, setMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [searchPerformed, setSearchPerformed] = useState(false); // flag to tell if user has searched (used to display "no results" only after search)
@@ -42,6 +47,7 @@ function SearchInterface() {
   };
 
   const handleClick = (name) => {
+    // set favorite on click of name: FR5 and FR6
     if (setFavorite) {
       axios
         .post(
@@ -63,6 +69,7 @@ function SearchInterface() {
           console.error("Error saving favorite:", error);
         });
     } else {
+      // navigate to stats page for player/team
       navigate(`/stats/${searchType}/${name}`);
     }
   };
@@ -81,7 +88,7 @@ function SearchInterface() {
       </div>
 
       <div className="search-interface-content">
-        {/* Conditional rendering of search type buttons */}
+        {/* Conditional rendering of search type buttons: can't switch if selecting favorite */}
         {!setFavorite && (
           <div className="search-interface-type-buttons">
             <button

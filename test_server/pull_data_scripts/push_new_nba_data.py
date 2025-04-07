@@ -24,6 +24,7 @@ def get_mongo_client():
     print("Successfully connected")
     return mongo_client
 
+
 # Insert data from JSON file (works for both teams and players)
 def insert_data_from_json(json_file_path, collection_name, drop_collection=False):
     # Connect to MongoDB
@@ -44,6 +45,11 @@ def insert_data_from_json(json_file_path, collection_name, drop_collection=False
     
     # Reference to the collection
     collection = db[collection_name]
+
+    if collection_name == "players":
+        # Load player IDs from the JSON file
+        with open("player_ids.json", "r") as f:
+            player_ids = json.load(f)
     
     # Load the JSON data
     try:
@@ -59,6 +65,9 @@ def insert_data_from_json(json_file_path, collection_name, drop_collection=False
     inserted_count = 0
     
     for entity_id, entity_data in data.items():
+        if player_ids and entity_id in player_ids:
+            print(f"Skipping player {entity_id} as it is already in the database")
+            continue
         try:
             team_data = {
                 "_id": entity_id,
@@ -135,3 +144,17 @@ def insert_data_from_json(json_file_path, collection_name, drop_collection=False
     print(f"Inserted {inserted_count} {collection_name}")
     total_count = collection.count_documents({})
     print(f"Total documents in {collection_name} collection: {total_count}")
+
+# Connect to MongoDB
+client = get_mongo_client()
+db = client["nba_stats_all"]
+
+players_collection = db["players"]
+player_ids = [doc["_id"] for doc in players_collection.find({}, {"_id": 1})]
+print(player_ids)
+
+# Save the IDs to a JSON file
+with open("player_ids.json", "w") as f:
+    json.dump(player_ids, f, indent=4)
+
+print(f"Saved {len(player_ids)} player IDs to player_ids.json")

@@ -1,3 +1,7 @@
+This file covers the steps Zach took to setup the project with a hello world React + Django setup.
+If you're not interested in how the servers were setup, you can safely disregard this file.
+
+
 To set up a basic website locally using Django as the backend and React for the frontend:
 
 Prerequisites:

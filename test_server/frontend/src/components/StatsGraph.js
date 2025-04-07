@@ -1,3 +1,9 @@
+/*
+Frontend JS (+ dynamically returned HTML) for graph of statistics.
+Fulfills FR11, FR12, FR13, FR14, FR15, FR18
+*/
+
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Plot from "react-plotly.js";
@@ -16,6 +22,7 @@ function StatsGraph() {
   const [loading, setLoading] = useState(true);
   const [isSeasonal, setIsSeasonal] = useState(false);
 
+  // get player / teams stats (complete: i.e. all stats for this player/team, game-by-game and seasonal): all of FR11-FR15
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -34,6 +41,7 @@ function StatsGraph() {
     fetchStats();
   }, [type, name]);
 
+  // get stats of games for current season + split off future games, FR11
   useEffect(() => {
     if (statsData.length > 0) {
       const currentSeason = statsData.filter((stat) => {
@@ -58,6 +66,7 @@ function StatsGraph() {
     }
   }, [statsData]);
 
+  // handle click on stat button: can select up to 2 at a time. FR12 and FR13
   const handleStatChange = (event) => {
     const stat = event.target.value;
     setSelectedStats((prevStats) => {
@@ -70,6 +79,7 @@ function StatsGraph() {
     });
   };
 
+  // toggle game-by-game or seasonal button: FR15
   const handleToggleStats = () => {
     setIsSeasonal(!isSeasonal);
   };
@@ -83,8 +93,9 @@ function StatsGraph() {
     );
   }
 
+  // set up plot of data: FR11
   const plotData = selectedStats.map((stat, index) => {
-    const dataSource = isSeasonal ? seasonalStats.slice().reverse() : currentSeasonStats;
+    const dataSource = isSeasonal ? seasonalStats.slice().reverse() : currentSeasonStats;  // reverse so most recent is at end of array (display on right side)
   
     const currentSeasonX = dataSource.map((data) =>
       isSeasonal ? data.season : new Date(data.date).toLocaleDateString()
@@ -112,7 +123,7 @@ function StatsGraph() {
       },
     ];
   
-    // Only add future games if not in seasonal mode
+    // Only add future games if not in seasonal mode. Future games are ML predictions: FR18
     if (!isSeasonal) {
       const futureGamesX = futureGames.map((data) =>
         new Date(data.date).toLocaleDateString()
@@ -133,6 +144,7 @@ function StatsGraph() {
     return traces;
   }).flat();   
 
+  // Display graph of stats: FR11, use Plotly to make graph hoverable: FR14
   const layout = {
     title: "Stats Over Time",
     xaxis: { title: isSeasonal ? "Season" : "Date" },

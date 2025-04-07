@@ -1,3 +1,5 @@
+/* Styling for frontend of search interface: FR7 and FR8 */
+
 .search-interface-container {
   display: flex;
   flex-direction: column;

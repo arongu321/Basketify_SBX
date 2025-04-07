@@ -1,3 +1,8 @@
+/*
+Main dashboard of website to display search connection, favorites, and login connection.
+Fulfills: FR4, FR5, FR6
+*/
+
 import React, { useEffect, useState } from 'react';
 import {
     BrowserRouter as Router,
@@ -43,7 +48,7 @@ function Home({ message }) {
     const [loadingFavorites, setLoadingFavorites] = useState(true); // we only display dashboard when faves done loading
 
     useEffect(() => {
-        // fetch user favorites
+        // fetch user favorites and display if available: FR5, FR6
         axios
             .get('http://localhost:8000/accounts/get-favorite/', {
                 headers: {
@@ -82,8 +87,9 @@ function Home({ message }) {
     }
 
     const dashboardTiles = [
-        { title: 'Search Player/Team', path: '/search' },
+        { title: 'Search Player/Team', path: '/search' },  // connection to search page: FR4
         { title: 'ML Predictions', path: '/ml-predictions' },
+        // connection to player favorite: FR6
         {
             title: favorites.player
                 ? `Favourite Player: ${favorites.player}`
@@ -93,6 +99,7 @@ function Home({ message }) {
                 : '/search',
             state: favorites.player ? null : { setFavorite: 'player' },
         },
+        // connection to team favorite: FR5
         {
             title: favorites.team
                 ? `Favourite Team: ${favorites.team}`
@@ -148,7 +155,7 @@ function App() {
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        axios.get('http://localhost:8000/api/load-database/');
+        axios.get('http://localhost:8000/api/load-database/');  // pre-fetch MongoDB connection
         axios
             .get('http://localhost:8000/api/')
             .then((response) => {

@@ -1,4 +1,27 @@
 import json
+from pymongo import MongoClient
+
+mongo_client = None
+
+# MongoDB connection function
+def get_mongo_client():
+    global mongo_client
+    # check if mongo client is already initialized
+    if mongo_client is not None:
+        return mongo_client
+    
+    # remote Atlas DB
+    uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
+
+    try:
+        mongo_client = MongoClient(uri)
+    except Exception as e:
+        print(f"Couldn't connect to mongodb database at URI: {uri}")
+        print(f"Error: {e}")
+        return None
+    
+    print("Successfully connected")
+    return mongo_client
 
 team_abbr_to_id = {
     "ATL": "1610612737",  # Atlanta Hawks
@@ -466,6 +489,31 @@ def filter_players_data(input_file, output_file):
     print(f"Total games before filtering: {total_games_before}")
     print(f"Total games after filtering: {total_games_after}")
 
+
+def add_team_name_to_documents():
+    """
+    Add team name to documents in the database.
+    """
+
+    client = get_mongo_client()
+
+    # Access the specified database
+    db = client["nba_stats_all"]
+    team_collection = db["teams"]
+
+    # Iterate through each document in the collection
+    for document in team_collection.find():
+        # Get the team abbreviation from the document
+        team_id = document["_id"]
+        
+        # Check if the abbreviation exists in the mapping
+        if team_id in id_to_team_abbr:
+            # Update the document with the full team name
+            team_name = team_abbr_to_team_name[id_to_team_abbr[team_id]]
+            team_collection.update_one({"_id": team_id}, {"$set": {"name": team_name}})
+
+
+
 # Example usage
 if __name__ == "__main__":
     # Team data processing
@@ -473,7 +521,8 @@ if __name__ == "__main__":
     team_output_file = "nba_teams_processed.json"
     process_nba_data(team_input_file, team_output_file)
     
-    # Player data filtering
+    # # Player data filtering
     player_input_file = "players_data.json"
     player_output_file = "nba_players_filtered.json"
     filter_players_data(player_input_file, player_output_file)
+    add_team_name_to_documents()
