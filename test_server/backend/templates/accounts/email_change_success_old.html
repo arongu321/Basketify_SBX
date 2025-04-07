@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="description"
+              content="Change your old email address for your Basketify account.">
+        <meta name="keywords" content="Basketify, email change, account settings">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Verify Your New Email</title>
+        <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #c2c2c2;
+            padding: 15px;
+        }
+        .email-header {
+            margin: 0;
+            padding: 10px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            background-color: #5865F2;
+            color: #ffffff;
+        }
+        .email-content {
+            margin: 0;
+            padding: 15px;
+            background-color: #ffffff;
+        }
+        .verification-button {
+            display: inline-block;
+            border: 0;
+            color: #ffffff;
+            background-color: #5865F2;
+            padding: 15px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            color: #666666;
+        }
+        .info-message {
+            background-color: #e6f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        </style>
+    </head>
+    <body>
+        <div class="email-container">
+            <h2 class="email-header">Verify Your New Email</h2>
+            <div class="email-content">
+                <p>Welcome to Basketify!</p>
+                <div class="info-message">
+                    <p>Your email address has been changed from {{ old_email }} to {{ new_email }}.</p>
+                    <p>Please verify this new email address to ensure you maintain full access to your account.</p>
+                </div>
+                <p>Click the button below to verify your email address:</p>
+                <a href="{{ verification_url }}" class="verification-button">Verify Email</a>
+                <p style="margin-top: 40px;">Or you can copy the link below to your browser</p>
+                <p>{{ verification_url }}</p>
+                <p>If you didn't request this email change, please contact our support team immediately.</p>
+                <p>The Basketify Team</p>
+            </div>
+            <div class="footer">
+                <p>© {{ current_year }} Basketify</p>
+            </div>
+        </div>
+    </body>
+</html>

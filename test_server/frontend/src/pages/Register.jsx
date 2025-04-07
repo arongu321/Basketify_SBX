@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 
 export default function Register() {
@@ -9,6 +9,7 @@ export default function Register() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
     const navigate = useNavigate();
 
@@ -26,7 +27,7 @@ export default function Register() {
 
         try {
             await api.post('/api/register/', formData);
-            navigate('/login');
+            setRegistrationSuccess(true); // Show success message instead of redirecting
         } catch (err) {
             setError(
                 'Registration failed. Please check your information and try again.'
@@ -41,44 +42,86 @@ export default function Register() {
         }
     };
 
+    // Navigate to login page when button is clicked
+    const goToLogin = () => {
+        navigate('/login');
+    };
+
     return (
         <div className="auth-form-container">
             <h2>Register for Basketify</h2>
-            {error && <div className="error-message">{error}</div>}
-            <form onSubmit={handleSubmit} className="auth-form">
-                <div className="form-group">
-                    <label htmlFor="email">Email*</label>
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                    />
+
+            {registrationSuccess ? (
+                // Show verification warning after successful registration
+                <div className="registration-message">
+                    <div className="success-message">
+                        <p>
+                            Registration successful! A verification email has
+                            been sent to <strong>{formData.email}</strong>.
+                        </p>
+                    </div>
+
+                    <div className="verification-warning">
+                        <h3>⚠️ Important: 2-Minute Time Limit ⚠️</h3>
+                        <p>
+                            You must verify your email within{' '}
+                            <strong>2 minutes</strong>, or your account will be
+                            deleted automatically.
+                        </p>
+                        <p>
+                            Please check your inbox (and spam folder)
+                            immediately.
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={goToLogin}
+                        className="auth-button"
+                        style={{ marginTop: '20px' }}
+                    >
+                        Go to Login Page
+                    </button>
                 </div>
-                <div className="form-group">
-                    <label htmlFor="password">Password*</label>
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        required
-                    />
-                </div>
-                <button
-                    type="submit"
-                    className="auth-button"
-                    disabled={loading}
-                >
-                    {loading ? 'Registering...' : 'Register'}
-                </button>
-            </form>
-            <p>
-                Already have an account? <a href="/login">Login here</a>
-            </p>
+            ) : (
+                // Show registration form if not yet submitted
+                <>
+                    {error && <div className="error-message">{error}</div>}
+                    <form onSubmit={handleSubmit} className="auth-form">
+                        <div className="form-group">
+                            <label htmlFor="email">Email*</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="password">Password*</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            className="auth-button"
+                            disabled={loading}
+                        >
+                            {loading ? 'Registering...' : 'Register'}
+                        </button>
+                    </form>
+                    <p>
+                        Already have an account? <a href="/login">Login here</a>
+                    </p>
+                </>
+            )}
         </div>
     );
 }

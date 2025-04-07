@@ -16,10 +16,10 @@ def get_mongo_client():
         return mongo_client
     
     # remote Atlas DB
-    # uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
+    uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
 
     # local MongoDB
-    uri = "mongodb://localhost:27017"
+    # uri = "mongodb://localhost:27017"
 
 
     try:
@@ -48,7 +48,7 @@ def get_game_stats(name, entity_type="player"):
         print("Error: Could not connect to MongoDB")
         return []
 
-    db = client['nba_stats']
+    db = client['nba_stats_all']
     collection = db['players'] if entity_type == "player" else db['teams']
 
     data = collection.find_one(

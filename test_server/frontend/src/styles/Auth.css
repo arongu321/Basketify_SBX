@@ -107,3 +107,88 @@
 .auth-link:hover {
     text-decoration: underline;
 }
+
+.registration-message {
+    text-align: center;
+}
+
+.verification-warning {
+    background-color: #ffecec;
+    border: 2px solid #f44336;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.verification-warning h3 {
+    color: #f44336;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.verification-warning p {
+    margin: 8px 0;
+}
+
+.verification-warning strong {
+    color: #f44336;
+}
+
+.registration-message {
+    text-align: center;
+}
+
+.verification-warning {
+    background-color: #ffecec;
+    border: 2px solid #f44336;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.verification-warning h3 {
+    color: #f44336;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.verification-warning p {
+    margin: 8px 0;
+}
+
+.verification-warning strong {
+    color: #f44336;
+}
+
+.resend-verification-container {
+    margin: 10px 0 20px;
+    text-align: center;
+}
+
+.resend-verification-container p {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.resend-verification-button {
+    background-color: lightcoral;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.resend-verification-button:hover {
+    background-color: coral;
+}
+
+.resend-verification-button:disabled {
+    background-color: #a5aafa;
+    cursor: not-allowed;
+}

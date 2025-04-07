@@ -4,7 +4,7 @@ from pymongo import MongoClient
 import requests
 from datetime import datetime
 from time import sleep
-from test_server.pull_data_scripts.ml.player_pred import predict_next_game_vs_team
+from ml.player_pred import predict_next_game_vs_team
 
 try:
     client = MongoClient("mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net", serverSelectionTimeoutMS=5000)
@@ -21,13 +21,14 @@ def get_player_data():
     all_players = players.get_active_players()
     
     for player in all_players:
+        game_finder = None
         player_name = player['full_name']
         
-        try:
-            game_finder = leaguegamefinder.LeagueGameFinder(player_id_nullable=player['id'], timeout=3, date_from_nullable="10/01/2022")
-        except:
-            print("Skipped")
-            continue
+        while game_finder is None:
+            try:
+                game_finder = leaguegamefinder.LeagueGameFinder(player_id_nullable=player['id'], timeout=3, date_from_nullable="10/01/2022")
+            except:
+                print("Skipped")
         games = game_finder.get_data_frames()[0]
 
         most_recent_game = datetime(2000,1,1)
@@ -62,6 +63,7 @@ def get_player_data():
                 "Turnovers": game['TOV'],
                 "Team": game['TEAM_ABBREVIATION'],
                 "WinLoss": game['WL'],
+                "SEASON_ID": game['SEASON_ID'],
                 "is_future_game": False
             }
 
@@ -83,13 +85,14 @@ def get_team_data():
     all_teams = teams.get_teams()
     
     for team in all_teams:
+        game_finder = None
         team_name = team['full_name']
         
-        try:
-            game_finder = leaguegamefinder.LeagueGameFinder(team_id_nullable=team['id'], timeout=3, date_from_nullable = "09/30/2009")
-        except:
-            print("Skip: " + team_name)
-            continue
+        while game_finder is None:
+            try:
+                game_finder = leaguegamefinder.LeagueGameFinder(team_id_nullable=team['id'], timeout=3, date_from_nullable = "09/30/2009")
+            except:
+                print("Skip: " + team_name)
         games = game_finder.get_data_frames()[0]
         
         for _, game in games.iterrows():
@@ -116,6 +119,7 @@ def get_team_data():
                 "Blocks": game['BLK'],
                 "Turnovers": game['TOV'],
                 "WinLoss": game['WL'],
+                "SEASON_ID": game['SEASON_ID'],
                 "is_future_game": False
             }
 
@@ -176,7 +180,7 @@ def make_future_predictions():
     """
     upcoming_games = get_upcoming_games()
     
-    all_players = db['players'].find()
+    all_players = db['players'].find().batch_size(100)
     
     for player in all_players:
         player_name = player['name']
@@ -213,6 +217,7 @@ def make_future_predictions():
                     "Steals": predicted_steals,
                     "Blocks": predicted_blocks,
                     "Turnovers": predicted_turnovers,
+                    "SEASON_ID": "22024",
                     "is_future_game": True
                 }
                 
@@ -292,11 +297,7 @@ def get_seasons():
 
 def upload_to_mongodb():
     # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
-    #get_player_data()
-    #get_team_data()
-    #make_future_predictions()
-    get_seasons()
-    
+    make_future_predictions()
 
 if __name__ == "__main__":
     upload_to_mongodb()

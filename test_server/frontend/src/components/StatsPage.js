@@ -1,9 +1,3 @@
-/*
-Frontend JS (+ dynamically returned HTML) for graph of statistics.
-Fulfills FR9, FR10
-*/
-
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -24,7 +18,6 @@ function StatsPage() {
     const [activeFilters, setActiveFilters] = useState({});
     const [isFiltered, setIsFiltered] = useState(false);
 
-    // get stats on game-by-game (FR9) and seasonal (FR10) basis for the player/team
     const fetchStats = async (filters = {}) => {
         setLoading(true);
         try {
@@ -62,7 +55,7 @@ function StatsPage() {
                 );
             });
 
-            const futureGames = stats.filter((stat) => stat.is_future_game);  // FR10
+            const futureGames = stats.filter((stat) => stat.is_future_game);
 
             setStatsData(stats);
             setSeasonalStats(seasonal_stats);
@@ -95,7 +88,6 @@ function StatsPage() {
         }
     };
 
-    // display seasonal or game-by-game stats: FR10
     const handleToggleStats = () => {
         setIsSeasonal(!isSeasonal);
     };
@@ -256,6 +248,7 @@ function StatsPage() {
                             <thead>
                                 <tr>
                                     <th>{isSeasonal ? 'Season' : 'Date'}</th>
+                                    {!isSeasonal && <th>Opponent</th>}
                                     <th>Points Scored</th>
                                     <th>Rebounds</th>
                                     <th>Assists</th>
@@ -286,6 +279,12 @@ function StatsPage() {
                                                           gameStats.date
                                                       ).toLocaleDateString()}
                                             </td>
+                                            {!isSeasonal && (
+                                                <td>
+                                                    {gameStats.opponent ||
+                                                        'N/A'}
+                                                </td>
+                                            )}
                                             <td>{gameStats.points}</td>
                                             <td>{gameStats.rebounds}</td>
                                             <td>{gameStats.assists}</td>
@@ -328,6 +327,7 @@ function StatsPage() {
                                     <thead>
                                         <tr>
                                             <th>Date</th>
+                                            <th>Opponent</th>
                                             <th>Points Scored</th>
                                             <th>Rebounds</th>
                                             <th>Assists</th>
@@ -349,6 +349,10 @@ function StatsPage() {
                                                     {new Date(
                                                         gameStats.date
                                                     ).toLocaleDateString()}
+                                                </td>
+                                                <td>
+                                                    {gameStats.opponent ||
+                                                        'N/A'}
                                                 </td>
                                                 <td>{gameStats.points}</td>
                                                 <td>{gameStats.rebounds}</td>

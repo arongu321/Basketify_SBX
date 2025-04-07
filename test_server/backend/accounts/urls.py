@@ -19,4 +19,9 @@ urlpatterns = [
     path('password-reset-confirm/<uidb64>/<token>/', views.password_reset_confirm, name='password_reset_confirm'),
     path('password-reset-complete/', views.password_reset_complete, name='password_reset_complete'),
 
+    # Email change URLs
+    path('email-change/', views.email_change_request, name='email_change'),
+    path('email-change-confirm/<uidb64>/<token>/', views.email_change_confirm, name='email_change_confirm'),
+    path('email-change-complete/<uidb64>/<token>/', views.email_change_complete, name='email_change_complete'),
+
 ]

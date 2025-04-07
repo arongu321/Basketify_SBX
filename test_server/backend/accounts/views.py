@@ -2,6 +2,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth.models import User
 from .serializers import UserSerializer, UserCreateSerializer
 from .models import UserFavorite
@@ -14,12 +15,46 @@ from .tokens import account_activation_token
 from django.core.mail import EmailMessage
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from datetime import datetime
+from datetime import datetime, timezone
 from django.contrib.auth.tokens import default_token_generator
 import json
 
 # Import the custom user model
 User = get_user_model()
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    Custom token view that checks for email verification and returns
+    appropriate error messages.
+    """
+    def post(self, request, *args, **kwargs):
+        try:
+            # Get the email from the request
+            email = request.data.get('email', '')
+            
+            # Check if the user exists and if email is verified
+            try:
+                user = User.objects.get(email=email)
+                if not user.email_is_verified:
+                    return Response(
+                        {
+                            "detail": "Email not verified. Please check your inbox for the verification email.",
+                            "code": "email_not_verified"
+                        },
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
+            except User.DoesNotExist:
+                # Don't reveal that the user doesn't exist, proceed with normal flow
+                pass
+                
+            # Call the parent class method to handle the token creation
+            return super().post(request, *args, **kwargs)
+        except Exception as e:
+            # This will catch any other authentication errors
+            return Response(
+                {"detail": str(e)},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
 class UserRegistrationView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
@@ -161,6 +196,9 @@ def verify_email_done(request):
     """Legacy Django view - this will be handled by React frontend"""
     return render(request, 'accounts/verify_email_done.html')
 
+# Update the verify_email_confirm view in accounts/views.py to handle the token properly
+# and provide more descriptive error messages
+
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def verify_email_confirm(request, uidb64, token):
@@ -170,19 +208,31 @@ def verify_email_confirm(request, uidb64, token):
         user = User.objects.get(pk=uid)
     except(TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
+        return Response({
+            "status": "error",
+            "message": "Invalid user identifier",
+        }, status=status.HTTP_400_BAD_REQUEST)
         
+    # Check if the user exists and token is valid
     if user is not None and account_activation_token.check_token(user, token):
+        # Mark email as verified
         user.email_is_verified = True
         user.save()
         
         return Response({
-            'status': 'success',
-            'message': 'Email verified successfully',
+            "status": "success",
+            "message": "Email verified successfully",
         }, status=status.HTTP_200_OK)
     else:
+        # Return detailed error for debugging
+        if user is None:
+            error_message = "User not found"
+        else:
+            error_message = "Invalid token"
+            
         return Response({
-            'status': 'error',
-            'message': 'Invalid verification link',
+            "status": "error",
+            "message": f"Invalid verification link: {error_message}",
         }, status=status.HTTP_400_BAD_REQUEST)
 
 def verify_email_complete(request):
@@ -316,4 +366,208 @@ def password_reset_complete(request):
         "status": "success",
         "message": "Password has been reset successfully"
     })
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def email_change_request(request):
+    """API endpoint to initiate email change process"""
+    email = request.data.get('email', '')
     
+    if not email:
+        return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = User.objects.get(email=email)
+        
+        # Update verification token timestamp and generate token and uid
+        user.update_verification_token_timestamp()
+        token = account_activation_token.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        
+        # Build verification URL for frontend
+        current_site = get_current_site(request)
+        frontend_url = request.META.get('HTTP_REFERER', 'http://localhost:3000')
+        
+        # Extract base URL from referrer or use default
+        if frontend_url.endswith('/'):
+            frontend_url = frontend_url[:-1]
+        
+        try:
+            base_url = frontend_url.split('/')[0] + '//' + frontend_url.split('/')[2]
+        except (IndexError, AttributeError):
+            base_url = 'http://localhost:3000'
+        
+        verification_url = f"{base_url}/email-reset-confirm/{uid}/{token}"
+        
+        # Prepare email
+        subject = "Change Your Email"
+        current_year = datetime.now().year
+        
+        # Use HTML email template
+        html_message = render_to_string('accounts/email_change_email.html', {
+            'verification_url': verification_url,
+            'current_year': current_year,
+            'user': user,
+            'expiry_time': '2 minutes'
+        })
+        
+        # Send email
+        email_message = EmailMessage(
+            subject, html_message, to=[user.email]
+        )
+        email_message.content_subtype = 'html'
+        email_message.send()
+        
+        return Response({
+            "status": "success",
+            "message": "Email verification has been sent."
+        }, status=status.HTTP_200_OK)
+        
+    except User.DoesNotExist:
+        return Response({
+            "status": "error",
+            "message": "No account exists with this email address."
+        }, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def email_change_confirm(request, uidb64, token):
+    """API endpoint to confirm email change request"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    # Check if token is valid and not expired
+    if user is not None and account_activation_token.check_token(user, token):
+        # Check if token is within the 2-minute window
+        if user.is_verification_token_expired():
+            return Response({
+                "status": "error",
+                "message": "Verification link has expired. Please request a new one.",
+                "expired": True
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        return Response({
+            "status": "success",
+            "message": "Verification successful. You can now change your email.",
+            "uid": uidb64,
+            "token": token
+        })
+    else:
+        return Response({
+            "status": "error",
+            "message": "Invalid verification link",
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def email_change_complete(request, uidb64, token):
+    """Complete the email change process"""
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+    
+    new_email = request.data.get('new_email', '')
+    
+    if not new_email:
+        return Response({
+            "status": "error",
+            "message": "New email is required"
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if token is valid
+    if user is not None and account_activation_token.check_token(user, token):
+        # Check if token is within the 2-minute window
+        if user.is_verification_token_expired():
+            return Response({
+                "status": "error",
+                "message": "Verification link has expired. Please request a new one.",
+                "expired": True
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the new email is different from the current one
+        if user.email == new_email:
+            return Response({
+                "status": "error",
+                "message": "New email must be different from your current email"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the new email is already in use
+        if User.objects.filter(email=new_email).exists():
+            return Response({
+                "status": "error",
+                "message": "This email is already registered with another account"
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        # Update the email
+        old_email = user.email
+        user.email = new_email
+        user.email_is_verified = False  # Require verification of new email
+        user.update_verification_token_timestamp()  # Update the verification token timestamp
+        
+        # Send confirmation email to both old and new email addresses
+        subject = "Email Changed Successfully"
+        current_year = datetime.now().year
+        
+        # Email to old address
+        old_email_message = render_to_string('accounts/email_change_success_old.html', {
+            'user': user,
+            'old_email': old_email,
+            'new_email': new_email,
+            'current_year': current_year
+        })
+        
+        email = EmailMessage(
+            subject, old_email_message, to=[old_email]
+        )
+        email.content_subtype = 'html'
+        email.send()
+        
+        user.save()
+
+        # Create a fresh token based on the updated user data
+        token = account_activation_token.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        # Build verification URL for frontend
+        frontend_url = request.META.get('HTTP_REFERER', 'http://localhost:3000')
+        if frontend_url.endswith('/'):
+            frontend_url = frontend_url[:-1]
+
+        try:
+            base_url = frontend_url.split('/')[0] + '//' + frontend_url.split('/')[2]
+        except (IndexError, AttributeError):
+            base_url = 'http://localhost:3000'
+            
+        verification_url = f"{base_url}/verify-email-confirm/{uid}/{token}"
+
+        # Add debug logging (optional)
+        print(f"Generated verification URL: {verification_url}")
+        
+        new_email_message = render_to_string('accounts/email_change_verify_new.html', {
+            'user': user,
+            'verification_url': verification_url,
+            'current_year': current_year,
+            'old_email': old_email,
+            'new_email': new_email
+        })
+        
+        email = EmailMessage(
+            "Verify Your New Email", new_email_message, to=[new_email]
+        )
+        email.content_subtype = 'html'
+        email.send()
+        
+        return Response({
+            "status": "success",
+            "message": "Email updated successfully. Please verify your new email address."
+        })
+    else:
+        return Response({
+            "status": "error",
+            "message": "Invalid verification link"
+        }, status=status.HTTP_400_BAD_REQUEST)

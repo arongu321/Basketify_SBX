@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 import datetime
 from pymongo import MongoClient
-from .utils import apply_filters_to_games, determine_season_year, determine_season_type, get_game_location, get_opponent_from_matchup
+from .utils import apply_filters_to_games, determine_season_year, determine_season_type, get_game_location, get_opponent_from_matchup, alias_abbreviations
 
 
 # global to prevent having to connect multiple times
@@ -243,9 +243,19 @@ def get_player_stats(request, name):
             date_parts = game_date.split('_')
             date_only = date_parts[0] if len(date_parts) > 0 else game_date
             
+            # Extract opponent from matchup using our utility function
+            opponent = ""
+            if "Matchup" in game_data:
+                matchup = game_data["Matchup"]
+                team_abbr = game_data.get("Team", "")
+                opponent = get_opponent_from_matchup(matchup, team_abbr)
+                if opponent in alias_abbreviations:
+                    opponent = alias_abbreviations[opponent]
+            
             # Basic stats model
             stats = {
                 "date": date_only,
+                "opponent": opponent,  # Add opponent info
                 "points": sanitize_value(game_data.get("Points", 0)),
                 "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
                 "assists": sanitize_value(game_data.get("Assists", 0)),
@@ -281,7 +291,7 @@ def get_player_stats(request, name):
                               'opponent_abbr', 'opponent_division', 'opponent_conference', 
                               'is_interconference']
             for field in fields_to_remove:
-                if field in game:
+                if field in game and field != 'opponent':  # Keep the opponent field
                     del game[field]
         
         return JsonResponse({
@@ -320,6 +330,7 @@ def get_team_stats(request, name):
         
         # Combine past and future games
         all_games = {**team.get('games', {}), **team.get('future_games', {})}
+        team_abbr = team.get('abbrev_name', '')
         
         for game_date, game_data in all_games.items():
             # Skip if we're missing core data for filtering
@@ -330,9 +341,18 @@ def get_team_stats(request, name):
             date_parts = game_date.split('_')
             date_only = date_parts[0] if len(date_parts) > 0 else game_date
             
+            # Extract opponent from matchup using our utility function
+            opponent = ""
+            if "Matchup" in game_data:
+                matchup = game_data["Matchup"]
+                opponent = get_opponent_from_matchup(matchup, team_abbr)
+                if opponent in alias_abbreviations:
+                    opponent = alias_abbreviations[opponent]
+            
             # Basic stats model
             stats = {
                 "date": date_only,
+                "opponent": opponent,  # Add opponent info
                 "points": sanitize_value(game_data.get("Points", 0)),
                 "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
                 "assists": sanitize_value(game_data.get("Assists", 0)),
@@ -348,7 +368,7 @@ def get_team_stats(request, name):
                 "is_future_game": game_data.get('is_future_game', 0),
                 # Include additional fields needed for filtering
                 "Matchup": game_data.get("Matchup", ""),
-                "TEAM_ABBREVIATION": team.get("abbrev_name", ""),
+                "TEAM_ABBREVIATION": team_abbr,
                 "WinLoss": game_data.get("WinLoss", "")
             }
             team_stats.append(stats)
@@ -368,7 +388,7 @@ def get_team_stats(request, name):
                               'opponent_abbr', 'opponent_division', 'opponent_conference', 
                               'is_interconference']
             for field in fields_to_remove:
-                if field in game:
+                if field in game and field != 'opponent':  # Keep the opponent field
                     del game[field]
         
         return JsonResponse({
