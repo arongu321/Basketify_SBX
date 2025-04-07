@@ -47,7 +47,7 @@ function SearchInterface() {
         // set favorite on click of name: FR5 and FR6
         if (setFavorite) {
             api.post(
-                'http://localhost:8000/accounts/set-favorite/',
+                '/accounts/set-favorite/',
                 {
                     type: setFavorite,
                     name: name,
