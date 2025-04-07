@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import './VerifyEmail.css';
+import '../styles/VerifyEmail.css';
 
 export default function VerifyEmailConfirm() {
     const [message, setMessage] = useState('Verifying your email...');
@@ -9,6 +9,7 @@ export default function VerifyEmailConfirm() {
     const { uidb64, token } = useParams();
     const navigate = useNavigate();
 
+    // Enhanced error handling in useEffect
     useEffect(() => {
         const verifyEmail = async () => {
             try {
@@ -32,7 +33,20 @@ export default function VerifyEmailConfirm() {
                 }
             } catch (error) {
                 setIsSuccess(false);
-                setMessage('The verification link is invalid or has expired.');
+                console.error('Verification error:', error);
+
+                // More detailed error reporting
+                if (
+                    error.response &&
+                    error.response.data &&
+                    error.response.data.message
+                ) {
+                    setMessage(error.response.data.message);
+                } else {
+                    setMessage(
+                        'The verification link is invalid or has expired.'
+                    );
+                }
             }
         };
 

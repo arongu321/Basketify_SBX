@@ -16,10 +16,10 @@ def get_mongo_client():
         return mongo_client
     
     # remote Atlas DB
-    # uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
+    uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
 
     # local MongoDB
-    uri = "mongodb://localhost:27017"
+    # uri = "mongodb://localhost:27017"
 
 
     try:

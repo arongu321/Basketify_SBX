@@ -8,8 +8,27 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showResendVerification, setShowResendVerification] = useState(false);
+    const [isResending, setIsResending] = useState(false);
+    const [resendSuccess, setResendSuccess] = useState(false);
 
     const navigate = useNavigate();
+
+    // Add or update the resend verification function
+    const handleResendVerification = async () => {
+        setIsResending(true);
+        try {
+            await api.post('/accounts/verify-email/', { email });
+            setResendSuccess(true);
+            setTimeout(() => {
+                setResendSuccess(false);
+            }, 5000); // Hide success message after 5 seconds
+        } catch (err) {
+            setError('Failed to send verification email. Please try again.');
+        } finally {
+            setIsResending(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -29,7 +48,19 @@ export default function Login() {
 
             navigate('/');
         } catch (err) {
-            setError('Invalid email or password');
+            if (err.response && err.response.data) {
+                // Check for specific error about unverified email
+                if (err.response.data.code === 'email_not_verified') {
+                    setError(err.response.data.detail);
+
+                    // Option to resend verification email
+                    setShowResendVerification(true);
+                } else {
+                    setError('Invalid email or password');
+                }
+            } else {
+                setError('Invalid email or password');
+            }
             console.error(err);
         } finally {
             setLoading(false);
@@ -40,6 +71,26 @@ export default function Login() {
         <div className="auth-form-container">
             <h2>Login to Basketify</h2>
             {error && <div className="error-message">{error}</div>}
+            {showResendVerification && (
+                <div className="resend-verification-container">
+                    <p>Need a new verification email?</p>
+                    {resendSuccess ? (
+                        <div className="success-message">
+                            Verification email sent! Please check your inbox.
+                        </div>
+                    ) : (
+                        <button
+                            onClick={handleResendVerification}
+                            className="resend-verification-button"
+                            disabled={isResending}
+                        >
+                            {isResending
+                                ? 'Sending...'
+                                : 'Resend Verification Email'}
+                        </button>
+                    )}
+                </div>
+            )}
             <form onSubmit={handleSubmit} className="auth-form">
                 <div className="form-group">
                     <label htmlFor="email">Email</label>

@@ -7,6 +7,7 @@ team_divisions = {
     "BOS": "Atlantic",
     "PHI": "Atlantic",
     "TOR": "Atlantic",
+    "NJN": "Atlantic",
     "CHI": "Central",
     "CLE": "Central",
     "DET": "Central",
@@ -21,6 +22,7 @@ team_divisions = {
     "HOU": "Southwest",
     "MEM": "Southwest",
     "NOP": "Southwest",
+    "NOH": "Southwest",
     "SAS": "Southwest",
     "DEN": "Northwest",
     "MIN": "Northwest",
@@ -66,6 +68,11 @@ team_conferences = {
     "LAL": "West",
     "PHX": "West",
     "SAC": "West"
+}
+
+alias_abbreviations = {
+    "NJN": "BKN",  # New Jersey Nets to Brooklyn Nets
+    "NOH": "NOP",  # New Orleans Hornets to New Orleans Pelicans
 }
 
 # Helper to convert full team names to abbreviations

@@ -54,6 +54,12 @@ class CustomUser(AbstractUser):
         expiration_time = self.verification_token_created + timezone.timedelta(minutes=2)
         return timezone.now() > expiration_time
     
+    def update_verification_token_timestamp(self):
+        """Update the verification token creation timestamp to the current time"""
+        self.verification_token_created = timezone.now()
+        self.save(update_fields=['verification_token_created'])
+    
+    
 class UserFavorite(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorites')
     favorite_type = models.CharField(max_length=10, choices=[('player', 'Player'), ('team', 'Team')])

@@ -174,3 +174,8 @@ EMAIL_HOST_PASSWORD = "rngb rvfk iutp bxdo"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = "Delight aron.gu321@gmail.com"
+
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailVerifiedBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Keep default as fallback
+]

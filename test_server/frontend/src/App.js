@@ -33,6 +33,10 @@ import PasswordResetRequest from './pages/PasswordResetRequest';
 import PasswordResetDone from './pages/PasswordResetDone';
 import PasswordResetConfirm from './pages/PasswordResetConfirm';
 import PasswordResetComplete from './pages/PasswordResetComplete';
+import EmailResetRequest from './pages/EmailResetRequest';
+import EmailResetDone from './pages/EmailResetDone';
+import EmailResetConfirm from './pages/EmailResetConfirm';
+import EmailResetComplete from './pages/EmailResetComplete';
 
 document.title = 'Basketify';
 const favicon =
@@ -87,7 +91,7 @@ function Home({ message }) {
     }
 
     const dashboardTiles = [
-        { title: 'Search Player/Team', path: '/search' },  // connection to search page: FR4
+        { title: 'Search Player/Team', path: '/search' }, // connection to search page: FR4
         { title: 'ML Predictions', path: '/ml-predictions' },
         // connection to player favorite: FR6
         {
@@ -121,8 +125,8 @@ function Home({ message }) {
                         />
                         <h1 className="dashboard-title">Basketify</h1>
                     </div>
-                    <Link to="/login" className="dashboard-login-link">
-                        Login
+                    <Link to="/logout" className="dashboard-login-link">
+                        Logout
                     </Link>
                 </div>
             </div>
@@ -155,7 +159,7 @@ function App() {
     const [message, setMessage] = useState('');
 
     useEffect(() => {
-        axios.get('http://localhost:8000/api/load-database/');  // pre-fetch MongoDB connection
+        axios.get('http://localhost:8000/api/load-database/'); // pre-fetch MongoDB connection
         axios
             .get('http://localhost:8000/api/')
             .then((response) => {
@@ -203,6 +207,7 @@ function App() {
                         element={<EmailVerification />}
                     />
 
+                    {/* Password reset routes */}
                     <Route
                         path="/password-reset"
                         element={<PasswordResetRequest />}
@@ -218,6 +223,24 @@ function App() {
                     <Route
                         path="/password-reset-complete"
                         element={<PasswordResetComplete />}
+                    />
+
+                    {/* Email reset routes */}
+                    <Route
+                        path="/email-reset"
+                        element={<EmailResetRequest />}
+                    />
+                    <Route
+                        path="/email-reset-done"
+                        element={<EmailResetDone />}
+                    />
+                    <Route
+                        path="/email-reset-confirm/:uidb64/:token"
+                        element={<EmailResetConfirm />}
+                    />
+                    <Route
+                        path="/email-reset-complete"
+                        element={<EmailResetComplete />}
                     />
 
                     <Route path="*" element={<NotFound />} />

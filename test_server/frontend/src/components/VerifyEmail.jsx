@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import './VerifyEmail.css';
+import '../styles/VerifyEmail.css';
 
 export default function VerifyEmail() {
     const [loading, setLoading] = useState(false);
