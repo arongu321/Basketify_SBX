@@ -142,7 +142,7 @@ def aggregate_seasonal_stats(stats):
         season = get_season_from_date(stat['date'])
         if not season:
             continue
-            
+
         if season not in grouped_by_season:
             grouped_by_season[season] = {
                 'season': season,
@@ -287,7 +287,7 @@ def get_player_stats(request, name):
             for field in fields_to_remove:
                 if field in game and field != 'opponent':  # Keep the opponent field
                     del game[field]
-        
+
         return JsonResponse({
             "stats": filtered_stats,
             "seasonal_stats": seasonal_stats
