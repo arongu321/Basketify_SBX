@@ -4,10 +4,11 @@ from pymongo import MongoClient
 import requests
 from datetime import datetime
 from time import sleep
-from test_server.pull_data_scripts.ml.player_pred import predict_next_game_vs_team
+from ml.player_pred import determine_win_loss, predict_nba_champion, predict_next_game_vs_team, team_ppg
 
 try:
-    client = MongoClient("mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net", serverSelectionTimeoutMS=5000)
+    #client = MongoClient("mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net", serverSelectionTimeoutMS=5000)
+    client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=5000)
     print("Connected to MongoDB!")
 except Exception as e:
     print("Error connecting to MongoDB:", e)
@@ -271,6 +272,38 @@ def make_future_predictions():
                 )
                 print(f"Predicted points for {team_name} in upcoming game: {predicted_points}")
 
+        avg = team_ppg(team_name, "Points", "team")
+        team_collection.update_one(
+            {"name": full_team_name},
+            {"$set": {"avg_ppg": avg}},
+            upsert=True
+        )
+
+    champ_name, champ_ppg = predict_nba_champion()
+    print(f"\nPredicted NBA Champion: {champ_name} ({champ_ppg} PPG)\n")
+
+    for team in all_teams:
+        full_team_name = team['name']
+        team_name = team['abbrev_name']
+
+        for game in upcoming_games:
+            if game['homeTeam'] == team_name or game['awayTeam'] == team_name:
+                game_date = game['gameDateUTC'].strftime("%Y-%m-%d_%H-%M-%S")
+                opponent = game['awayTeam'] if game['homeTeam'] == team_name else game['homeTeam']
+                outcome = determine_win_loss(team_name, opponent, game_date)
+                db['teams'].update_one(
+                    {"name": full_team_name},
+                    {"$set": {f"future_games.{game_date}.WinLoss": outcome}},
+                    upsert=True
+                )
+                db['players'].update_many(
+                    {
+                        "team": team_name,
+                        f"future_games.{game_date}": {"$exists": True}
+                    },
+                    {"$set": {f"future_games.{game_date}.WinLoss": outcome}},
+                    upsert=True
+                )
 
 def get_seasons():
     """
@@ -292,9 +325,9 @@ def get_seasons():
 
 def upload_to_mongodb():
     # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
-    #get_player_data()
-    #get_team_data()
-    #make_future_predictions()
+    get_player_data()
+    get_team_data()
+    make_future_predictions()
     get_seasons()
     
 
