@@ -51,7 +51,7 @@ def search_player(request):
     try:
         client = get_mongo_client()
 
-        db = client['nba_stats']
+        db = client['nba_stats_all']
         players_collection = db['players']
 
         matching_players = players_collection.find(
@@ -85,7 +85,7 @@ def search_team(request):
     try:
         client = get_mongo_client()
 
-        db = client['nba_stats']
+        db = client['nba_stats_all']
         teams_collection = db['teams']
 
         matching_teams = teams_collection.find(
@@ -208,7 +208,7 @@ def get_player_stats(request, name):
     """
     try:
         client = get_mongo_client()
-        db = client['nba_stats']
+        db = client['nba_stats_all']
         players_collection = db['players']
         
         player = players_collection.find_one({"name": name})
@@ -305,7 +305,7 @@ def get_team_stats(request, name):
     """
     try:
         client = get_mongo_client()
-        db = client['nba_stats']
+        db = client['nba_stats_all']
         teams_collection = db['teams']
         
         team = teams_collection.find_one({"name": name})
@@ -396,7 +396,7 @@ def get_team_stats(request, name):
 
 def predict_nba_champion(request):
     client = get_mongo_client()
-    db = client['nba_stats']
+    db = client['nba_stats_all']
     teams_col = db["teams"]
 
     top_team = teams_col.find_one(

@@ -1,13 +1,8 @@
-/* 
-This is the JS (+ HTML which gets dynamically returned) for the search interface. It is also
-re-used for selecting a favourite player & team.
-The code fulfills the frontend for FR7 and FR8.
-*/
-
 import React, { useState } from 'react';
 import api from '../utils/api'; // axios instance for API calls
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ACCESS_TOKEN } from '../utils/constants';
+import logo from '../assets/Basketify-Logo.png';
 import '../styles/SearchInterface.css';
 
 function SearchInterface() {
@@ -22,9 +17,19 @@ function SearchInterface() {
     const setFavorite = location.state?.setFavorite; // 'player' or 'team'
     const [searchType, setSearchType] = useState(setFavorite || 'player'); // default to 'player' if no state is passed
 
+    // Clear search results when switching between player and team search
+    const handleSearchTypeChange = (newType) => {
+        setSearchType(newType);
+        setSearchResults([]);
+        setSearchPerformed(false);
+    };
+
     const handleSearch = () => {
         setSearchPerformed(true);
         setLoading(true);
+        // Clear previous search results immediately when starting a new search
+        setSearchResults([]);
+
         const url =
             searchType === 'player' ? '/api/search-player' : '/api/search-team';
 
@@ -47,7 +52,7 @@ function SearchInterface() {
         // set favorite on click of name: FR5 and FR6
         if (setFavorite) {
             api.post(
-                'http://localhost:8000/accounts/set-favorite/',
+                '/accounts/set-favorite/',
                 {
                     type: setFavorite,
                     name: name,
@@ -92,13 +97,13 @@ function SearchInterface() {
                     <div className="search-interface-type-buttons">
                         <button
                             className={searchType === 'player' ? 'active' : ''}
-                            onClick={() => setSearchType('player')}
+                            onClick={() => handleSearchTypeChange('player')}
                         >
                             Search Players
                         </button>
                         <button
                             className={searchType === 'team' ? 'active' : ''}
-                            onClick={() => setSearchType('team')}
+                            onClick={() => handleSearchTypeChange('team')}
                         >
                             Search Teams
                         </button>
@@ -141,6 +146,18 @@ function SearchInterface() {
                 {searchPerformed && !loading && searchResults.length === 0 && (
                     <div className="search-interface-no-results">
                         <h3>No results found for "{searchTerm}".</h3>
+                    </div>
+                )}
+
+                {/* Loading indicator */}
+                {loading && (
+                    <div className="search-interface-loading">
+                        <img
+                            src={logo}
+                            alt="Loading..."
+                            className="search-interface-loading-logo"
+                        />
+                        <h3>Loading...</h3>
                     </div>
                 )}
             </div>
