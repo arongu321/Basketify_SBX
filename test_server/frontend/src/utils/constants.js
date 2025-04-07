@@ -2,18 +2,7 @@ export const ACCESS_TOKEN = 'access';
 export const REFRESH_TOKEN = 'refresh';
 
 // Filter constants for Stats Page
-export const NBA_SEASONS = [
-    '2015-16',
-    '2016-17',
-    '2017-18',
-    '2018-19',
-    '2019-20',
-    '2020-21',
-    '2021-22',
-    '2022-23',
-    '2023-24',
-    '2024-25',
-];
+export const NBA_SEASONS = ['2022-23', '2023-24', '2024-25'];
 
 export const SEASON_TYPES = [
     'Regular Season',

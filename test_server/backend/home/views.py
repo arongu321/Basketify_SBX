@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 import datetime
 from pymongo import MongoClient
+from .utils import apply_filters_to_games, determine_season_year, determine_season_type, get_game_location, get_opponent_from_matchup
 
 
 # global to prevent having to connect multiple times
@@ -208,6 +209,9 @@ def aggregate_seasonal_stats(stats):
 # main backend route which receieves an HTTP request with a player name and returns
 # the game-by-game and aggregated seasonal stats for that player. Fulfills FR9, FR10, FR11, FR15
 def get_player_stats(request, name):
+    """
+    Get player stats with various filtering options
+    """
     try:
         client = get_mongo_client()
         db = client['nba_stats']
@@ -217,47 +221,31 @@ def get_player_stats(request, name):
         
         if not player:
             return JsonResponse({'error': 'Player not found'}, status=404)
-
-        # parse filter params from request
-        date_from = request.GET.get('date_from', None)
-        date_to = request.GET.get('date_to', None)
-        last_n_games = request.GET.get('last_n_games', None)
+        
+        # Extract filter parameters from request
+        filters = {}
+        for param in ['date_from', 'date_to', 'last_n_games', 'season', 'season_type', 
+                     'division', 'conference', 'game_type', 'outcome', 'opponents']:
+            if request.GET.get(param):
+                filters[param] = request.GET.get(param)
         
         player_stats = []
-
-        # combine past and future game
+        
+        # Combine past and future games
         all_games = {**player.get('games', {}), **player.get('future_games', {})}
         
         for game_date, game_data in all_games.items():
-            # apply date filters if specified
-            if date_from or date_to:
-                try:
-                    # extract the date part if the format is YYYY-MM-DD_HH-MM-SS
-                    date_parts = game_date.split('_')
-                    date_only = date_parts[0] if len(date_parts) > 0 else game_date
-                    
-                    # check if the date is in valid format
-                    game_date_obj = datetime.datetime.strptime(date_only, '%Y-%m-%d')
-                    
-                    if date_from:
-                        date_from_obj = datetime.datetime.strptime(date_from, '%Y-%m-%d')
-                        if game_date_obj < date_from_obj:
-                            continue
-                            
-                    if date_to:
-                        date_to_obj = datetime.datetime.strptime(date_to, '%Y-%m-%d')
-                        if game_date_obj > date_to_obj:
-                            continue
-                except (ValueError, IndexError):
-                    # skip games with invalid date format
-                    print(f"Skipping game with invalid date format: {game_date}")
-                    continue
-            
+            # Skip if we're missing core data for filtering
+            if not game_date or not isinstance(game_date, str):
+                continue
+                
+            # Extract date part if the format is YYYY-MM-DD_HH-MM-SS
             date_parts = game_date.split('_')
-            game_date = date_parts[0] if len(date_parts) > 0 else game_date
+            date_only = date_parts[0] if len(date_parts) > 0 else game_date
+            
+            # Basic stats model
             stats = {
-                "date": sanitize_value(game_date),
-                "date_obj": datetime.datetime.strptime(game_date.split('_')[0], '%Y-%m-%d') if '_' in game_date else None,
+                "date": date_only,
                 "points": sanitize_value(game_data.get("Points", 0)),
                 "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
                 "assists": sanitize_value(game_data.get("Assists", 0)),
@@ -270,53 +258,34 @@ def get_player_stats(request, name):
                 "steals": sanitize_value(game_data.get("Steals", 0)),
                 "blocks": sanitize_value(game_data.get("Blocks", 0)),
                 "turnovers": sanitize_value(game_data.get("Turnovers", 0)),
-                "is_future_game": game_data.get('is_future_game', 0)
+                "is_future_game": game_data.get('is_future_game', 0),
+                # Include additional fields needed for filtering
+                "Matchup": game_data.get("Matchup", ""),
+                "TEAM_ABBREVIATION": game_data.get("Team", ""),
+                "WinLoss": game_data.get("WinLoss", "")
             }
             player_stats.append(stats)
         
-        # apply the "Last N Games" filter if specified (excluding future games)
-        if last_n_games:
-            try:
-                n = int(last_n_games)
-                # create a list of past games (non-future games)
-                past_games = [game for game in player_stats if not game.get('is_future_game', False)]
-                
-                # sort games by date (handling cases where date_obj might be None)
-                def get_date_for_sorting(game):
-                    if game.get('date_obj') is not None:
-                        return game['date_obj']
-                    # fallback is to try to parse the date directly
-                    try:
-                        date_str = game['date'].split('_')[0] if '_' in game['date'] else game['date']
-                        return datetime.datetime.strptime(date_str, '%Y-%m-%d')
-                    except (ValueError, AttributeError):
-                        # if parsing fails, return a very old date to sort to the end
-                        return datetime.datetime(1900, 1, 1)
-                
-                past_games.sort(key=get_date_for_sorting, reverse=True)
-                
-                # take only the first N games
-                filtered_past_games = past_games[:n]
-                
-                # add future games (they're not affected by Last N Games filter)
-                future_games = [game for game in player_stats if game.get('is_future_game', False)]
-                
-                # replace player_stats with the filtered list
-                player_stats = filtered_past_games + future_games
-            except (ValueError, TypeError) as e:
-                print(f"Invalid last_n_games parameter: {last_n_games}, Error: {e}")
-                # just continue without applying this filter if there's an error
+        # Apply filters
+        filtered_stats = apply_filters_to_games(player_stats, filters)
         
-        # remove temporary date_obj used for sorting
-        for game in player_stats:
-            if 'date_obj' in game:
-                del game['date_obj']
+        # Sort games by date (oldest first for statistics calculation)
+        filtered_stats.sort(key=lambda x: x['date'])
         
-        # generate seasonal stats from the filtered game stats
-        seasonal_stats = aggregate_seasonal_stats(player_stats)
+        # Generate seasonal stats from the filtered game stats
+        seasonal_stats = aggregate_seasonal_stats(filtered_stats)
+        
+        # Remove temporary fields used for filtering before returning
+        for game in filtered_stats:
+            fields_to_remove = ['Matchup', 'TEAM_ABBREVIATION', 'WinLoss', 'game_location', 
+                              'opponent_abbr', 'opponent_division', 'opponent_conference', 
+                              'is_interconference']
+            for field in fields_to_remove:
+                if field in game:
+                    del game[field]
         
         return JsonResponse({
-            "stats": player_stats,
+            "stats": filtered_stats,
             "seasonal_stats": seasonal_stats
         }, status=200)
 
@@ -327,6 +296,9 @@ def get_player_stats(request, name):
 # main backend route which receieves an HTTP request with a team name and returns
 # the game-by-game and aggregated seasonal stats for that team. Fulfills FR9, FR10, FR11, FR15
 def get_team_stats(request, name):
+    """
+    Get team stats with various filtering options
+    """
     try:
         client = get_mongo_client()
         db = client['nba_stats']
@@ -337,45 +309,30 @@ def get_team_stats(request, name):
         if not team:
             return JsonResponse({'error': 'Team not found'}, status=404)
         
-        # parse filter parameters from request
-        date_from = request.GET.get('date_from', None)
-        date_to = request.GET.get('date_to', None)
-        last_n_games = request.GET.get('last_n_games', None)
+        # Extract filter parameters from request
+        filters = {}
+        for param in ['date_from', 'date_to', 'last_n_games', 'season', 'season_type', 
+                     'division', 'conference', 'game_type', 'outcome', 'opponents']:
+            if request.GET.get(param):
+                filters[param] = request.GET.get(param)
         
         team_stats = []
-
+        
+        # Combine past and future games
         all_games = {**team.get('games', {}), **team.get('future_games', {})}
         
         for game_date, game_data in all_games.items():
-            # apply date filters if specified
-            if date_from or date_to:
-                try:
-                    # extract the date part if the format is YYYY-MM-DD_HH-MM-SS
-                    date_parts = game_date.split('_')
-                    date_only = date_parts[0] if len(date_parts) > 0 else game_date
-                    
-                    # check if the date is in valid format
-                    game_date_obj = datetime.datetime.strptime(date_only, '%Y-%m-%d')
-                    
-                    if date_from:
-                        date_from_obj = datetime.datetime.strptime(date_from, '%Y-%m-%d')
-                        if game_date_obj < date_from_obj:
-                            continue
-                            
-                    if date_to:
-                        date_to_obj = datetime.datetime.strptime(date_to, '%Y-%m-%d')
-                        if game_date_obj > date_to_obj:
-                            continue
-                except (ValueError, IndexError):
-                    # skip games with invalid date format
-                    print(f"Skipping game with invalid date format: {game_date}")
-                    continue
-            
+            # Skip if we're missing core data for filtering
+            if not game_date or not isinstance(game_date, str):
+                continue
+                
+            # Extract date part if the format is YYYY-MM-DD_HH-MM-SS
             date_parts = game_date.split('_')
-            game_date = date_parts[0] if len(date_parts) > 0 else game_date
+            date_only = date_parts[0] if len(date_parts) > 0 else game_date
+            
+            # Basic stats model
             stats = {
-                "date": sanitize_value(game_date),
-                "date_obj": datetime.datetime.strptime(game_date.split('_')[0], '%Y-%m-%d') if '_' in game_date else None,
+                "date": date_only,
                 "points": sanitize_value(game_data.get("Points", 0)),
                 "rebounds": sanitize_value(game_data.get("scoredRebounds", 0)),
                 "assists": sanitize_value(game_data.get("Assists", 0)),
@@ -388,56 +345,36 @@ def get_team_stats(request, name):
                 "steals": sanitize_value(game_data.get("Steals", 0)),
                 "blocks": sanitize_value(game_data.get("Blocks", 0)),
                 "turnovers": sanitize_value(game_data.get("Turnovers", 0)),
-                "is_future_game": game_data.get('is_future_game', 0)
+                "is_future_game": game_data.get('is_future_game', 0),
+                # Include additional fields needed for filtering
+                "Matchup": game_data.get("Matchup", ""),
+                "TEAM_ABBREVIATION": team.get("abbrev_name", ""),
+                "WinLoss": game_data.get("WinLoss", "")
             }
             team_stats.append(stats)
         
-        # apply the "Last N Games" filter if specified (excluding future games)
-        if last_n_games:
-            try:
-                n = int(last_n_games)
-                # create a list of past games (non-future games)
-                past_games = [game for game in team_stats if not game.get('is_future_game', False)]
-                
-                # sort games by date (handling cases where date_obj might be None)
-                def get_date_for_sorting(game):
-                    if game.get('date_obj') is not None:
-                        return game['date_obj']
-                    # fallback: Try to parse the date directly
-                    try:
-                        date_str = game['date'].split('_')[0] if '_' in game['date'] else game['date']
-                        return datetime.datetime.strptime(date_str, '%Y-%m-%d')
-                    except (ValueError, AttributeError):
-                        # if parsing fails, return a very old date to sort to the end
-                        return datetime.datetime(1900, 1, 1)
-                
-                past_games.sort(key=get_date_for_sorting, reverse=True)
-                
-                # take only the first N games
-                filtered_past_games = past_games[:n]
-                
-                # add future games (they're not affected by Last N Games filter)
-                future_games = [game for game in team_stats if game.get('is_future_game', False)]
-                
-                # replace player_stats with the filtered list
-                team_stats = filtered_past_games + future_games
-            except (ValueError, TypeError) as e:
-                print(f"Invalid last_n_games parameter: {last_n_games}, Error: {e}")
-                # just continue without applying this filter if there's an error
+        # Apply filters
+        filtered_stats = apply_filters_to_games(team_stats, filters)
         
-        # remove temporary date_obj used for sorting
-        for game in team_stats:
-            if 'date_obj' in game:
-                del game['date_obj']
+        # Sort games by date (oldest first for statistics calculation)
+        filtered_stats.sort(key=lambda x: x['date'])
         
-        # generate seasonal stats from the filtered game stats
-        seasonal_stats = aggregate_seasonal_stats(team_stats)
+        # Generate seasonal stats from the filtered game stats
+        seasonal_stats = aggregate_seasonal_stats(filtered_stats)
+        
+        # Remove temporary fields used for filtering before returning
+        for game in filtered_stats:
+            fields_to_remove = ['Matchup', 'TEAM_ABBREVIATION', 'WinLoss', 'game_location', 
+                              'opponent_abbr', 'opponent_division', 'opponent_conference', 
+                              'is_interconference']
+            for field in fields_to_remove:
+                if field in game:
+                    del game[field]
         
         return JsonResponse({
-            "stats": team_stats,
+            "stats": filtered_stats,
             "seasonal_stats": seasonal_stats
         }, status=200)
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-    
