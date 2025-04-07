@@ -234,6 +234,8 @@ def make_future_predictions():
                 print(f"Predicted points for {player_name} in upcoming game: {predicted_points}")
 
     all_teams = db['teams'].find()
+
+    start = False
     
     for team in all_teams:
         full_team_name = team['name']
@@ -282,6 +284,9 @@ def make_future_predictions():
                     upsert=True
                 )
                 print(f"Predicted points for {team_name} in upcoming game: {predicted_points}")
+
+        if team_name == "CLE":
+            start = True
 
         avg = team_ppg(team_name, "Points", "team")
         team_collection.update_one(
@@ -336,6 +341,8 @@ def get_seasons():
 
 def upload_to_mongodb():
     # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
+    get_player_data()
+    get_team_data()
     make_future_predictions()
 
 if __name__ == "__main__":

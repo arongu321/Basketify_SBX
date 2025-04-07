@@ -1,7 +1,22 @@
 # Basketify_SBX
 
 ## Description
-This ECE 493 Capstone project aims to build a full stack machine learning application that displays a variety of NBA statistics bnased on user preference and predicts NBA player and team performance based on a variety of predictors provided.
+Basketify was completed as our final-year engineering capstone project for ECE 493.
+
+The project implements a full-stack web app which allows users to view NBA statsistics and
+see ML predictions for upcoming games and the overall NBA champion.
+
+To run the project locally (run the web server so that it can be accessed on the local network), see
+test_server/RUNNING_INSTRUCTIONS.txt.
+
+Backend (Django) test cases can be executed by the following:
+$ cd test_server/backend
+$ python3 manage.py test
+
+Frontend/Acceptance test (React/JS) can be executed by the following:
+$ cd test_server/frontend
+$ npm test
+(to see coverage statistics run it as: npm test -- --coverage)
 
 ## Developers
 - Aron Gu (arongu321)

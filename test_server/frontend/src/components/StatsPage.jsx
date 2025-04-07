@@ -249,6 +249,7 @@ function StatsPage() {
                                 <tr>
                                     <th>{isSeasonal ? 'Season' : 'Date'}</th>
                                     {!isSeasonal && <th>Opponent</th>}
+                                    {!isSeasonal && <th>Outcome</th>}
                                     <th>Points Scored</th>
                                     <th>Rebounds</th>
                                     <th>Assists</th>
@@ -285,10 +286,11 @@ function StatsPage() {
                                                         'N/A'}
                                                 </td>
                                             )}
-                                            <td>{gameStats.points}</td>
-                                            <td>{gameStats.rebounds}</td>
-                                            <td>{gameStats.assists}</td>
-                                            <td>{gameStats.fieldGoalsMade}</td>
+                                            {!isSeasonal && (<td>{gameStats.WinLoss}</td>)}
+                                            <td>{gameStats.points.toFixed(0)}</td>
+                                            <td>{gameStats.rebounds.toFixed(0)}</td>
+                                            <td>{gameStats.assists.toFixed(0)}</td>
+                                            <td>{gameStats.fieldGoalsMade.toFixed(0)}</td>
                                             <td>
                                                 {(
                                                     gameStats.fieldGoalPercentage *
@@ -296,7 +298,7 @@ function StatsPage() {
                                                 ).toFixed(1)}
                                                 %
                                             </td>
-                                            <td>{gameStats.threePointsMade}</td>
+                                            <td>{gameStats.threePointsMade.toFixed(0)}</td>
                                             <td>
                                                 {(
                                                     gameStats.threePointPercentage *
@@ -304,7 +306,7 @@ function StatsPage() {
                                                 ).toFixed(1)}
                                                 %
                                             </td>
-                                            <td>{gameStats.freeThrowsMade}</td>
+                                            <td>{gameStats.freeThrowsMade.toFixed(0)}</td>
                                             <td>
                                                 {(
                                                     gameStats.freeThrowPercentage *
@@ -312,9 +314,9 @@ function StatsPage() {
                                                 ).toFixed(1)}
                                                 %
                                             </td>
-                                            <td>{gameStats.steals}</td>
-                                            <td>{gameStats.blocks}</td>
-                                            <td>{gameStats.turnovers}</td>
+                                            <td>{gameStats.steals.toFixed(0)}</td>
+                                            <td>{gameStats.blocks.toFixed(0)}</td>
+                                            <td>{gameStats.turnovers.toFixed(0)}</td>
                                         </tr>
                                     ))}
                             </tbody>
@@ -328,6 +330,7 @@ function StatsPage() {
                                         <tr>
                                             <th>Date</th>
                                             <th>Opponent</th>
+                                            <th>Outcome</th>
                                             <th>Points Scored</th>
                                             <th>Rebounds</th>
                                             <th>Assists</th>
@@ -354,6 +357,7 @@ function StatsPage() {
                                                     {gameStats.opponent ||
                                                         'N/A'}
                                                 </td>
+                                                <td>{gameStats.WinLoss}</td>
                                                 <td>{gameStats.points}</td>
                                                 <td>{gameStats.rebounds}</td>
                                                 <td>{gameStats.assists}</td>

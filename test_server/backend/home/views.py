@@ -39,12 +39,6 @@ def welcome(request):
     return JsonResponse({'message': 'Welcome to Django with React!'})
 
 
-def get_ml_predictions_msg(request):
-    now = datetime.datetime.now()
-    message = f"Welcome to the ML Predictions Page! Current time from Django: {now}"
-    return JsonResponse({"message": message})
-
-
 # backend to query MongoDB for player name, returns all players where name partially
 # matches. Fulfills FR7
 def search_player(request):
@@ -287,7 +281,7 @@ def get_player_stats(request, name):
         
         # Remove temporary fields used for filtering before returning
         for game in filtered_stats:
-            fields_to_remove = ['Matchup', 'TEAM_ABBREVIATION', 'WinLoss', 'game_location', 
+            fields_to_remove = ['Matchup', 'TEAM_ABBREVIATION', 'game_location', 
                               'opponent_abbr', 'opponent_division', 'opponent_conference', 
                               'is_interconference']
             for field in fields_to_remove:
@@ -384,7 +378,7 @@ def get_team_stats(request, name):
         
         # Remove temporary fields used for filtering before returning
         for game in filtered_stats:
-            fields_to_remove = ['Matchup', 'TEAM_ABBREVIATION', 'WinLoss', 'game_location', 
+            fields_to_remove = ['Matchup', 'TEAM_ABBREVIATION', 'game_location', 
                               'opponent_abbr', 'opponent_division', 'opponent_conference', 
                               'is_interconference']
             for field in fields_to_remove:
@@ -398,3 +392,20 @@ def get_team_stats(request, name):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+def predict_nba_champion(request):
+    client = get_mongo_client()
+    db = client['nba_stats']
+    teams_col = db["teams"]
+
+    top_team = teams_col.find_one(
+        {"avg_ppg": {"$exists": True}},
+        sort=[("avg_ppg", -1)]
+    )
+    if top_team:
+        return JsonResponse({
+            "top_team": top_team["name"], 
+            "top_team_ppg": top_team["avg_ppg"]
+        }, status=200)
+    return JsonResponse({'error': "No team has avg_ppg recorded"}, status=500)
