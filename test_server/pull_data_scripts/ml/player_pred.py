@@ -36,7 +36,7 @@ client = get_mongo_client()
 if client is None:
     print("Error: Could not connect to MongoDB")
 
-db = client['nba_stats']
+db = client['nba_stats_all']
 
 def get_game_stats(name, entity_type="player"):
     """
@@ -48,7 +48,6 @@ def get_game_stats(name, entity_type="player"):
         print("Error: Could not connect to MongoDB")
         return []
 
-    db = client['nba_stats_all']
     collection = db['players'] if entity_type == "player" else db['teams']
 
     data = collection.find_one(
@@ -274,32 +273,80 @@ def predict_next_game_vs_team_with_ci(name, team, stat_key, entity_type, degree=
 
     return round(predicted_points, 2), round(confidence * 100, 2), prediction_ranges
 
+def determine_win_loss(team_abbrev, opponent_abbrev, game_date):
+    """
+    Given a team and its opponent (short forms) and a game date, determine if the team won or lost.
+    Example date format: '2025-04-01_04-00-00'
+    """
+    teams_col = db['teams']
+
+    # Fetch both teams
+    team_data = teams_col.find_one({"abbrev_name": team_abbrev}, {"future_games": 1})
+    opp_data = teams_col.find_one({"abbrev_name": opponent_abbrev}, {"future_games": 1})
+
+    if not team_data or not opp_data:
+        return "Error: One or both teams not found."
+
+    team_score = team_data.get("future_games", {}).get(game_date, {}).get("Points")
+    opp_score = opp_data.get("future_games", {}).get(game_date, {}).get("Points")
+
+    if team_score is None or opp_score is None:
+        return f"Error: Score not found for {team_abbrev} or {opponent_abbrev} on {game_date}"
+
+    if team_score > opp_score:
+        return "W"
+    elif team_score < opp_score:
+        return "L"
+    else:
+        return "T"  # In case of a tie
+    
+def team_ppg(team_abbrev, stat_key, entity_type):
+
+    collection = db['players'] if entity_type == "player" else db['teams']
+
+    team_data = collection.find_one({"abbrev_name": team_abbrev}, {"games": 1, "future_games": 1})
+    all_games = {**team_data.get("games", {}), **team_data.get("future_games", {})}
+
+    points_list = [g[stat_key] for g in all_games.values() if g.get(stat_key) is not None]
+    if not points_list:
+        print(f"No points data available for {team_abbrev}")
+        return
+
+    avg_ppg = sum(points_list) / len(points_list)
+
+    # Save to DB
+    # teams_col.update_one({"abbrev_name": team_abbrev}, {"$set": {"avg_ppg": round(avg_ppg, 2)}})
+    print(f"{team_abbrev} avg_ppg updated to {round(avg_ppg, 2)}")
+
+    return round(avg_ppg, 2)
+
+def predict_nba_champion():
+    teams_col = db["teams"]
+
+    top_team = teams_col.find_one(
+        {"avg_ppg": {"$exists": True}},
+        sort=[("avg_ppg", -1)]
+    )
+    if top_team:
+        return top_team["name"], top_team["avg_ppg"]
+    return "No team has avg_ppg recorded", 0
 
 if __name__ == "__main__":
     entities = [("LeBron James", "player"), ("Los Angeles Lakers", "team")]
     stat_keys = ["Points"]
     team = "GSW"
 
-    for name, entity_type in entities:
-        print(f"\n===== Predictions for {entity_type.upper()}: {name} =====")
-        for stat in stat_keys:
-            # print(f"\n--- {stat} Predictions ---")
+    # for name, entity_type in entities:
+    #     print(f"\n===== Predictions for {entity_type.upper()}: {name} =====")
+    #     for stat in stat_keys:
 
-            # predicted_lr, conf_lr = predict_next_game_points(name, stat, entity_type)
-            # print(f"Linear Regression - {stat}: {predicted_lr} (Confidence: {conf_lr}%)")
+    #         predicted_vs_team, conf_vs_team = predict_next_game_vs_team(name, team, stat, entity_type)
+    #         print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
 
-            # predicted_poly, conf_poly = predict_next_game_points_poly(name, stat, entity_type)
-            # print(f"Polynomial Regression - {stat}: {predicted_poly} (Confidence: {conf_poly}%)")
+    #         predicted_vs_team, conf_vs_team, ranges_vs_team = predict_next_game_vs_team_with_ci(name, team, stat, entity_type)
+    #         print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
+    #         for level, (low, high) in ranges_vs_team.items():
+    #             print(f"{level} Confidence Interval vs {team}: {low} - {high} {stat}")
 
-            # predicted_poly, conf_poly, ranges = predict_point_ranges_poly(name, stat, entity_type)
-            # print(f"Polynomial Regression - {stat}: {predicted_poly} (Confidence: {conf_poly}%)")
-            # for level, (low, high) in ranges.items():
-            #     print(f"{level} Confidence Interval: {low} - {high} {stat}")
-
-            predicted_vs_team, conf_vs_team = predict_next_game_vs_team(name, team, stat, entity_type)
-            print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
-
-            predicted_vs_team, conf_vs_team, ranges_vs_team = predict_next_game_vs_team_with_ci(name, team, stat, entity_type)
-            print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
-            for level, (low, high) in ranges_vs_team.items():
-                print(f"{level} Confidence Interval vs {team}: {low} - {high} {stat}")
+    print(determine_win_loss("ATL", "NYK", "2025-04-05_04-00-00"))
+    print(team_ppg("NYK", "Points", "team"))
