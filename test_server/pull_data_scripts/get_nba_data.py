@@ -189,6 +189,10 @@ def make_future_predictions():
             if game['homeTeam'] in player['team'] or game['awayTeam'] in player['team']:
                 opponent_team = game['awayTeam'] if game['homeTeam'] in player['team'] else game['homeTeam']
                 
+                if player['team'] == game['homeTeam']:
+                    matchup = f"{game['homeTeam']} vs {game['awayTeam']}"
+                else:
+                    matchup = f"{game['awayTeam']} @ {game['homeTeam']}"
                 predicted_points, _ = predict_next_game_vs_team(player_name, opponent_team, "Points", "player")
                 predicted_rebounds, _ = predict_next_game_vs_team(player_name, opponent_team, "scoredRebounds", "player")
                 predicted_assists, _ = predict_next_game_vs_team(player_name, opponent_team, "Assists", "player")
@@ -204,7 +208,7 @@ def make_future_predictions():
                 
                 formatted_date = game['gameDateUTC'].strftime("%Y-%m-%d_%H-%M-%S")
                 player_data = {
-                    "Matchup": f"{game['homeTeam']} vs {game['awayTeam']}",
+                    "Matchup": matchup,
                     "Points": predicted_points,
                     "scoredRebounds": predicted_rebounds,
                     "Assists": predicted_assists,
@@ -217,6 +221,7 @@ def make_future_predictions():
                     "Steals": predicted_steals,
                     "Blocks": predicted_blocks,
                     "Turnovers": predicted_turnovers,
+                    "Team": player['team'],
                     "SEASON_ID": "22024",
                     "is_future_game": True
                 }
