@@ -12,7 +12,7 @@ try:
 except Exception as e:
     print("Error connecting to MongoDB:", e)
 
-db = client['nba_stats_all']
+db = client['nba_stats']
 player_collection = db['players']
 team_collection = db['teams']
 
@@ -293,6 +293,9 @@ def make_future_predictions():
     champ_name, champ_ppg = predict_nba_champion()
     print(f"\nPredicted NBA Champion: {champ_name} ({champ_ppg} PPG)\n")
 
+def predict_win_loss():
+    all_teams = db['teams'].find()
+    upcoming_games = get_upcoming_games()
     for team in all_teams:
         full_team_name = team['name']
         team_name = team['abbrev_name']
@@ -315,6 +318,7 @@ def make_future_predictions():
                     {"$set": {f"future_games.{game_date}.WinLoss": outcome}},
                     upsert=True
                 )
+        print("Predicted W/L for:" + team_name)
 
 def get_seasons():
     """
@@ -337,6 +341,9 @@ def get_seasons():
 def upload_to_mongodb():
     # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
     make_future_predictions()
+    predict_win_loss()
+    #get_seasons()
+    
 
 if __name__ == "__main__":
     upload_to_mongodb()
