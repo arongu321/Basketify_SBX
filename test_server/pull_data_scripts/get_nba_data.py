@@ -12,7 +12,7 @@ try:
 except Exception as e:
     print("Error connecting to MongoDB:", e)
 
-db = client['nba_stats']
+db = client['nba_stats_all']
 player_collection = db['players']
 team_collection = db['teams']
 print("We're here!")
@@ -153,8 +153,8 @@ def get_upcoming_games():
         for game_date in data["leagueSchedule"]["gameDates"]:
             for game in game_date["games"]:
                 game_date_utc = datetime.strptime(game["gameDateUTC"], "%Y-%m-%dT%H:%M:%SZ")
-                
-                if game_date_utc >= datetime.utcnow():
+                target_date = datetime(2025, 4, 7, 0, 0, 0)
+                if game_date_utc >= target_date:
                     if game["homeTeam"]["teamCity"] is not None:
                         game_info = {
                             "gameId": game["gameId"],
@@ -165,7 +165,6 @@ def get_upcoming_games():
                         upcoming_games.append(game_info)
                     else:
                         print("Skipping game (likely playoffs/all-stars): ")
-                        print(game)
 
         return upcoming_games
 
@@ -323,6 +322,7 @@ def predict_win_loss():
                     {"$set": {f"future_games.{game_date}.WinLoss": outcome}},
                     upsert=True
                 )
+                print("Predict W/L for " + team_name + " vs " + opponent + " on " + game_date)
         print("Predicted W/L for:" + team_name)
 
 def get_seasons():
@@ -432,5 +432,6 @@ if __name__ == "__main__":
     # upload_to_mongodb()
     # fix_future_games()
     # delete_duplicate_players()
-    delete_duplicate_teams()
+    # delete_duplicate_teams()
+    predict_win_loss()
  

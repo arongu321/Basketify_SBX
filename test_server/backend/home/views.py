@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 import datetime
 from pymongo import MongoClient
-from .utils import apply_filters_to_games, determine_season_year, determine_season_type, get_game_location, get_opponent_from_matchup, alias_abbreviations
+from .utils import apply_filters_to_games, get_opponent_from_matchup, alias_abbreviations, get_game_location, get_season_year_from_season_id, get_season_type_from_season_id
 
 
 # global to prevent having to connect multiple times
@@ -139,8 +139,8 @@ def aggregate_seasonal_stats(stats):
     grouped_by_season = {}
     
     for stat in stats:
-        season = get_season_from_date(stat['date'])
-        if not season:
+        season = get_season_year_from_season_id(stat.get('SEASON_ID', ''))
+        if not season or season == "Unknown":
             continue
 
         if season not in grouped_by_season:
@@ -219,7 +219,7 @@ def get_player_stats(request, name):
         # Extract filter parameters from request
         filters = {}
         for param in ['date_from', 'date_to', 'last_n_games', 'season', 'season_type', 
-                     'division', 'conference', 'game_type', 'outcome', 'opponents']:
+                     'division', 'conference', 'game_type', 'outcome', 'opponents', 'month']:
             if request.GET.get(param):
                 filters[param] = request.GET.get(param)
         
@@ -245,6 +245,8 @@ def get_player_stats(request, name):
                 opponent = get_opponent_from_matchup(matchup, team_abbr)
                 if opponent in alias_abbreviations:
                     opponent = alias_abbreviations[opponent]
+                gameLocation = get_game_location(matchup)
+            
             
             # Basic stats model
             stats = {
@@ -266,7 +268,10 @@ def get_player_stats(request, name):
                 # Include additional fields needed for filtering
                 "Matchup": game_data.get("Matchup", ""),
                 "TEAM_ABBREVIATION": game_data.get("Team", ""),
-                "WinLoss": game_data.get("WinLoss", "")
+                "WinLoss": game_data.get("WinLoss", ""),
+                "SEASON_ID": game_data.get("SEASON_ID", ""),
+                "gameLocation": gameLocation,
+                "seasonType": get_season_type_from_season_id(game_data.get("SEASON_ID", ""))
             }
             player_stats.append(stats)
         
@@ -342,6 +347,7 @@ def get_team_stats(request, name):
                 opponent = get_opponent_from_matchup(matchup, team_abbr)
                 if opponent in alias_abbreviations:
                     opponent = alias_abbreviations[opponent]
+                gameLocation = get_game_location(matchup)
             
             # Basic stats model
             stats = {
@@ -363,7 +369,10 @@ def get_team_stats(request, name):
                 # Include additional fields needed for filtering
                 "Matchup": game_data.get("Matchup", ""),
                 "TEAM_ABBREVIATION": team_abbr,
-                "WinLoss": game_data.get("WinLoss", "")
+                "WinLoss": game_data.get("WinLoss", ""),
+                "SEASON_ID": game_data.get("SEASON_ID", ""),
+                "gameLocation": gameLocation,
+                "seasonType": get_season_type_from_season_id(game_data.get("SEASON_ID", ""))
             }
             team_stats.append(stats)
         

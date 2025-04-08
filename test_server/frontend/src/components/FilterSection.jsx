@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/FilterSection.css';
 import {
     NBA_SEASONS,
@@ -10,30 +10,64 @@ import {
     NBA_TEAMS,
 } from '../utils/constants';
 
-const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
-    const [dateFrom, setDateFrom] = useState('');
-    const [dateTo, setDateTo] = useState('');
-    const [lastNGames, setLastNGames] = useState('');
+const FilterSection = ({
+    isOpen,
+    onApplyFilters,
+    entityType,
+    initialFilters = {}, // New prop to receive initial filter state
+}) => {
+    // Initialize state with initial filters or empty values
+    const [dateFrom, setDateFrom] = useState(initialFilters.date_from || '');
+    const [dateTo, setDateTo] = useState(initialFilters.date_to || '');
+    const [lastNGames, setLastNGames] = useState(
+        initialFilters.last_n_games || ''
+    );
 
-    // New filter states
-    const [selectedSeason, setSelectedSeason] = useState('');
-    const [selectedSeasonType, setSelectedSeasonType] = useState('');
-    const [selectedDivision, setSelectedDivision] = useState('');
-    const [selectedConference, setSelectedConference] = useState('');
-    const [selectedGameType, setSelectedGameType] = useState('');
-    const [selectedOutcome, setSelectedOutcome] = useState('');
-    const [selectedOpponents, setSelectedOpponents] = useState([]);
+    const [selectedSeason, setSelectedSeason] = useState(
+        initialFilters.season || ''
+    );
+    const [selectedSeasonType, setSelectedSeasonType] = useState(
+        initialFilters.season_type || ''
+    );
+    const [selectedDivision, setSelectedDivision] = useState(
+        initialFilters.division || ''
+    );
+    const [selectedConference, setSelectedConference] = useState(
+        initialFilters.conference || ''
+    );
+    const [selectedGameType, setSelectedGameType] = useState(
+        initialFilters.game_type || ''
+    );
+    const [selectedOutcome, setSelectedOutcome] = useState(
+        initialFilters.outcome || ''
+    );
+    const [selectedOpponents, setSelectedOpponents] = useState(
+        initialFilters.opponents ? initialFilters.opponents.split(',') : []
+    );
+
+    // Reset filters to the initial state
+    const handleClearFilters = () => {
+        setDateFrom('');
+        setDateTo('');
+        setLastNGames('');
+        setSelectedSeason('');
+        setSelectedSeasonType('');
+        setSelectedDivision('');
+        setSelectedConference('');
+        setSelectedGameType('');
+        setSelectedOutcome('');
+        setSelectedOpponents([]);
+    };
 
     const handleApplyFilters = () => {
-        // Construct query parameters for backend filtering
         const filters = {};
 
-        // Original filters
+        // Date range filters
         if (dateFrom) filters.date_from = dateFrom;
         if (dateTo) filters.date_to = dateTo;
         if (lastNGames) filters.last_n_games = lastNGames;
 
-        // New filters
+        // Additional filters
         if (selectedSeason) filters.season = selectedSeason;
         if (selectedSeasonType && selectedSeasonType !== 'All')
             filters.season_type = selectedSeasonType;
@@ -52,23 +86,6 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
         onApplyFilters(filters);
     };
 
-    const handleClearFilters = () => {
-        // Reset all filter states
-        setDateFrom('');
-        setDateTo('');
-        setLastNGames('');
-        setSelectedSeason('');
-        setSelectedSeasonType('');
-        setSelectedDivision('');
-        setSelectedConference('');
-        setSelectedGameType('');
-        setSelectedOutcome('');
-        setSelectedOpponents([]);
-
-        // Clear filters in parent component
-        onApplyFilters({}, true);
-    };
-
     const toggleOpponent = (team) => {
         setSelectedOpponents((prev) =>
             prev.includes(team)
@@ -83,7 +100,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
         <div className="filter-section">
             <h3>Filter Options</h3>
             <div className="filter-content">
-                {/* Original date range filters */}
+                {/* All existing filter inputs remain the same */}
                 <div className="filter-group">
                     <label>Date Range:</label>
                     <div className="filter-controls">
@@ -112,7 +129,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                             onChange={(e) => setSelectedSeason(e.target.value)}
                         >
                             <option value="">All Seasons</option>
-                            {NBA_SEASONS.map((season) => (
+                            {NBA_SEASONS[entityType].map((season) => (
                                 <option key={season} value={season}>
                                     {season}
                                 </option>
@@ -121,7 +138,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                     </div>
                 </div>
 
-                {/* Season type filter */}
+                {/* Remaining filter groups remain unchanged */}
                 <div className="filter-group">
                     <label>Season Type:</label>
                     <div className="filter-controls">
@@ -149,6 +166,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                             value={selectedOutcome}
                             onChange={(e) => setSelectedOutcome(e.target.value)}
                         >
+                            <option value="">All Outcomes</option>
                             {GAME_OUTCOMES.map((outcome) => (
                                 <option key={outcome} value={outcome}>
                                     {outcome}
@@ -216,9 +234,9 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                     </div>
                 </div>
 
-                {/* Game type filter (Inter/Intra conference) */}
+                {/* Conference type filter */}
                 <div className="filter-group">
-                    <label>Game Type:</label>
+                    <label>Conference Type:</label>
                     <div className="filter-controls">
                         <select
                             value={selectedGameType}
@@ -226,6 +244,7 @@ const FilterSection = ({ isOpen, onApplyFilters, entityType }) => {
                                 setSelectedGameType(e.target.value)
                             }
                         >
+                            <option value="">All Conference Types</option>
                             {GAME_TYPES.map((type) => (
                                 <option key={type} value={type}>
                                     {type}
