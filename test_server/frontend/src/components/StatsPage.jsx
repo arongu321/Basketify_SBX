@@ -294,30 +294,30 @@ function StatsPage() {
                                                     {gameStats.fieldGoalsMade}
                                                 </td>
                                                 <td>
-                                                    {(
+                                                    {gameStats.fieldGoalPercentage ? (
                                                         gameStats.fieldGoalPercentage *
                                                         100
-                                                    ).toFixed(1)}
+                                                    ).toFixed(1): 'N/A'}
                                                     %
                                                 </td>
                                                 <td>
                                                     {gameStats.threePointsMade}
                                                 </td>
                                                 <td>
-                                                    {(
+                                                    {gameStats.threePointPercentage ? (
                                                         gameStats.threePointPercentage *
                                                         100
-                                                    ).toFixed(1)}
+                                                    ).toFixed(1) : 'N/A'}
                                                     %
                                                 </td>
                                                 <td>
                                                     {gameStats.freeThrowsMade}
                                                 </td>
                                                 <td>
-                                                    {(
+                                                    {gameStats.freeThrowPercentage ? (
                                                         gameStats.freeThrowPercentage *
                                                         100
-                                                    ).toFixed(1)}
+                                                    ).toFixed(1) : 'N/A'}
                                                     %
                                                 </td>
                                                 <td>{gameStats.steals}</td>
@@ -397,58 +397,58 @@ function StatsPage() {
                                                 <td>{gameStats.seasonType}</td>
                                             )}
                                             <td>
-                                                {gameStats.points.toFixed(0)}
+                                                {gameStats.points ? gameStats.points.toFixed(0): 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.rebounds.toFixed(0)}
+                                                {gameStats.rebounds ? gameStats.rebounds.toFixed(0) : 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.assists.toFixed(0)}
+                                                {gameStats.assists ? gameStats.assists.toFixed(0): 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.fieldGoalsMade.toFixed(
+                                                {gameStats.fieldGoalsMade ? gameStats.fieldGoalsMade.toFixed(
                                                     0
-                                                )}
+                                                ): 'N/a'}
                                             </td>
                                             <td>
-                                                {(
+                                                {gameStats.fieldGoalPercentage ? (
                                                     gameStats.fieldGoalPercentage *
                                                     100
-                                                ).toFixed(1)}
+                                                ).toFixed(1) : 'N/A'}
                                                 %
                                             </td>
                                             <td>
-                                                {gameStats.threePointsMade.toFixed(
+                                                {gameStats.threePointsMade ? gameStats.threePointsMade.toFixed(
                                                     0
-                                                )}
+                                                ) : 'N/A'}
                                             </td>
                                             <td>
-                                                {(
+                                                {gameStats.threePointPercentage ? (
                                                     gameStats.threePointPercentage *
                                                     100
-                                                ).toFixed(1)}
+                                                ).toFixed(1) : 'N/A'}
                                                 %
                                             </td>
                                             <td>
-                                                {gameStats.freeThrowsMade.toFixed(
+                                                {gameStats.freeThrowsMade ? gameStats.freeThrowsMade.toFixed(
                                                     0
-                                                )}
+                                                ): 'N/A'}
                                             </td>
                                             <td>
-                                                {(
+                                                {gameStats.freeThrowPercentage ? (
                                                     gameStats.freeThrowPercentage *
                                                     100
-                                                ).toFixed(1)}
+                                                ).toFixed(1): 'N/A'}
                                                 %
                                             </td>
                                             <td>
-                                                {gameStats.steals.toFixed(0)}
+                                                {gameStats.steals ? gameStats.steals.toFixed(0) : 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.blocks.toFixed(0)}
+                                                {gameStats.blocks ? gameStats.blocks.toFixed(0): 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.turnovers.toFixed(0)}
+                                                {gameStats.turnovers ? gameStats.turnovers.toFixed(0): 'N/A'}
                                             </td>
                                         </tr>
                                     ))}
