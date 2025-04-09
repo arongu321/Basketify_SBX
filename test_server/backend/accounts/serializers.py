@@ -9,9 +9,9 @@ class UserFavoriteSerializer(serializers.ModelSerializer):
         fields = ['favorite_type', 'favorite_name']
 
 
-# written by Aron
 User = get_user_model()
 
+# Fulfulls FR2 in setting up user serializer for user login
 class UserSerializer(serializers.ModelSerializer):
     favorites = UserFavoriteSerializer(many=True, read_only=True)
 
@@ -20,6 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'email_is_verified', 'favorites']
         read_only_fields = ['id', 'email_is_verified']
 
+# Fulfills FR1 in setting up user create serializer to create user during user registration
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField(required=True)

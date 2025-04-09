@@ -27,6 +27,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError(_('Superuser must have is_superuser=True.'))
         return self.create_user(email, password, **extra_fields)
 
+# Fulfills FR1 and FR2 by facilitating user login and registration with a custom user model with email and password
 class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(_("Email Address"), unique=True)
