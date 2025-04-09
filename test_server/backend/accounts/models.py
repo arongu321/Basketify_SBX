@@ -59,7 +59,8 @@ class CustomUser(AbstractUser):
         self.verification_token_created = timezone.now()
         self.save(update_fields=['verification_token_created'])
     
-    
+
+# Fulfills FR5 and FR6 by modelling PostgreSQL user account favourite fields to Python objects
 class UserFavorite(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='favorites')
     favorite_type = models.CharField(max_length=10, choices=[('player', 'Player'), ('team', 'Team')])

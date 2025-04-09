@@ -11,7 +11,8 @@ const api = axios.create({
         : apiURL,
 });
 
-// Add an interceptor to include auth token in requests
+// Add an interceptor to include auth token in requests. Part of user authentication
+// to it contributes to FR2
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem(ACCESS_TOKEN);

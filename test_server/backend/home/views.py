@@ -40,7 +40,8 @@ def welcome(request):
 
 
 # backend to query MongoDB for player name, returns all players where name partially
-# matches. Fulfills FR7
+# matches. Fulfills FR7 and FR16 because search for player is used as both the past stats
+# search and prompt for future ML predictions
 def search_player(request):
     # get 'name' param from the GET request
     name = request.GET.get('name', None)
@@ -74,7 +75,8 @@ def search_player(request):
 
 
 # backend to query MongoDB for team name, returns all team where name partially
-# matches. Fulfills FR8
+# matches. Fulfills FR8 and FR17 because search for team is used as both the past stats
+# search and prompt for future ML predictions
 def search_team(request):
     # get 'name' param from the GET request
     name = request.GET.get('name', None)
@@ -201,7 +203,8 @@ def aggregate_seasonal_stats(stats):
 
 
 # main backend route which receieves an HTTP request with a player name and returns
-# the game-by-game and aggregated seasonal stats for that player. Fulfills FR9, FR10, FR11, FR15
+# the game-by-game and aggregated seasonal stats for that player. Fulfills FR9, FR10, FR11, FR15, and
+# FR18 because future ML predictions are retrieved from database here
 def get_player_stats(request, name):
     """
     Get player stats with various filtering options
@@ -303,7 +306,8 @@ def get_player_stats(request, name):
 
 
 # main backend route which receieves an HTTP request with a team name and returns
-# the game-by-game and aggregated seasonal stats for that team. Fulfills FR9, FR10, FR11, FR15
+# the game-by-game and aggregated seasonal stats for that team. Fulfills FR9, FR10, FR11, FR15, and
+# FR18 because future ML predictions are retrieved from database here
 def get_team_stats(request, name):
     """
     Get team stats with various filtering options
@@ -403,6 +407,8 @@ def get_team_stats(request, name):
         return JsonResponse({'error': str(e)}, status=500)
     
 
+# Fulfills FR21 by retrieving predicted season champion based on highest avg_ppg
+# in database
 def predict_nba_champion(request):
     client = get_mongo_client()
     db = client['nba_stats_all']
