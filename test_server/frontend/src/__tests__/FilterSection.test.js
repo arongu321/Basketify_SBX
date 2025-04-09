@@ -114,12 +114,12 @@ describe('Filter Section Tests (FR25-FR28)', () => {
         });
 
         test('filter_season_update', async () => {
-            renderFilterSection();
+            const { container } = renderFilterSection();
 
-            // Get season dropdown
-            const seasonSelect = screen
-                .getByLabelText('Season:')
-                .nextElementSibling.querySelector('select');
+            // Get all select elements and find the one following the Season: label
+            const seasonLabel = screen.getByText('Season:');
+            const seasonSelectWrapper = seasonLabel.closest('.filter-group');
+            const seasonSelect = seasonSelectWrapper.querySelector('select');
 
             // Change value to first season in dropdown (after "All Seasons")
             fireEvent.change(seasonSelect, { target: { value: '2022-23' } });
@@ -141,7 +141,7 @@ describe('Filter Section Tests (FR25-FR28)', () => {
     // FR27 - Multiple Filter Criteria Tests
     describe('FR27 - Multiple Filter Criteria', () => {
         test('apply_multiple_filters_simultaneously', async () => {
-            renderFilterSection();
+            const { container } = renderFilterSection();
 
             // Set multiple filter values
             fireEvent.change(screen.getByPlaceholderText('Start Date'), {
@@ -153,17 +153,19 @@ describe('Filter Section Tests (FR25-FR28)', () => {
             );
 
             // Select a specific season type
-            const seasonTypeSelect = screen
-                .getByLabelText('Season Type:')
-                .nextElementSibling.querySelector('select');
+            const seasonTypeLabel = screen.getByText('Season Type:');
+            const seasonTypeWrapper = seasonTypeLabel.closest('.filter-group');
+            const seasonTypeSelect = seasonTypeWrapper.querySelector('select');
+
             fireEvent.change(seasonTypeSelect, {
                 target: { value: 'Regular Season' },
             });
 
             // Select a specific game outcome
-            const outcomeSelect = screen
-                .getByLabelText('Game Outcome:')
-                .nextElementSibling.querySelector('select');
+            const outcomeLabel = screen.getByText('Game Outcome:');
+            const outcomeWrapper = outcomeLabel.closest('.filter-group');
+            const outcomeSelect = outcomeWrapper.querySelector('select');
+
             fireEvent.change(outcomeSelect, { target: { value: 'Win' } });
 
             // Apply filters
@@ -181,18 +183,28 @@ describe('Filter Section Tests (FR25-FR28)', () => {
         });
 
         test('opponents_filter_multiple_selection', async () => {
-            renderFilterSection();
+            const { container } = renderFilterSection();
 
-            // Open opponents dropdown
+            // Open opponents dropdown to view options
             const opponentsDropdown = screen.getByText('Select opponents');
             fireEvent.click(opponentsDropdown);
 
-            // Select two teams
-            const bostonOption = screen.getByText('Boston Celtics');
-            const lakersOption = screen.getByText('Los Angeles Lakers');
+            // Find the opponent options in the dropdown
+            const opponentsList = container.querySelector('.opponents-list');
 
-            fireEvent.click(bostonOption);
-            fireEvent.click(lakersOption);
+            // Find specific team options
+            const bostonOption = Array.from(
+                opponentsList.querySelectorAll('.opponent-option')
+            ).find((option) => option.textContent.includes('Boston Celtics'));
+            const lakersOption = Array.from(
+                opponentsList.querySelectorAll('.opponent-option')
+            ).find((option) =>
+                option.textContent.includes('Los Angeles Lakers')
+            );
+
+            // Click on the team options
+            if (bostonOption) fireEvent.click(bostonOption);
+            if (lakersOption) fireEvent.click(lakersOption);
 
             // Apply filters
             fireEvent.click(
@@ -299,22 +311,33 @@ describe('Filter Section Tests (FR25-FR28)', () => {
                 opponents: 'Boston Celtics,Los Angeles Lakers',
             };
 
-            renderFilterSection(true, initialFilters);
+            const { container } = renderFilterSection(true, initialFilters);
 
-            // Check that both opponents are displayed
-            expect(screen.getByText('Boston Celtics')).toBeInTheDocument();
-            expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
-
-            // Find and click the remove button for Boston Celtics
-            const removeButtons = screen.getAllByRole('button', { name: '×' });
-            fireEvent.click(removeButtons[0]); // First remove button
-
-            // Apply filters
-            fireEvent.click(
-                screen.getByRole('button', { name: /Apply Filters/i })
+            // Get the selected-opponents area
+            const selectedOpponentsArea = container.querySelector(
+                '.selected-opponents'
             );
 
-            // Check if callback was called with only Lakers
+            // Verify the selected opponents are present
+            expect(selectedOpponentsArea.textContent).toContain(
+                'Boston Celtics'
+            );
+            expect(selectedOpponentsArea.textContent).toContain(
+                'Los Angeles Lakers'
+            );
+
+            // Find remove buttons
+            const removeButtons =
+                container.querySelectorAll('.remove-opponent');
+            expect(removeButtons.length).toBe(2);
+
+            // Click the first remove button (Boston Celtics)
+            fireEvent.click(removeButtons[0]);
+
+            // Apply filters
+            fireEvent.click(screen.getByText('Apply Filters'));
+
+            // Check if mockApplyFilters was called with only Los Angeles Lakers
             expect(mockApplyFilters).toHaveBeenCalledWith(
                 expect.objectContaining({
                     opponents: 'Los Angeles Lakers',
