@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 
+// FR1 - Registration component for creating new user accounts
+/**
+ * Renders the registration page, allowing users to create a new account.
+ * Displays a form for email and password input, handles form submission,
+ * and navigates the user to the login page upon successful registration.
+ * Includes error handling and loading states for a smooth user experience.
+ *
+ * @returns {JSX.Element} The registration page component.
+ */
 export default function Register() {
     const [formData, setFormData] = useState({
         email: '',
@@ -20,12 +29,14 @@ export default function Register() {
         });
     };
 
+    // FR1 - Handle registration form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
         try {
+            // FR1 - Send registration data to backend
             await api.post('/api/register/', formData);
             setRegistrationSuccess(true); // Show success message instead of redirecting
         } catch (err) {
@@ -83,7 +94,7 @@ export default function Register() {
                     </button>
                 </div>
             ) : (
-                // Show registration form if not yet submitted
+                // FR1 - Registration form with email and password fields
                 <>
                     {error && <div className="error-message">{error}</div>}
                     <form onSubmit={handleSubmit} className="auth-form">

@@ -2,7 +2,8 @@ export const ACCESS_TOKEN = 'access';
 export const REFRESH_TOKEN = 'refresh';
 
 // Filter constants for Stats Page
-// Team seasons go back to 2009-10, player seasons only from 2022-23 onwards
+// FR25 - Constants for filter options in the frontend
+// FR25 - NBA seasons available for filtering
 export const NBA_SEASONS = {
     team: [
         '2009-10',
@@ -25,6 +26,7 @@ export const NBA_SEASONS = {
     player: ['2022-23', '2023-24', '2024-25'],
 };
 
+// FR25 - Season types for filtering
 export const SEASON_TYPES = [
     'Preseason',
     'Regular Season',
@@ -33,6 +35,7 @@ export const SEASON_TYPES = [
     'Play-In Tournament',
 ];
 
+// FR25 - NBA divisions for filtering
 export const NBA_DIVISIONS = [
     'Atlantic',
     'Central',
@@ -42,12 +45,16 @@ export const NBA_DIVISIONS = [
     'Southwest',
 ];
 
+// FR25 - NBA conferences for filtering
 export const NBA_CONFERENCES = ['East', 'West'];
 
+// FR25 - Game types for filtering
 export const GAME_TYPES = ['All', 'Interconference', 'Intraconference'];
 
+// FR25 - Game outcomes for filtering
 export const GAME_OUTCOMES = ['All', 'Win', 'Loss'];
 
+// FR25 - Months for filtering by month
 export const MONTHS = [
     { value: '1', label: 'January' },
     { value: '2', label: 'February' },
@@ -63,6 +70,7 @@ export const MONTHS = [
     { value: '12', label: 'December' },
 ];
 
+// FR25 - NBA teams for filtering by opponent
 export const NBA_TEAMS = [
     'Atlanta Hawks',
     'Boston Celtics',

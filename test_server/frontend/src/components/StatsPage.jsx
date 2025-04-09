@@ -5,6 +5,7 @@ import logo from '../assets/Basketify-Logo.png';
 import FilterSection from './FilterSection';
 import '../styles/StatsPage.css';
 
+// FR25, FR26, FR27, FR28 - Component that displays statistics with filter functionality
 function StatsPage() {
     const { type, name } = useParams();
     const navigate = useNavigate();
@@ -18,18 +19,20 @@ function StatsPage() {
     const [activeFilters, setActiveFilters] = useState({});
     const [isFiltered, setIsFiltered] = useState(false);
 
+    // FR26, FR28 - Fetches stats with optional filter parameters
     const fetchStats = async (filters = {}) => {
         setLoading(true);
         try {
-            // Construct the URL with query parameters for filtering
+            // FR26 - Construct the URL with query parameters for filtering
             let url = `/api/stats/${type}/${name}`;
 
-            // Add filter parameters to the URL if they exist
+            // FR26 - Add filter parameters to the URL if they exist
             if (Object.keys(filters).length > 0) {
                 const queryParams = new URLSearchParams(filters);
                 url += `?${queryParams.toString()}`;
                 setIsFiltered(true);
             } else {
+                // FR28 - Reset filtered status when no filters are applied
                 setIsFiltered(false);
             }
 
@@ -57,10 +60,11 @@ function StatsPage() {
         fetchStats();
     }, [type, name]);
 
+    // FR26, FR27, FR28 - Handle filter application from FilterSection component
     const handleApplyFilters = (filters, isClearOperation = false) => {
         setActiveFilters(filters);
 
-        // Only make API call if there are filters or if this isn't a clear operation
+        // FR26, FR28 - Only make API call if there are filters or if this is a clear operation
         // when clearing filters and no filters were active before, no need to reload
         if (
             Object.keys(filters).length > 0 ||
@@ -68,7 +72,7 @@ function StatsPage() {
         ) {
             fetchStats(filters);
         } else if (isClearOperation) {
-            // Just update the filter status without making API call
+            // FR28 - Just update the filter status without making API call
             setIsFiltered(false);
         }
     };
@@ -81,6 +85,7 @@ function StatsPage() {
         navigate(`/stats-graph/${type}/${name}`);
     };
 
+    // FR25 - Toggle filter panel visibility
     const toggleFilter = () => {
         setIsFilterOpen(!isFilterOpen);
     };
@@ -98,7 +103,7 @@ function StatsPage() {
         );
     }
 
-    // Display filter status
+    // FR25, FR26 - Display filter status to show user which filters are active
     const renderFilterStatus = () => {
         if (!isFiltered) return null;
 
@@ -185,6 +190,19 @@ function StatsPage() {
             }
         }
 
+        // Create human-readable messages for each active filter
+        // Date filters
+        // Month filter
+        // Last N Games
+        // Season
+        // Season Type
+        // Conference
+        // Division
+        // Game Type
+        // Outcome
+        // Opponents
+
+        // FR26 - Return visual indicator of active filters
         return (
             <div className="filter-status">
                 <span>Filtering: {filterMessages.join(' • ')}</span>
@@ -217,6 +235,8 @@ function StatsPage() {
                             : 'Show Seasonal Stats'}
                     </button>
                     <button onClick={handleGoToGraph}>View Stats Graph</button>
+
+                    {/* FR25 - Button to toggle filter panel visibility */}
                     <button
                         onClick={toggleFilter}
                         className={
@@ -229,6 +249,7 @@ function StatsPage() {
                     </button>
                 </div>
 
+                {/* FR25 - Render filter panel when open */}
                 <FilterSection
                     isOpen={isFilterOpen}
                     onApplyFilters={handleApplyFilters}
@@ -236,6 +257,7 @@ function StatsPage() {
                     initialFilters={activeFilters}
                 />
 
+                {/* FR26 - Display active filter status */}
                 {renderFilterStatus()}
 
                 {statsData.length === 0 ? (
@@ -294,30 +316,36 @@ function StatsPage() {
                                                     {gameStats.fieldGoalsMade}
                                                 </td>
                                                 <td>
-                                                    {gameStats.fieldGoalPercentage ? (
-                                                        gameStats.fieldGoalPercentage *
-                                                        100
-                                                    ).toFixed(1): 'N/A'}
+                                                    {gameStats.fieldGoalPercentage
+                                                        ? (
+                                                              gameStats.fieldGoalPercentage *
+                                                              100
+                                                          ).toFixed(1)
+                                                        : 'N/A'}
                                                     %
                                                 </td>
                                                 <td>
                                                     {gameStats.threePointsMade}
                                                 </td>
                                                 <td>
-                                                    {gameStats.threePointPercentage ? (
-                                                        gameStats.threePointPercentage *
-                                                        100
-                                                    ).toFixed(1) : 'N/A'}
+                                                    {gameStats.threePointPercentage
+                                                        ? (
+                                                              gameStats.threePointPercentage *
+                                                              100
+                                                          ).toFixed(1)
+                                                        : 'N/A'}
                                                     %
                                                 </td>
                                                 <td>
                                                     {gameStats.freeThrowsMade}
                                                 </td>
                                                 <td>
-                                                    {gameStats.freeThrowPercentage ? (
-                                                        gameStats.freeThrowPercentage *
-                                                        100
-                                                    ).toFixed(1) : 'N/A'}
+                                                    {gameStats.freeThrowPercentage
+                                                        ? (
+                                                              gameStats.freeThrowPercentage *
+                                                              100
+                                                          ).toFixed(1)
+                                                        : 'N/A'}
                                                     %
                                                 </td>
                                                 <td>{gameStats.steals}</td>
@@ -397,58 +425,94 @@ function StatsPage() {
                                                 <td>{gameStats.seasonType}</td>
                                             )}
                                             <td>
-                                                {gameStats.points ? gameStats.points.toFixed(0): 'N/A'}
+                                                {gameStats.points
+                                                    ? gameStats.points.toFixed(
+                                                          0
+                                                      )
+                                                    : 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.rebounds ? gameStats.rebounds.toFixed(0) : 'N/A'}
+                                                {gameStats.rebounds
+                                                    ? gameStats.rebounds.toFixed(
+                                                          0
+                                                      )
+                                                    : 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.assists ? gameStats.assists.toFixed(0): 'N/A'}
+                                                {gameStats.assists
+                                                    ? gameStats.assists.toFixed(
+                                                          0
+                                                      )
+                                                    : 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.fieldGoalsMade ? gameStats.fieldGoalsMade.toFixed(
-                                                    0
-                                                ): 'N/a'}
+                                                {gameStats.fieldGoalsMade
+                                                    ? gameStats.fieldGoalsMade.toFixed(
+                                                          0
+                                                      )
+                                                    : 'N/a'}
                                             </td>
                                             <td>
-                                                {gameStats.fieldGoalPercentage ? (
-                                                    gameStats.fieldGoalPercentage *
-                                                    100
-                                                ).toFixed(1) : 'N/A'}
+                                                {gameStats.fieldGoalPercentage
+                                                    ? (
+                                                          gameStats.fieldGoalPercentage *
+                                                          100
+                                                      ).toFixed(1)
+                                                    : 'N/A'}
                                                 %
                                             </td>
                                             <td>
-                                                {gameStats.threePointsMade ? gameStats.threePointsMade.toFixed(
-                                                    0
-                                                ) : 'N/A'}
+                                                {gameStats.threePointsMade
+                                                    ? gameStats.threePointsMade.toFixed(
+                                                          0
+                                                      )
+                                                    : 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.threePointPercentage ? (
-                                                    gameStats.threePointPercentage *
-                                                    100
-                                                ).toFixed(1) : 'N/A'}
+                                                {gameStats.threePointPercentage
+                                                    ? (
+                                                          gameStats.threePointPercentage *
+                                                          100
+                                                      ).toFixed(1)
+                                                    : 'N/A'}
                                                 %
                                             </td>
                                             <td>
-                                                {gameStats.freeThrowsMade ? gameStats.freeThrowsMade.toFixed(
-                                                    0
-                                                ): 'N/A'}
+                                                {gameStats.freeThrowsMade
+                                                    ? gameStats.freeThrowsMade.toFixed(
+                                                          0
+                                                      )
+                                                    : 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.freeThrowPercentage ? (
-                                                    gameStats.freeThrowPercentage *
-                                                    100
-                                                ).toFixed(1): 'N/A'}
+                                                {gameStats.freeThrowPercentage
+                                                    ? (
+                                                          gameStats.freeThrowPercentage *
+                                                          100
+                                                      ).toFixed(1)
+                                                    : 'N/A'}
                                                 %
                                             </td>
                                             <td>
-                                                {gameStats.steals ? gameStats.steals.toFixed(0) : 'N/A'}
+                                                {gameStats.steals
+                                                    ? gameStats.steals.toFixed(
+                                                          0
+                                                      )
+                                                    : 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.blocks ? gameStats.blocks.toFixed(0): 'N/A'}
+                                                {gameStats.blocks
+                                                    ? gameStats.blocks.toFixed(
+                                                          0
+                                                      )
+                                                    : 'N/A'}
                                             </td>
                                             <td>
-                                                {gameStats.turnovers ? gameStats.turnovers.toFixed(0): 'N/A'}
+                                                {gameStats.turnovers
+                                                    ? gameStats.turnovers.toFixed(
+                                                          0
+                                                      )
+                                                    : 'N/A'}
                                             </td>
                                         </tr>
                                     ))}

@@ -216,7 +216,7 @@ def get_player_stats(request, name):
         if not player:
             return JsonResponse({'error': 'Player not found'}, status=404)
         
-        # Extract filter parameters from request
+        # FR25 - Extract filter parameters from request
         filters = {}
         for param in ['date_from', 'date_to', 'last_n_games', 'season', 'season_type', 
                      'division', 'conference', 'game_type', 'outcome', 'opponents', 'month']:
@@ -275,7 +275,7 @@ def get_player_stats(request, name):
             }
             player_stats.append(stats)
         
-        # Apply filters
+        # FR26, FR27, FR28 - Apply filters to game data using utility function
         filtered_stats = apply_filters_to_games(player_stats, filters)
         
         # Sort games by date (oldest first for statistics calculation)
@@ -318,7 +318,7 @@ def get_team_stats(request, name):
         if not team:
             return JsonResponse({'error': 'Team not found'}, status=404)
         
-        # Extract filter parameters from request
+        # FR25 - Extract filter parameters from request
         filters = {}
         for param in ['date_from', 'date_to', 'last_n_games', 'season', 'season_type', 
                      'division', 'conference', 'game_type', 'outcome', 'opponents']:
@@ -376,7 +376,7 @@ def get_team_stats(request, name):
             }
             team_stats.append(stats)
         
-        # Apply filters
+        # FR26, FR27, FR28 - Apply filters to game data using utility function
         filtered_stats = apply_filters_to_games(team_stats, filters)
         
         # Sort games by date (oldest first for statistics calculation)

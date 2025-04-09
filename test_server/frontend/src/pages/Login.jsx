@@ -3,6 +3,14 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from '../utils/constants';
 
+// FR2 - Login component for authenticating users
+/**
+ * @returns {JSX.Element} - The Login component.
+ * @description FR2 - Login component for authenticating users. Allows users to enter their email and password to log in.
+ * Handles authentication by sending a POST request to the API.
+ * If the email is not verified, it displays an option to resend the verification email.
+ * Provides links to register, reset password, or change email.
+ */
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -14,7 +22,7 @@ export default function Login() {
 
     const navigate = useNavigate();
 
-    // Add or update the resend verification function
+    // FR2 - Resend verification email when email is not verified
     const handleResendVerification = async () => {
         setIsResending(true);
         try {
@@ -30,6 +38,7 @@ export default function Login() {
         }
     };
 
+    // FR2 - Handle login form submission and store JWT token on success
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -49,11 +58,11 @@ export default function Login() {
             navigate('/');
         } catch (err) {
             if (err.response && err.response.data) {
-                // Check for specific error about unverified email
+                // FR2 - Check for unverified email error
                 if (err.response.data.code === 'email_not_verified') {
                     setError(err.response.data.detail);
 
-                    // Option to resend verification email
+                    // FR2 - Option to resend verification email when email not verified
                     setShowResendVerification(true);
                 } else {
                     setError('Invalid email or password');
@@ -123,6 +132,7 @@ export default function Login() {
             <p>
                 Don't have an account? <Link to="/register">Register here</Link>
             </p>
+            {/* FR3 - Links to forgot password and email change pages */}
             <p>
                 <Link to="/password-reset" className="forgot-password-link">
                     Forgot your password?

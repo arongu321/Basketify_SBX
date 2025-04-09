@@ -10,13 +10,39 @@ import {
     NBA_TEAMS,
 } from '../utils/constants';
 
+// FR25, FR26, FR27, FR28 - This component handles the filter UI for statistics
+/**
+ * @typedef {Object} Filters
+ * @property {string} [date_from] - Start date for the date range filter.
+ * @property {string} [date_to] - End date for the date range filter.
+ * @property {string} [last_n_games] - Number of last games to filter by.
+ * @property {string} [season] - Season to filter by.
+ * @property {string} [season_type] - Type of season to filter by (e.g., Regular Season, Playoffs).
+ * @property {string} [division] - Division to filter by.
+ * @property {string} [conference] - Conference to filter by.
+ * @property {string} [game_type] - Type of game to filter by.
+ * @property {string} [outcome] - Outcome of the game to filter by.
+ * @property {string} [opponents] - Comma-separated string of opponent teams to filter by.
+ */
+
+/**
+ * FilterSection Component - Handles the filter UI for statistics. Allows users to apply various filters such as date ranges, seasons,
+ * season types, divisions, conferences, game types, game outcomes, and opponents.
+ *
+ * @param {Object} props - Component props.
+ * @param {boolean} props.isOpen - Determines if the filter section is open or closed.
+ * @param {function(Filters): void} props.onApplyFilters - Callback function to apply the selected filters.
+ * @param {string} props.entityType - The type of entity being filtered (e.g., 'team', 'player').  This determines available seasons.
+ * @param {Filters} props.initialFilters - Initial filter values to populate the filter section with.
+ * @returns {JSX.Element|null} - Returns the JSX structure for the filter section, or null if the filter is not open.
+ */
 const FilterSection = ({
     isOpen,
     onApplyFilters,
     entityType,
     initialFilters = {}, // New prop to receive initial filter state
 }) => {
-    // Initialize state with initial filters or empty values
+    // FR25 - Initialize state with initial filters or empty values
     const [dateFrom, setDateFrom] = useState(initialFilters.date_from || '');
     const [dateTo, setDateTo] = useState(initialFilters.date_to || '');
     const [lastNGames, setLastNGames] = useState(
@@ -45,7 +71,7 @@ const FilterSection = ({
         initialFilters.opponents ? initialFilters.opponents.split(',') : []
     );
 
-    // Reset filters to the initial state
+    // FR28 - Reset filters to the initial state
     const handleClearFilters = () => {
         setDateFrom('');
         setDateTo('');
@@ -59,9 +85,11 @@ const FilterSection = ({
         setSelectedOpponents([]);
     };
 
+    // FR26, FR27 - Apply filters when user clicks apply button
     const handleApplyFilters = () => {
         const filters = {};
 
+        // FR27 - Build filter object with all selected filter criteria
         // Date range filters
         if (dateFrom) filters.date_from = dateFrom;
         if (dateTo) filters.date_to = dateTo;
@@ -82,10 +110,11 @@ const FilterSection = ({
         if (selectedOpponents.length > 0)
             filters.opponents = selectedOpponents.join(',');
 
-        // Pass the filters to the parent component
+        // FR26 - Pass the filters to the parent component for API call
         onApplyFilters(filters);
     };
 
+    // FR25 - This is part of the multiple opponents selection UI for filtering
     const toggleOpponent = (team) => {
         setSelectedOpponents((prev) =>
             prev.includes(team)
@@ -94,6 +123,7 @@ const FilterSection = ({
         );
     };
 
+    // FR25 - Don't show filter UI when closed
     if (!isOpen) return null;
 
     return (

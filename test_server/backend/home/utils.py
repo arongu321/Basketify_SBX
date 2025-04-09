@@ -187,13 +187,16 @@ def is_interconference_game(team_abbr, opponent_abbr):
     
     return team_conferences[team_abbr] != team_conferences[opponent_abbr]
 
+# FR26, FR27, FR28 - This function applies filters to game data
 def apply_filters_to_games(games, filters):
     """
     Apply various filters to a list of games
+
+    FR26, FR27, FR28 - Implements the core filtering logic for statistics
     """
     filtered_games = games.copy()
     
-    # Date range filters
+    # FR26, FR27 - Date range filters
     if 'date_from' in filters:
         try:
             date_from = datetime.datetime.strptime(filters['date_from'], '%Y-%m-%d')
@@ -204,6 +207,7 @@ def apply_filters_to_games(games, filters):
         except ValueError:
             pass
     
+    # FR26, FR27 - Month filter
     if 'date_to' in filters:
         try:
             date_to = datetime.datetime.strptime(filters['date_to'], '%Y-%m-%d')
@@ -213,7 +217,8 @@ def apply_filters_to_games(games, filters):
             ]
         except ValueError:
             pass
-    # Month filter
+
+    # FR26, FR27 - Season filter (e.g., "2022-23")
     if 'month' in filters and filters['month']:
         month = int(filters['month'])
         filtered_games = [
@@ -221,7 +226,7 @@ def apply_filters_to_games(games, filters):
             if datetime.datetime.strptime(game['date'].split('_')[0], '%Y-%m-%d').month == month
         ]
 
-    # Season filter (e.g., "2022-23")
+    # FR26, FR27 - Season type filter (Regular Season, Postseason)
     if 'season' in filters and filters['season']:
         season = filters['season']
         filtered_games = [
@@ -229,7 +234,7 @@ def apply_filters_to_games(games, filters):
             if get_season_year_from_season_id(game.get('SEASON_ID')) == season
         ]
 
-    # Season type filter (Regular Season, Postseason)
+    # FR26, FR27 - Game outcome filter (Win/Loss)
     if 'season_type' in filters and filters['season_type']:
         season_type = filters['season_type']
         filtered_games = [
@@ -267,7 +272,7 @@ def apply_filters_to_games(games, filters):
         if team_abbr in team_conferences and opponent_abbr in team_conferences:
             game['is_interconference'] = is_interconference_game(team_abbr, opponent_abbr)
     
-    # Division filter
+    # FR26, FR27 - Division filter
     if 'division' in filters and filters['division']:
         division = filters['division']
         filtered_games = [
@@ -275,7 +280,7 @@ def apply_filters_to_games(games, filters):
             if game.get('opponent_division') == division
         ]
     
-    # Conference filter
+    # FR26, FR27 - Conference filter
     if 'conference' in filters and filters['conference']:
         conference = filters['conference']
         filtered_games = [
@@ -283,7 +288,7 @@ def apply_filters_to_games(games, filters):
             if game.get('opponent_conference') == conference
         ]
     
-    # Game type filter (Interconference/Intraconference)
+    # FR26, FR27 - Game type filter (Interconference/Intraconference)
     if 'game_type' in filters and filters['game_type'] and filters['game_type'] != 'All':
         is_inter = filters['game_type'] == 'Interconference'
         filtered_games = [
@@ -291,7 +296,7 @@ def apply_filters_to_games(games, filters):
             if game.get('is_interconference', None) is not None and game.get('is_interconference') == is_inter
         ]
     
-    # Opponents filter (comma-separated list of team names)
+    # FR26, FR27 - Opponents filter (comma-separated list of team names)
     if 'opponents' in filters and filters['opponents']:
         opponent_names = filters['opponents'].split(',')
         opponent_abbrs = [team_abbr_map.get(name.strip(), '') for name in opponent_names]
@@ -300,7 +305,7 @@ def apply_filters_to_games(games, filters):
             if game.get('opponent_abbr', '') in opponent_abbrs
         ]
     
-    # Last N games filter
+    # FR26, FR27 - Last N games filter
     if 'last_n_games' in filters and filters['last_n_games']:
         try:
             n = int(filters['last_n_games'])
@@ -310,4 +315,5 @@ def apply_filters_to_games(games, filters):
         except ValueError:
             pass
     
+    # FR28 - If no filters are applied, return all games (reset functionality)
     return filtered_games

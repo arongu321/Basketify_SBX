@@ -27,8 +27,11 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     """
     Custom token view that checks for email verification and returns
     appropriate error messages.
+
+    FR2 - This class implements user login by validating credentials and checking if email is verified
     """
     def post(self, request, *args, **kwargs):
+        # FR2 - Check if email is verified before allowing login
         try:
             # Get the email from the request
             email = request.data.get('email', '')
@@ -37,6 +40,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             try:
                 user = User.objects.get(email=email)
                 if not user.email_is_verified:
+                    # FR2 - Return appropriate error for unverified email
                     return Response(
                         {
                             "detail": "Email not verified. Please check your inbox for the verification email.",
@@ -49,6 +53,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 pass
                 
             # Call the parent class method to handle the token creation
+            # FR2 - Generate JWT token for authenticated users
             return super().post(request, *args, **kwargs)
         except Exception as e:
             # This will catch any other authentication errors
@@ -58,6 +63,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             )
 
 class UserRegistrationView(generics.CreateAPIView):
+    """
+    # FR1 - Handles user registration by creating new user accounts with email and password
+    """
     permission_classes = [permissions.AllowAny]
     serializer_class = UserCreateSerializer
 
@@ -98,6 +106,7 @@ class UserRegistrationView(generics.CreateAPIView):
         return get_user_model()
 
     def perform_create(self, serializer):
+        # FR1 - Send verification email after user creation
         user = serializer.save()
         # Automatically send verification email
         current_site = get_current_site(self.request)
@@ -106,6 +115,7 @@ class UserRegistrationView(generics.CreateAPIView):
         current_year = datetime.now().year
         
         # Build verification URL for frontend
+        # FR1 - Create unique token for email verification
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = account_activation_token.make_token(user)
         
@@ -276,10 +286,15 @@ def verify_email_complete(request):
     """Legacy Django view - this will be handled by React frontend"""
     return render(request, 'accounts/verify_email_complete.html')
 
+# FR3 - Password reset request implementation
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def password_reset_request(request):
-    """API endpoint to initiate password reset process"""
+    """
+    API endpoint to initiate password reset process
+
+    FR3 - Handles password reset requests by sending email with reset token
+    """
     email = request.data.get('email', '')
     
     if not email:
@@ -404,10 +419,14 @@ def password_reset_complete(request):
         "message": "Password has been reset successfully"
     })
 
+# FR3 - Email change request implementation
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def email_change_request(request):
-    """API endpoint to initiate email change process"""
+    """
+    API endpoint to initiate email change process
+    
+    FR3 - Handles email change requests by sending email with verification token"""
     email = request.data.get('email', '')
     
     if not email:

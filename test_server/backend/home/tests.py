@@ -386,7 +386,9 @@ class StatisticsFilteringTestCase(TestCase):
     # FR25 - Filter Criteria Display Tests
     @patch('home.views.get_mongo_client')
     def test_filter_params_are_processed(self, mock_get_mongo_client):
-        """Test that filter parameters are correctly extracted from request"""
+        """
+        FR25 - Test that filter parameters are correctly extracted from request
+        """
         # Setup mock response
         mock_client = MagicMock()
         mock_db = MagicMock()
@@ -422,7 +424,9 @@ class StatisticsFilteringTestCase(TestCase):
     
     # FR26 + FR27 - Dynamic Update and Multiple Criteria Tests
     def test_filter_apply_multiple_criteria(self):
-        """Test that multiple filter criteria are applied correctly using the real filter function"""
+        """
+        FR26, FR27 - Test that multiple filter criteria are applied correctly using the real filter function
+        """
         # Define the filter criteria
         filters = {
             'date_from': '2025-01-04',  # After Jan 3
@@ -444,7 +448,9 @@ class StatisticsFilteringTestCase(TestCase):
     
     # FR28 - Filter Reset Test
     def test_filter_reset(self):
-        """Test that passing empty filters returns all games (no filtering)"""
+        """
+        FR28 - Test that passing empty filters returns all games (no filtering)
+        """
         # Apply filters with empty dict
         filtered_results = apply_filters_to_games(self.test_player_games, {})
         
