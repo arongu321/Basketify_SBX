@@ -16,10 +16,10 @@ def get_mongo_client():
         return mongo_client
     
     # remote Atlas DB
-    uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
+    #uri = "mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net"
 
     # local MongoDB
-    # uri = "mongodb://localhost:27017"
+    uri = "mongodb://localhost:27017"
 
 
     try:
@@ -36,7 +36,7 @@ client = get_mongo_client()
 if client is None:
     print("Error: Could not connect to MongoDB")
 
-db = client['nba_stats_all']
+db = client['nba_stats']
 
 def get_game_stats(name, entity_type="player"):
     """
@@ -127,18 +127,6 @@ def predict_next_game_vs_team(name, team, stat_key, entity_type, degree=2):
 
     # Convert to numerical indices
     X = np.array(range(len(combined_stats))).reshape(-1, 1)  # Game index
-    # y = np.array([game[1][stat_key] if isinstance(game[1], dict) else game[1] for game in combined_stats])
-
-#     y = np.array([
-#     game[1][stat_key] if isinstance(game[1], dict) and isinstance(game[1].get(stat_key), (int, float)) 
-#     else np.nan 
-#     for game in combined_stats
-# ])
-
-#     # remove any rows where the target var y is NaN
-#     valid_indices = ~np.isnan(y)  # mask that lists rows where target y is NaN
-#     X = X[valid_indices]
-#     y = y[valid_indices]
     y = np.array([
         float(game[1][stat_key]) if isinstance(game[1], dict) and game[1].get(stat_key) is not None
         else float(game[1]) if not isinstance(game[1], dict) and game[1] is not None
@@ -190,7 +178,7 @@ def predict_next_game_vs_team(name, team, stat_key, entity_type, degree=2):
     # plt.show()
     return round(predicted_points, 2), round(confidence * 100, 2)  # Return prediction & confidence %
 
-
+# FR18 - This function is used to make forecasts of a player or team's performance
 def predict_next_game_vs_team_with_ci(name, team, stat_key, entity_type, degree=2):
     """
     Predict the next game's points against a specific team using Polynomial Regression.
@@ -205,19 +193,21 @@ def predict_next_game_vs_team_with_ci(name, team, stat_key, entity_type, degree=
     game_stats = get_game_stats(name, entity_type)
 
     if len(game_stats) < 5:  # Ensure enough data points
-        return f"Not enough data to predict {name}'s next game against {team}."
-
+        print(f"Not enough data to predict {name}'s next game against {team}.")
+        return None, None
+    
     collection = db['players'] if entity_type == "player" else db['teams']
 
     # Fetch entity data
     entity_data = collection.find_one(
         {"name": {"$regex": name, "$options": "i"}},
-        {"games": 1, "_id": 0}
+        {"games": 1, "slider":1, "_id": 0}
     )
 
     if not entity_data or "games" not in entity_data:
-        return f"No data found for {entity_type}: {name}"
-
+        print(f"No data found for {entity_type}: {name}")
+        return None, None
+    
     # Extract past 5 games against the specified team
     team_game_stats = []
     for date, statis in entity_data["games"].items():
@@ -229,14 +219,29 @@ def predict_next_game_vs_team_with_ci(name, team, stat_key, entity_type, degree=
 
     # Ensure we have at least some history against the team
     if len(team_game_stats) < 2:
-        return f"Not enough games played against {team} for a meaningful prediction."
-
+       print(f"Not enough games played against {team} for a meaningful prediction.")
+       return None, None
+    
     # Combine season stats & matchup stats
     combined_stats = 2*game_stats + team_game_stats
 
     # Convert to numerical indices
     X = np.array(range(len(combined_stats))).reshape(-1, 1)  # Game index
-    y = np.array([game[1][stat_key] if isinstance(game[1], dict) else game[1] for game in combined_stats])
+    y = np.array([
+        float(game[1][stat_key]) if isinstance(game[1], dict) and game[1].get(stat_key) is not None
+        else float(game[1]) if not isinstance(game[1], dict) and game[1] is not None
+        else np.nan
+        for game in combined_stats
+    ])
+
+    # remove any rows where the target var y is NaN
+    valid_indices = ~np.isnan(y)  # mask that lists rows where target y is NaN
+    X = X[valid_indices]
+    y = y[valid_indices]
+
+    if X.shape[0] == 0:
+        print(f"Error: No valid data available for prediction for {name} against {team}.")
+        return None, None
 
     # Transform features for Polynomial Regression
     poly = PolynomialFeatures(degree=degree)
@@ -260,9 +265,7 @@ def predict_next_game_vs_team_with_ci(name, team, stat_key, entity_type, degree=
 
     # Confidence intervals (80%, 85%, 90%)
     confidence_intervals = {
-        "80%": stats.norm.ppf(0.90) * std_dev,  # 80% range
-        "85%": stats.norm.ppf(0.925) * std_dev,  # 85% range
-        "90%": stats.norm.ppf(0.95) * std_dev,  # 90% range
+        "80%": stats.norm.ppf(0.80) * std_dev,  # 80% range
     }
 
     # Compute prediction ranges
@@ -271,8 +274,16 @@ def predict_next_game_vs_team_with_ci(name, team, stat_key, entity_type, degree=
         for level, ci in confidence_intervals.items()
     }
 
-    return round(predicted_points, 2), round(confidence * 100, 2), prediction_ranges
+    slider = entity_data.get("slider", 0)
 
+    range_width = confidence_intervals["80%"] * 2
+    predicted_points += slider * range_width
+
+    predicted_points = max(predicted_points, 0)  # no stat can be < 0
+
+    return round(predicted_points, 2), round(confidence * 100, 2) #, prediction_ranges
+
+# FR20 - This function is used to predict whether a team will win or lose in a match against a given team on a given date
 def determine_win_loss(team_abbrev, opponent_abbrev, game_date):
     """
     Given a team and its opponent (short forms) and a game date, determine if the team won or lost.
@@ -320,6 +331,7 @@ def team_ppg(team_abbrev, stat_key, entity_type):
 
     return round(avg_ppg, 2)
 
+# FR21: This function is used to predict the NBA Champion
 def predict_nba_champion():
     teams_col = db["teams"]
 
@@ -332,21 +344,21 @@ def predict_nba_champion():
     return "No team has avg_ppg recorded", 0
 
 if __name__ == "__main__":
-    entities = [("LeBron James", "player"), ("Los Angeles Lakers", "team")]
+    entities = [("LeBron James", "player"), ("Atlanta Hawks", "team")]
     stat_keys = ["Points"]
-    team = "GSW"
+    team = "BKN"
 
-    # for name, entity_type in entities:
-    #     print(f"\n===== Predictions for {entity_type.upper()}: {name} =====")
-    #     for stat in stat_keys:
+    for name, entity_type in entities:
+        print(f"\n===== Predictions for {entity_type.upper()}: {name} =====")
+        for stat in stat_keys:
 
-    #         predicted_vs_team, conf_vs_team = predict_next_game_vs_team(name, team, stat, entity_type)
-    #         print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
+            predicted_vs_team, conf_vs_team = predict_next_game_vs_team(name, team, stat, entity_type)
+            print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
 
-    #         predicted_vs_team, conf_vs_team, ranges_vs_team = predict_next_game_vs_team_with_ci(name, team, stat, entity_type)
-    #         print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
-    #         for level, (low, high) in ranges_vs_team.items():
-    #             print(f"{level} Confidence Interval vs {team}: {low} - {high} {stat}")
+            predicted_vs_team, conf_vs_team, ranges_vs_team = predict_next_game_vs_team_with_ci(name, team, stat, entity_type)
+            print(f"{stat} vs {team}: {predicted_vs_team} (Confidence: {conf_vs_team}%)")
+            for level, (low, high) in ranges_vs_team.items():
+                print(f"{level} Confidence Interval vs {team}: {low} - {high} {stat}")
 
-    print(determine_win_loss("ATL", "NYK", "2025-04-05_04-00-00"))
-    print(team_ppg("NYK", "Points", "team"))
+    # print(determine_win_loss("ATL", "NYK", "2025-04-05_04-00-00"))
+    # print(team_ppg("NYK", "Points", "team"))

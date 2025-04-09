@@ -4,7 +4,8 @@ from pymongo import MongoClient
 import requests
 from datetime import datetime
 from time import sleep
-from ml.player_pred import determine_win_loss, predict_nba_champion, predict_next_game_vs_team, team_ppg
+from ml.player_pred import determine_win_loss, predict_nba_champion, predict_next_game_vs_team_with_ci, team_ppg
+from ml.feedback_loop import evaluate_feedback_discrepancies, store_feedback
 try:
     client = MongoClient("mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net", serverSelectionTimeoutMS=5000)
     # client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=5000)
@@ -71,7 +72,8 @@ def get_player_data():
                 {"name": player_name},
                 {"$set": {
                     "team": current_team,
-                    "games." + formatted_date: player_data
+                    "games." + formatted_date: player_data,
+                    "slider": 0
                 }},
                 upsert=True
             )
@@ -127,7 +129,8 @@ def get_team_data():
                 {"name": team_name},
                 {"$set": {
                     "abbrev_name": game['TEAM_ABBREVIATION'],
-                    "games." + formatted_date: team_data
+                    "games." + formatted_date: team_data,
+                    "slider": 0.5
                 }},
                 upsert=True
             )
@@ -192,18 +195,18 @@ def make_future_predictions():
                     matchup = f"{game['homeTeam']} vs {game['awayTeam']}"
                 else:
                     matchup = f"{game['awayTeam']} @ {game['homeTeam']}"
-                predicted_points, _ = predict_next_game_vs_team(player_name, opponent_team, "Points", "player")
-                predicted_rebounds, _ = predict_next_game_vs_team(player_name, opponent_team, "scoredRebounds", "player")
-                predicted_assists, _ = predict_next_game_vs_team(player_name, opponent_team, "Assists", "player")
-                predicted_fg, _ = predict_next_game_vs_team(player_name, opponent_team, "FG_scored", "player")
-                predicted_fg_pctg, _ = predict_next_game_vs_team(player_name, opponent_team, "FG_pctg", "player")
-                predicted_3, _ = predict_next_game_vs_team(player_name, opponent_team, "3_pts_scored", "player")
-                predicted_3_pctg, _ = predict_next_game_vs_team(player_name, opponent_team, "3_pts_pctg", "player")
-                predicted_ft, _ = predict_next_game_vs_team(player_name, opponent_team, "FT_made", "player")
-                predicted_ft_pctg, _ = predict_next_game_vs_team(player_name, opponent_team, "FT_pctg", "player")
-                predicted_steals, _ = predict_next_game_vs_team(player_name, opponent_team, "Steals", "player")
-                predicted_blocks, _ = predict_next_game_vs_team(player_name, opponent_team, "Blocks", "player")
-                predicted_turnovers, _ = predict_next_game_vs_team(player_name, opponent_team, "Turnovers", "player")
+                predicted_points, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "Points", "player")
+                predicted_rebounds, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "scoredRebounds", "player")
+                predicted_assists, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "Assists", "player")
+                predicted_fg, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "FG_scored", "player")
+                predicted_fg_pctg, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "FG_pctg", "player")
+                predicted_3, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "3_pts_scored", "player")
+                predicted_3_pctg, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "3_pts_pctg", "player")
+                predicted_ft, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "FT_made", "player")
+                predicted_ft_pctg, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "FT_pctg", "player")
+                predicted_steals, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "Steals", "player")
+                predicted_blocks, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "Blocks", "player")
+                predicted_turnovers, _ = predict_next_game_vs_team_with_ci(player_name, opponent_team, "Turnovers", "player")
                 
                 formatted_date = game['gameDateUTC'].strftime("%Y-%m-%d_%H-%M-%S")
                 player_data = {
@@ -244,18 +247,18 @@ def make_future_predictions():
             if game['homeTeam'] == team_name or game['awayTeam'] == team_name:
                 opponent_team = game['awayTeam'] if game['homeTeam'] == team_name else game['homeTeam']
                 
-                predicted_points, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Points", "team")
-                predicted_rebounds, _ = predict_next_game_vs_team(full_team_name, opponent_team, "scoredRebounds", "team")
-                predicted_assists, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Assists", "team")
-                predicted_fg, _ = predict_next_game_vs_team(full_team_name, opponent_team, "FG_scored", "team")
-                predicted_fg_pctg, _ = predict_next_game_vs_team(full_team_name, opponent_team, "FG_pctg", "team")
-                predicted_3, _ = predict_next_game_vs_team(full_team_name, opponent_team, "3_pts_scored", "team")
-                predicted_3_pctg, _ = predict_next_game_vs_team(full_team_name, opponent_team, "3_pts_pctg", "team")
-                predicted_ft, _ = predict_next_game_vs_team(full_team_name, opponent_team, "FT_made", "team")
-                predicted_ft_pctg, _ = predict_next_game_vs_team(full_team_name, opponent_team, "FT_pctg", "team")
-                predicted_steals, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Steals", "team")
-                predicted_blocks, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Blocks", "team")
-                predicted_turnovers, _ = predict_next_game_vs_team(full_team_name, opponent_team, "Turnovers", "team")
+                predicted_points, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "Points", "team")
+                predicted_rebounds, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "scoredRebounds", "team")
+                predicted_assists, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "Assists", "team")
+                predicted_fg, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "FG_scored", "team")
+                predicted_fg_pctg, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "FG_pctg", "team")
+                predicted_3, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "3_pts_scored", "team")
+                predicted_3_pctg, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "3_pts_pctg", "team")
+                predicted_ft, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "FT_made", "team")
+                predicted_ft_pctg, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "FT_pctg", "team")
+                predicted_steals, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "Steals", "team")
+                predicted_blocks, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "Blocks", "team")
+                predicted_turnovers, _ = predict_next_game_vs_team_with_ci(full_team_name, opponent_team, "Turnovers", "team")
                 
                 formatted_date = game['gameDateUTC'].strftime("%Y-%m-%d_%H-%M-%S")
                 team_data = {
@@ -421,8 +424,10 @@ def delete_duplicate_teams():
 
 def upload_to_mongodb():
     # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
+    # store_feedback() # Uncomment if you want to run feedback loop
     get_player_data()
     get_team_data()
+    # evaluate_feedback_discrepancies() # Uncomment if you want to run feedback loop
     make_future_predictions()
     predict_win_loss()
     #get_seasons()
