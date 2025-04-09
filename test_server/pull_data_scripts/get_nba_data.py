@@ -424,10 +424,10 @@ def delete_duplicate_teams():
 
 def upload_to_mongodb():
     # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
-    store_feedback() # Uncomment if you want to run feedback loop
+    # store_feedback() # Uncomment if you want to run feedback loop
     get_player_data()
     get_team_data()
-    evaluate_feedback_discrepancies() # Uncomment if you want to run feedback loop
+    # evaluate_feedback_discrepancies() # Uncomment if you want to run feedback loop
     make_future_predictions()
     predict_win_loss()
     #get_seasons()
