@@ -10,11 +10,13 @@ To run the project locally (run the web server so that it can be accessed on the
 test_server/RUNNING_INSTRUCTIONS.txt.
 
 Backend (Django) test cases can be executed by the following:
-$ cd test_server/backend
+(Follow all instructions at RUNNING_INSTRUCTIONS.txt first)
+$ cd backend
 $ python3 manage.py test
 
-Frontend/Acceptance test (React/JS) can be executed by the following:
-$ cd test_server/frontend
+Frontend/Acceptance tests (React/JS) can be executed by the following:
+$ cd frontend
+$ npm install --save-dev @testing-library/react @babel/preset-env @babel/preset-react babel-jest
 $ npm test
 (to see coverage statistics run it as: npm test -- --coverage)
 

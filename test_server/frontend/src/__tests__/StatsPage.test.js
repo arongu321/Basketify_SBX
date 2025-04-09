@@ -1,16 +1,15 @@
-// frontend/src/tests/StatsPage.test.js
 import React from 'react';
-import '@testing-library/jest-dom'; // Ensure jest-dom is imported
-import { expect, jest, test } from '@jest/globals';
-jest.mock('../utils/api'); // Mock the api module before importing StatsPage
+import '@testing-library/jest-dom';
+import { expect, jest } from '@jest/globals';
+jest.mock('../utils/api');  // necessary to prevent error on "import.meta" in utils/api.js
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import StatsPage from '../components/StatsPage'; // Import after jest.mock
+import StatsPage from '../components/StatsPage';
 
-import api from '../utils/api'; // This should use the mock now
+import api from '../utils/api';  // actually uses the __mock__/api.js file
 
-// Test setup to render StatsPage with necessary routing
+// function to render the page, used in all tests
 const renderStatsPage = (type, name) => {
   return render(
     <MemoryRouter initialEntries={[`/stats/${type}/${name}`]}>
@@ -22,7 +21,8 @@ const renderStatsPage = (type, name) => {
 };
 
 describe('StatsPage', () => {
-  it('should render loading screen initially', () => {
+  // test the loading screen appears
+  it('render_loading', () => {
     api.get.mockResolvedValueOnce({ data: { stats: [], seasonal_stats: [] } });
 
     renderStatsPage('player', 'john_doe');
@@ -30,7 +30,10 @@ describe('StatsPage', () => {
     expect(screen.getByText(/Loading.../)).toBeInTheDocument();
   });
 
-  it('should render stats when fetched', async () => {
+  // test loading of stats
+  it('render_stats_table', async () => {
+    // mock the data returned by Django server, this pre-set data is returned by HTTP GET request instead
+    // of calling the route
     const mockStatsData = [
       {
         date: '2025-04-07',
@@ -65,10 +68,10 @@ describe('StatsPage', () => {
 
     renderStatsPage('player', 'john_doe');
 
-    // Wait for stats to be loaded and rendered
+    // wait for table to render
     await waitFor(() => expect(screen.getByText("All Games")).toBeInTheDocument());
 
-    // Verify that stats are displayed in the table
+    // verify game is displayed
     expect(screen.getByText('2025-04-07')).toBeInTheDocument();
     expect(screen.getByText('Team A')).toBeInTheDocument();
     expect(screen.getByText('20')).toBeInTheDocument();
@@ -76,7 +79,9 @@ describe('StatsPage', () => {
     expect(screen.getByText('3')).toBeInTheDocument();
   });
 
-  it('should toggle between seasonal and game-by-game stats', async () => {
+  // test the game-by-game & seasonal toggle button works as intended
+  it('seasonal_game_toggle', async () => {
+    // mock the data returned by Django GET request
     const mockStatsData = [
       {
         date: '2025-04-07',
@@ -102,34 +107,38 @@ describe('StatsPage', () => {
 
     renderStatsPage('player', 'john_doe');
 
-    // Wait for stats to be loaded
+    //wait for stats table to render
     await waitFor(() => expect(screen.getByText("All Games")).toBeInTheDocument());
 
-    // Click to toggle stats view to seasonal
+    // click the button
     fireEvent.click(screen.getByText('Show Seasonal Stats'));
 
-    // Check if seasonal stats are displayed
+    // check if seasonal stats are displayed
     expect(screen.getByText('Season')).toBeInTheDocument();
     expect(screen.getByText('100')).toBeInTheDocument();
 
-    // Click to toggle back to game-by-game stats
+    // click to toggle back to game-by-game stats
     fireEvent.click(screen.getByText('Show Game-by-Game Stats'));
 
-    // Check if game stats are displayed again
+    // check if game stats are displayed
     expect(screen.getByText('2025-04-07')).toBeInTheDocument();
     expect(screen.getByText('Team A')).toBeInTheDocument();
     expect(screen.getByText('20')).toBeInTheDocument();
   });
 
-  it('should show no stats available message when statsData is empty', async () => {
+  // test that stats table renders as expected  if no stats available
+  it('render_stats_no_data', async () => {
     api.get.mockResolvedValueOnce({ data: { stats: [], seasonal_stats: [] } });
 
     renderStatsPage('player', 'john_doe');
 
+    // verify no stats message displays
     await waitFor(() => expect(screen.getByText(/No stats available for this player./)).toBeInTheDocument());
   });
 
-  it('should apply filters correctly', async () => {
+  // test filtering by a date range works as expected
+  it('date_filter', async () => {
+    // mock the data returned by Django GET request
     const mockStatsData = [
       {
         date: '2025-01-07',
@@ -169,43 +178,44 @@ describe('StatsPage', () => {
 
     renderStatsPage('player', 'john_doe');
 
-    // Wait for stats to be loaded
+    // wait for stats table to render
     await waitFor(() => expect(screen.getByText("All Games")).toBeInTheDocument());
 
-    // Open the filter section
+    // open filter section
     fireEvent.click(screen.getByText('Filter'));
 
-    // Get the input elements directly
-    const dateFromInput = screen.getByPlaceholderText('Start Date'); // Assuming "Start Date" placeholder
-    const dateToInput = screen.getByPlaceholderText('End Date'); // Assuming "End Date" placeholder
+    const dateFromInput = screen.getByPlaceholderText('Start Date');
+    const dateToInput = screen.getByPlaceholderText('End Date');
 
-    // Change the input values
+    // change input for filter
     fireEvent.change(dateFromInput, { target: { value: '2025-01-01' } });
     fireEvent.change(dateToInput, { target: { value: '2025-02-08' } });
 
-    // Apply the filters
+    // click on apply filters button
     fireEvent.click(screen.getByText('Apply Filters'));
 
     await waitFor(() =>
       expect(screen.getByText('Filtering: Date range: 2025-01-01 to 2025-02-08')).toBeInTheDocument()
     );
-    // Assert that the stats for March 15, 2025 (Team B) and April 7, 2025 (Team A) are displayed
+    // assert that the stats for Team A and Team B are displayed
     expect(screen.getByText('Team A')).toBeInTheDocument();
     expect(screen.getByText('Team B')).toBeInTheDocument();
 
-    // Assert that the stat for January 10, 2025 (Team C) is not displayed since it's outside the range
+    // Assert that the stat for Team C is not displayed since it's outside the range
     // this should be asserted, but it was causing issues
     //expect(screen.queryByText('Team C')).not.toBeInTheDocument();
   });
 
-  it('should handle errors gracefully', async () => {
+  // test handling of error caused by Django server, should fail gracefully
+  it('handle_error', async () => {
     api.get.mockRejectedValueOnce(new Error('Failed to fetch stats'));
 
     renderStatsPage('player', 'john_doe');
 
+    // wait until loading is done
     await waitFor(() => expect(screen.queryByText(/Loading.../)).not.toBeInTheDocument());
 
-    // Ensure that no stats are displayed
+    // ensure no stats message displayed
     expect(screen.getByText(/No stats available for this player./)).toBeInTheDocument();
   });
 });

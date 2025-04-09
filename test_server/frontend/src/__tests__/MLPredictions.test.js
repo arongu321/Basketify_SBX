@@ -5,10 +5,10 @@ import '@testing-library/jest-dom';
 import { MemoryRouter } from 'react-router-dom';
 import axios from 'axios';
 
-// Mock axios
+// mock axios for GET requests
 jest.mock('axios');
 
-// Mock useNavigate
+// mock useNavigate so we can catch requests for back button clicks
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
@@ -23,8 +23,8 @@ describe('MLPredictions Component', () => {
     jest.clearAllMocks();
   });
 
-  test('displays loading state initially', () => {
-    // 👇 Provide a dummy pending promise to prevent .then error
+  test('ml_pred_loading', () => {
+    // mock axios GET request so we can catch and inspect the request
     axios.get.mockImplementationOnce(() => new Promise(() => {}));
 
     render(
@@ -33,11 +33,14 @@ describe('MLPredictions Component', () => {
       </MemoryRouter>
     );
 
+    // verify loading screen is displayed
     expect(screen.getByText('Loading Predictions...')).toBeInTheDocument();
     expect(screen.getByAltText('Loading...')).toBeInTheDocument();
   });
 
-  test('displays predicted team and PPG after data is fetched', async () => {
+  // test NBA champion and ppg displayed
+  test('ml_pred_prediction', async () => {
+    // mock axios GET request to return this data (testing of Django done in backend/ folder)
     axios.get.mockResolvedValueOnce({
       data: {
         top_team: 'Golden State Warriors',
@@ -51,15 +54,19 @@ describe('MLPredictions Component', () => {
       </MemoryRouter>
     );
 
+    // verify NBA champion and ppg displayed as expected
     await waitFor(() => {
       expect(screen.getByText('Predicted NBA Champion: Golden State Warriors')).toBeInTheDocument();
       expect(screen.getByText('Average predicted points per game: 118.3')).toBeInTheDocument();
     });
   });
 
-  test('handles API error gracefully and exits loading state', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {}); // silence error in output
+  // test errors from Django are handled gracefully
+  test('ml_pred_error', async () => {
+    // mock console log to catch the error message
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
   
+    // mock axios GET request to return an error
     axios.get.mockRejectedValueOnce(new Error('API error'));
   
     render(
@@ -68,11 +75,12 @@ describe('MLPredictions Component', () => {
       </MemoryRouter>
     );
   
+    // wait until done loading
     await waitFor(() => {
       expect(screen.queryByText('Loading Predictions...')).not.toBeInTheDocument();
     });
   
-    // Check that the error was logged
+    // verify the error was logged in console
     expect(consoleSpy).toHaveBeenCalledWith(
       'There was an error fetching the predicted NBA champion:',
       expect.any(Error)
@@ -81,9 +89,9 @@ describe('MLPredictions Component', () => {
     consoleSpy.mockRestore(); // clean up
   });
   
-
-  test('back button exists and triggers navigation', async () => {
-    // We want to wait for it to load, so we provide a valid mock
+  // test the back button triggers navigation to home page
+  test('ml_pred_back_button', async () => {
+    // mock axios GET request
     axios.get.mockResolvedValueOnce({
       data: {
         top_team: 'Boston Celtics',
@@ -97,13 +105,16 @@ describe('MLPredictions Component', () => {
       </MemoryRouter>
     );
 
+    // wait until done loading
     await waitFor(() => {
       expect(screen.getByText('Predicted NBA Champion: Boston Celtics')).toBeInTheDocument();
     });
 
+    // trigger user click on back button
     const backButton = screen.getByText('Back');
     fireEvent.click(backButton);
 
+    // verify navigation to home page initiated
     expect(mockNavigate).toHaveBeenCalledWith(-1);
   });
 });

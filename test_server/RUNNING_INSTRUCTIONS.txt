@@ -1,3 +1,5 @@
+These instructions were tested and verified to work on a fresh Ubuntu 20.04 VM.
+
 - Install Python 3.13:
 $ sudo apt-get install software-properties-common
 $ sudo add-apt-repository ppa:deadsnakes/ppa
@@ -26,6 +28,10 @@ $ node -v
 $ npm -v
 
 
+- Install gcc and g++ compilers (required to build some pip packages below)
+$ sudo apt install gcc
+$ sudo apt install g++
+
 - Install Python package dependencies:
 $ pip install -r requirements.txt
 
@@ -33,11 +39,11 @@ $ pip install -r requirements.txt
 - Install and set up PostgreSQL connection:
 $ sudo apt install postgresql
 Create a file at path: test_server/backend/.env with these contents:
-   DB_NAME=basketify
-   DB_USER=basketify_user
-   DB_PWD=your_password
-   DB_HOST=localhost
-   DB_PORT=5433
+DB_NAME=basketify
+DB_USER=basketify_user
+DB_PWD=basketify1234
+DB_HOST=database-1.ctee0c66o75x.us-west-1.rds.amazonaws.com
+DB_PORT=5432
 
 
 - Start the Django server on port 8000 & React server on port 3000:
