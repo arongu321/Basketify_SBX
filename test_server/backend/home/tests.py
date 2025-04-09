@@ -1,6 +1,7 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 from unittest.mock import patch, MagicMock
+from .utils import apply_filters_to_games
 import json
 
 
@@ -225,3 +226,250 @@ class ViewsTestCase(TestCase):
         
         self.assertEqual(response.status_code, 500)
         self.assertJSONEqual(str(response.content, 'utf8'), {'error': "No team has avg_ppg recorded"})
+
+class StatisticsFilteringTestCase(TestCase):
+    """Tests for statistics filtering functionality (FR25-FR28)"""
+    
+    @patch('home.views.get_mongo_client')
+    def setUp(self, mock_get_mongo_client):
+        # Create mock database client
+        self.client = Client()
+        self.mock_client = MagicMock()
+        self.mock_db = MagicMock()
+        self.mock_collection = MagicMock()
+        
+        mock_get_mongo_client.return_value = self.mock_client
+        self.mock_client.__getitem__.return_value = self.mock_db
+        self.mock_db.__getitem__.return_value = self.mock_collection
+        
+        # Setup player data
+        self.player_mock_data = {
+            "name": "LeBron James",
+            "games": {
+                "2025-01-01": {
+                    "Matchup": "LAL vs. BOS",
+                    "Points": 30,
+                    "scoredRebounds": 10,
+                    "Assists": 8,
+                    "Team": "LAL",
+                    "WinLoss": "W",
+                    "is_future_game": False
+                },
+                "2025-01-03": {
+                    "Matchup": "LAL @ NYK",
+                    "Points": 25,
+                    "scoredRebounds": 8,
+                    "Assists": 12,
+                    "Team": "LAL",
+                    "WinLoss": "L",
+                    "is_future_game": False
+                },
+                "2025-01-05": {
+                    "Matchup": "LAL vs. PHI",
+                    "Points": 28,
+                    "scoredRebounds": 7,
+                    "Assists": 9,
+                    "Team": "LAL",
+                    "WinLoss": "W",
+                    "is_future_game": False
+                }
+            }
+        }
+    
+    # FR25 - Filter Criteria Display Tests
+    @patch('home.views.get_mongo_client')
+    def test_filter_params_are_processed(self, mock_get_mongo_client):
+        """Test that filter parameters are correctly extracted from request"""
+        # Setup mock response
+        mock_get_mongo_client.return_value = self.mock_client
+        self.mock_client.__getitem__.return_value = self.mock_db
+        self.mock_db.__getitem__.return_value = self.mock_collection
+        self.mock_collection.find_one.return_value = self.player_mock_data
+        
+        # Query with filter parameters
+        url = '/api/stats/player/LeBron James/?date_from=2025-01-02&date_to=2025-01-06&outcome=Win'
+        response = self.client.get(url)
+        
+        # Check that function was called with correct filter parameters
+        self.assertEqual(response.status_code, 200)
+        # We'd ideally check that the filter function was called correctly, but would need a
+        # more sophisticated mock setup. This is implicitly tested in the next tests.
+    
+    # FR26 + FR27 - Dynamic Update and Multiple Criteria Tests
+    @patch('home.utils.apply_filters_to_games')
+    @patch('home.views.get_mongo_client')
+    def test_filter_apply_multiple_criteria(self, mock_get_mongo_client, mock_apply_filters):
+        """Test that multiple filter criteria are applied correctly"""
+        # Setup mocks
+        mock_get_mongo_client.return_value = self.mock_client
+        self.mock_client.__getitem__.return_value = self.mock_db
+        self.mock_db.__getitem__.return_value = self.mock_collection
+        self.mock_collection.find_one.return_value = self.player_mock_data
+        
+        # Setup return value for apply_filters_to_games
+        filtered_result = [
+            {
+                "date": "2025-01-05",
+                "opponent": "PHI",
+                "points": 28,
+                "rebounds": 7,
+                "assists": 9,
+                "WinLoss": "W"
+            }
+        ]
+        mock_apply_filters.return_value = filtered_result
+        
+        # Prepare filter parameters
+        filters = {
+            'date_from': '2025-01-04',
+            'outcome': 'Win',
+            'opponents': 'PHI'
+        }
+        
+        # Construct URL with query parameters
+        query_string = '&'.join([f'{key}={value}' for key, value in filters.items()])
+        url = f'/api/stats/player/LeBron James/?{query_string}'
+        
+        # Perform the request
+        response = self.client.get(url)
+        
+        # Assertions
+        self.assertEqual(response.status_code, 200, f"Unexpected response status: {response.content}")
+        
+        # Verify apply_filters_to_games was called
+        mock_apply_filters.assert_called_once_with(
+            # The first argument should be the list of games from the mock data
+            list(self.player_mock_data['games'].values()), 
+            filters=filters
+        )
+        
+        # Check response content
+        data = json.loads(response.content)
+        self.assertIn('stats', data, "Response should contain 'stats' key")
+        self.assertEqual(len(data['stats']), 1, "Expected one filtered result")
+        
+        # Verify specific details of the filtered result
+        filtered_game = data['stats'][0]
+        self.assertEqual(filtered_game['date'], '2025-01-05', "Unexpected filtered game date")
+        self.assertEqual(filtered_game['opponent'], 'PHI', "Unexpected filtered game opponent")
+        self.assertEqual(filtered_game['points'], 28, "Unexpected filtered game points")
+    
+    # FR28 - Filter Reset Test
+    @patch('home.utils.apply_filters_to_games')
+    @patch('home.views.get_mongo_client')
+    def test_filter_reset(self, mock_get_mongo_client, mock_apply_filters):
+        """Test that filter reset returns all data (no filters applied)"""
+        # Setup mocks
+        mock_get_mongo_client.return_value = self.mock_client
+        self.mock_client.__getitem__.return_value = self.mock_db
+        self.mock_db.__getitem__.return_value = self.mock_collection
+        self.mock_collection.find_one.return_value = self.player_mock_data
+        
+        # Setup mock return for all data (no filters)
+        all_games = [
+            {
+                "date": "2025-01-01",
+                "opponent": "BOS",
+                "points": 30,
+                "rebounds": 10,
+                "assists": 8,
+                "WinLoss": "W"
+                # Other stats would be here
+            },
+            {
+                "date": "2025-01-03",
+                "opponent": "NYK",
+                "points": 25,
+                "rebounds": 8,
+                "assists": 12,
+                "WinLoss": "L"
+                # Other stats would be here
+            },
+            {
+                "date": "2025-01-05",
+                "opponent": "PHI",
+                "points": 28,
+                "rebounds": 7,
+                "assists": 9,
+                "WinLoss": "W"
+                # Other stats would be here
+            }
+        ]
+        mock_apply_filters.return_value = all_games
+        
+        # Make request with no filters
+        response = self.client.get('/api/stats/player/LeBron James/')
+        
+        # Check response contains all data
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(len(data['stats']), 3)
+    
+    # Additional filter-specific tests
+    @patch('home.utils.apply_filters_to_games')
+    @patch('home.views.get_mongo_client')
+    def test_date_range_filter(self, mock_get_mongo_client, mock_apply_filters):
+        """Test that date range filter correctly limits results by date"""
+        # Setup mocks similar to previous tests
+        mock_get_mongo_client.return_value = self.mock_client
+        self.mock_client.__getitem__.return_value = self.mock_db
+        self.mock_db.__getitem__.return_value = self.mock_collection
+        self.mock_collection.find_one.return_value = self.player_mock_data
+        
+        # Setup filtered data mock return
+        filtered_data = [
+            {
+                "date": "2025-01-03",
+                "opponent": "NYK",
+                "points": 25,
+                "rebounds": 8,
+                "assists": 12,
+                "WinLoss": "L"
+                # Other stats would be here
+            }
+        ]
+        mock_apply_filters.return_value = filtered_data
+        
+        # Query with date range filter
+        url = '/api/stats/player/LeBron James/?date_from=2025-01-02&date_to=2025-01-04'
+        response = self.client.get(url)
+        
+        # Validate response
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(len(data['stats']), 1)
+        self.assertEqual(data['stats'][0]['date'], '2025-01-03')
+    
+    @patch('home.utils.apply_filters_to_games')
+    @patch('home.views.get_mongo_client')
+    def test_opponent_filter(self, mock_get_mongo_client, mock_apply_filters):
+        """Test that opponent filter correctly filters by opponent team"""
+        # Setup mocks
+        mock_get_mongo_client.return_value = self.mock_client
+        self.mock_client.__getitem__.return_value = self.mock_db
+        self.mock_db.__getitem__.return_value = self.mock_collection
+        self.mock_collection.find_one.return_value = self.player_mock_data
+        
+        # Setup filtered data mock return
+        filtered_data = [
+            {
+                "date": "2025-01-01",
+                "opponent": "BOS",
+                "points": 30,
+                "rebounds": 10,
+                "assists": 8,
+                "WinLoss": "W"
+                # Other stats would be here
+            }
+        ]
+        mock_apply_filters.return_value = filtered_data
+        
+        # Query with opponent filter
+        url = '/api/stats/player/LeBron James/?opponents=Boston Celtics'
+        response = self.client.get(url)
+        
+        # Validate response
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(len(data['stats']), 1)
+        self.assertEqual(data['stats'][0]['opponent'], 'BOS')

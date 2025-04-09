@@ -166,7 +166,6 @@ const FilterSection = ({
                             value={selectedOutcome}
                             onChange={(e) => setSelectedOutcome(e.target.value)}
                         >
-                            <option value="">All Outcomes</option>
                             {GAME_OUTCOMES.map((outcome) => (
                                 <option key={outcome} value={outcome}>
                                     {outcome}

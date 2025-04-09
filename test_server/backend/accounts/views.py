@@ -17,6 +17,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from datetime import datetime, timezone
 from django.contrib.auth.tokens import default_token_generator
+from django.db import IntegrityError
 import json
 
 # Import the custom user model
@@ -59,6 +60,42 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class UserRegistrationView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = UserCreateSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        
+        # Check if the email already exists
+        email = request.data.get('email', '')
+        if self.get_user_model().objects.filter(email=email).exists():
+            return Response(
+                {"email": ["A user with this email already exists."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Continue with normal validation
+        if serializer.is_valid():
+            try:
+                self.perform_create(serializer)
+                headers = self.get_success_headers(serializer.data)
+                return Response(
+                    serializer.data, 
+                    status=status.HTTP_201_CREATED, 
+                    headers=headers
+                )
+            except IntegrityError:
+                # Catch any IntegrityError that might still occur
+                return Response(
+                    {"email": ["A user with this email already exists."]},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def get_user_model(self):
+        return get_user_model()
 
     def perform_create(self, serializer):
         user = serializer.save()
