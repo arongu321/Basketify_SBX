@@ -16,5 +16,5 @@ urlpatterns = [
     path('stats/player/<str:name>/', get_player_stats, name='player_stats'),  # FR9
     path('stats/team/<str:name>/', get_team_stats, name='team_stats'),  # FR11
     path('load-database/', handle_load_db_request, name='load_db'),  # pre-fetch connection obj to MongoDB
-    path('predict-season-champion/', predict_nba_champion, name='predict-season-champion')
+    path('predict-season-champion/', predict_nba_champion, name='predict-season-champion')  # FR21
 ]

@@ -98,7 +98,7 @@ function StatsGraph() {
     const plotData = selectedStats
         .map((stat, index) => {
             const dataSource = isSeasonal
-                ? seasonalStats.slice().reverse()
+                ? seasonalStats
                 : currentSeasonStats; // reverse so most recent is at end of array (display on right side)
 
             const currentSeasonX = dataSource.map((data) =>
@@ -156,7 +156,20 @@ function StatsGraph() {
     // Display graph of stats: FR11, use Plotly to make graph hoverable: FR14
     const layout = {
         title: 'Stats Over Time',
-        xaxis: { title: isSeasonal ? 'Season' : 'Date' },
+        xaxis: {
+            title: isSeasonal ? 'Season' : 'Date',
+            type: 'category',
+            tickvals: !isSeasonal
+                ? currentSeasonStats
+                    .map((data, idx) => idx)
+                    .filter((_, i) => i % 5 === 0) // show every 5th tick
+                : undefined,
+            ticktext: !isSeasonal
+                ? currentSeasonStats
+                    .map((data) => new Date(data.date).toLocaleDateString())
+                    .filter((_, i) => i % 5 === 0)
+                : undefined,
+                },
         yaxis: {
             title: {
                 text: selectedStats[0]

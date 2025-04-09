@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import UserFavorite
 
-# written by zach
+# Fulfills FR5 and FR6 by modelling PostgreSQL user favourite fields to Python objects
 class UserFavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserFavorite

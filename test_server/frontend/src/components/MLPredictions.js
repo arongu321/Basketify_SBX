@@ -43,6 +43,7 @@ function MLPredictions() {
         </div>
       </div>
 
+      {/* Fulfills FR22 by displaying predicted NBA champion */}
       <div className="ml-predictions-content">
         <div className="ml-predictions-card">
           <h2>Predicted NBA Champion: {topTeam}</h2>

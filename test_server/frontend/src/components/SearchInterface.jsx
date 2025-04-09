@@ -24,6 +24,9 @@ function SearchInterface() {
         setSearchPerformed(false);
     };
 
+    // Fulfills FR7 and FR8 by allowing player to search for player/team with a call to backend
+    // Also fulfills FR16 and FR17 because ML player/team prompt are the same as the search
+    // interface for past game stats
     const handleSearch = () => {
         setSearchPerformed(true);
         setLoading(true);
