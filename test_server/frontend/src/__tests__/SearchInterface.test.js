@@ -120,6 +120,70 @@ describe('SearchInterface Component', () => {
     });
   });
 
+  test('search_team', async () => {
+    // mock the Django GET request to return Los Angeles Lakers
+    api.get.mockResolvedValueOnce({
+      data: { teams: [{ name: 'Los Angeles Lakers' }] },
+    });
+  
+    render(
+      <Router>
+        <SearchInterface />
+      </Router>
+    );
+
+    expect(screen.getByText('Search Teams')).toBeInTheDocument();
+
+    // switch to team search
+    fireEvent.click(screen.getByText('Search Teams'));
+    await waitFor(() => {
+        // verify title should be "Search Teams"
+        expect(screen.getAllByText('Search Teams')[0]).toHaveClass('search-interface-title');
+    });
+  
+    // trigger user input
+    const searchInput = screen.getByPlaceholderText('Enter team name');
+    fireEvent.change(searchInput, { target: { value: 'Lakers' } });
+    fireEvent.click(screen.getByText('Search'));
+  
+    // verify value returned by Django is printed
+    await waitFor(() => {
+      expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
+    });
+  });
+
+  test('search_team_no_results', async () => {
+    // mock Django GET request to return no teams
+    api.get.mockResolvedValueOnce({
+      data: { teams: [] },
+    });
+  
+    render(
+      <Router>
+        <SearchInterface />
+      </Router>
+    );
+
+    expect(screen.getByText('Search Teams')).toBeInTheDocument();
+
+    // switch to team search
+    fireEvent.click(screen.getByText('Search Teams'));
+    await waitFor(() => {
+        // verify title should be "Search Teams"
+        expect(screen.getAllByText('Search Teams')[0]).toHaveClass('search-interface-title');
+    });
+  
+    // trigger user input
+    const searchInput = screen.getByPlaceholderText('Enter team name');
+    fireEvent.change(searchInput, { target: { value: 'Unknown Team' } });
+    fireEvent.click(screen.getByText('Search'));
+  
+    // verify "no results" message displayed
+    await waitFor(() => {
+      expect(screen.getByText('No results found for "Unknown Team".')).toBeInTheDocument();
+    });
+  }); 
+
   // test the toggle between player and team search mode
   test('search_toggle_player_team', async () => {
     render(
@@ -251,6 +315,87 @@ describe('SearchInterface Component', () => {
         {
           type: 'player',
           name: 'LeBron James',
+        },
+        expect.anything()
+      );
+    });
+  });
+
+  // tests setting of favourite team
+  test('set_favourite_team', async () => {
+    useLocation.mockReturnValue({
+        state: { setFavorite: 'team' }, // we render the page in a different way when setting favourite, using the state attr
+    });
+
+    // mock the search GET requests return from Django
+    api.get.mockResolvedValueOnce({
+      data: { teams: [{ name: 'Oklahoma City Thunder' }] },
+    });
+  
+    // mock the POST request so we can assert correct request was sent
+    api.post.mockResolvedValueOnce({});  // mock POST doesn't do anything
+  
+    render(
+      <Router>
+        <SearchInterface />
+      </Router>
+    );
+  
+    // trigger user search for OKC
+    const searchInput = screen.getByPlaceholderText('Enter team name');
+    fireEvent.change(searchInput, { target: { value: 'Oklahoma City' } });
+    fireEvent.click(screen.getByText('Search'));
+  
+    // wait until search results rendered
+    await waitFor(() => expect(screen.getByText('Oklahoma City Thunder', {exact: false})).toBeInTheDocument());
+  
+    // trigger click on OKC's name
+    fireEvent.click(screen.getByText('Oklahoma City Thunder'));
+
+    // verify POST request sent to /accounts/set-favorite/ with correct type and name fields
+    expect(api.post).toHaveBeenCalledWith(
+    '/accounts/set-favorite/',
+    {
+        type: 'team',
+        name: 'Oklahoma City Thunder',
+    },
+    expect.anything()
+    );
+  });
+  
+  // test graceful handling of failed set favourite
+  test('set_favourite_team_error', async () => {
+    useLocation.mockReturnValue({
+        state: { setFavorite: 'team' },  // we render the page in a different way when setting favourite, using the state attr
+    });
+
+    // mock the Django GET request to return Lebron
+    api.get.mockResolvedValueOnce({
+      data: { teams: [{ name: 'Oklahoma City Thunder' }] },
+    });
+
+    // mock the POST request to return an error on Django's side
+    api.post.mockRejectedValueOnce(new Error('Failed to save favorite'));
+
+    render(
+      <Router>
+        <SearchInterface />
+      </Router>
+    );
+
+    // trigger user input to search for lebron
+    const searchInput = screen.getByPlaceholderText('Enter team name');
+    fireEvent.change(searchInput, { target: { value: 'Okla' } });
+    fireEvent.click(screen.getByText('Search'));
+
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Oklahoma City Thunder'));  // trigger click on lebron's name
+      // verify POST request sent with correct fields
+      expect(api.post).toHaveBeenCalledWith(
+        '/accounts/set-favorite/',
+        {
+          type: 'team',
+          name: 'Oklahoma City Thunder',
         },
         expect.anything()
       );

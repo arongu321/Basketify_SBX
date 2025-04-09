@@ -22,7 +22,7 @@ const renderStatsPage = (type, name) => {
 
 describe('StatsPage', () => {
   // test the loading screen appears
-  it('render_loading', () => {
+  it('render_loading_stats', () => {
     api.get.mockResolvedValueOnce({ data: { stats: [], seasonal_stats: [] } });
 
     renderStatsPage('player', 'john_doe');
@@ -207,7 +207,7 @@ describe('StatsPage', () => {
   });
 
   // test handling of error caused by Django server, should fail gracefully
-  it('handle_error', async () => {
+  it('handle_error_stats_page', async () => {
     api.get.mockRejectedValueOnce(new Error('Failed to fetch stats'));
 
     renderStatsPage('player', 'john_doe');
