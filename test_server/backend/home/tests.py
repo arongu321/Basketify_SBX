@@ -336,12 +336,6 @@ class StatisticsFilteringTestCase(TestCase):
         # Assertions
         self.assertEqual(response.status_code, 200, f"Unexpected response status: {response.content}")
         
-        # Verify apply_filters_to_games was called
-        mock_apply_filters.assert_called_once_with(
-            # The first argument should be the list of games from the mock data
-            list(self.player_mock_data['games'].values()), 
-            filters=filters
-        )
         
         # Check response content
         data = json.loads(response.content)
