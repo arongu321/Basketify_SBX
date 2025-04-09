@@ -1,0 +1,107 @@
+/* Styling for the MLPredictions component */
+
+.ml-predictions-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #f5f5f5;
+  }
+  
+  .ml-predictions-top-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    background-color: #8bd6ef;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .ml-predictions-header-content {
+    display: flex;
+    justify-content: center;
+    flex-grow: 1;
+  }
+  
+  .ml-predictions-title {
+    color: white;
+    font-size: 36px;
+    margin: 0;
+    text-align: center;
+    flex-grow: 1;
+  }
+  
+  .ml-predictions-back-button {
+    padding: 15px 30px;
+    background-color: white;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ml-predictions-back-button:hover {
+    background-color: #f0f0f0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .ml-predictions-content {
+    padding: 100px 20px 60px 20px;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ml-predictions-card {
+    text-align: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .ml-predictions-card h2 {
+    font-size: 24px;
+  }
+  
+  .ml-predictions-bottom-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    background-color: #8bd6ef;
+    height: 50px;
+    width: 100%;
+    z-index: 10;
+  }
+  
+  .ml-predictions-loading-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    text-align: center;
+    background-color: #f7f7f7;
+  }
+  
+  .ml-predictions-loading-favicon {
+    width: 100px;
+    height: auto;
+    margin-bottom: 20px;
+  }
+  
+  .ml-predictions-loading-screen h2 {
+    font-size: 24px;
+    font-weight: 500;
+    color: #333;
+  }
+  

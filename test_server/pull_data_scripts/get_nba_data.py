@@ -7,16 +7,16 @@ from time import sleep
 from ml.player_pred import determine_win_loss, predict_nba_champion, predict_next_game_vs_team_with_ci, team_ppg
 from ml.feedback_loop import evaluate_feedback_discrepancies, store_feedback
 try:
-    #client = MongoClient("mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net", serverSelectionTimeoutMS=5000)
-    client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=5000)
+    client = MongoClient("mongodb+srv://zschmidt:ECE493@basketifycluster.dr6oe.mongodb.net", serverSelectionTimeoutMS=5000)
+    # client = MongoClient("mongodb://localhost:27017", serverSelectionTimeoutMS=5000)
     print("Connected to MongoDB!")
 except Exception as e:
     print("Error connecting to MongoDB:", e)
 
-db = client['nba_stats']
+db = client['nba_stats_all']
 player_collection = db['players']
 team_collection = db['teams']
-
+print("We're here!")
 
 def get_player_data():
     all_players = players.get_active_players()
@@ -156,8 +156,8 @@ def get_upcoming_games():
         for game_date in data["leagueSchedule"]["gameDates"]:
             for game in game_date["games"]:
                 game_date_utc = datetime.strptime(game["gameDateUTC"], "%Y-%m-%dT%H:%M:%SZ")
-                
-                if game_date_utc >= datetime.utcnow():
+                target_date = datetime(2025, 4, 7, 0, 0, 0)
+                if game_date_utc >= target_date:
                     if game["homeTeam"]["teamCity"] is not None:
                         game_info = {
                             "gameId": game["gameId"],
@@ -168,7 +168,6 @@ def get_upcoming_games():
                         upcoming_games.append(game_info)
                     else:
                         print("Skipping game (likely playoffs/all-stars): ")
-                        print(game)
 
         return upcoming_games
 
@@ -237,6 +236,8 @@ def make_future_predictions():
                 print(f"Predicted points for {player_name} in upcoming game: {predicted_points}")
 
     all_teams = db['teams'].find()
+
+    start = False
     
     for team in all_teams:
         full_team_name = team['name']
@@ -286,6 +287,9 @@ def make_future_predictions():
                 )
                 print(f"Predicted points for {team_name} in upcoming game: {predicted_points}")
 
+        if team_name == "CLE":
+            start = True
+
         avg = team_ppg(team_name, "Points", "team")
         team_collection.update_one(
             {"name": full_team_name},
@@ -321,6 +325,7 @@ def predict_win_loss():
                     {"$set": {f"future_games.{game_date}.WinLoss": outcome}},
                     upsert=True
                 )
+                print("Predict W/L for " + team_name + " vs " + opponent + " on " + game_date)
         print("Predicted W/L for:" + team_name)
 
 def get_seasons():
@@ -341,6 +346,82 @@ def get_seasons():
         games = game_finder.get_data_frames()[0]
         print(games)
 
+def fix_future_games():
+    # all_players = player_collection.find().batch_size(100)
+    # for player in all_players:
+    #     player_name = player['name']
+    #     player_team = player.get('team')  # Should be abbreviation like "DEN"
+    #     future_games = player.get('future_games', {})
+
+    #     updates = {}
+
+    #     for date_key, game_data in future_games.items():
+    #         matchup = game_data.get("Matchup", "")
+    #         if " vs. " in matchup:
+    #             home_team, away_team = matchup.split(" vs. ")
+
+    #             if player_team == away_team:
+    #                 # Player is on away team — update matchup format
+    #                 new_matchup = f"{away_team} @ {home_team}"
+    #                 updates[f"future_games.{date_key}.Matchup"] = new_matchup
+    #                 player_collection.update_one(
+    #                     {"name": player_name},
+    #                     {"$set": updates}
+    #                 )
+    #                 print(f"Updated future matchup format for player: {player_name}")
+    all_teams = team_collection.find({},  # No filter — get all documents
+        {"abbrev_name": 1, "future_games": 1, "_id": 0}  # Project only name and future_games
+    )
+    for team in all_teams:
+        team_name = team['abbrev_name']
+        future_games = team.get('future_games', {})
+
+        for date_key, game_data in future_games.items():
+            updates = {}
+            matchup = game_data.get("Matchup", "")
+            if " vs. " in matchup:
+                home_team, away_team = matchup.split(" vs. ")
+
+                if team_name == away_team:
+    
+                    # Player is on away team — update matchup format
+                    new_matchup = f"{away_team} @ {home_team}"
+                    updates[f"future_games.{date_key}.Matchup"] = new_matchup
+                    team_collection.update_one(
+                        {"abbrev_name": team_name},
+                        {"$set": updates}
+                    )
+
+def delete_duplicate_players():
+    players = player_collection.find(
+        {}, {"_id": 1, "name": 1, "future_games": 1}
+    )
+
+    for player in players:
+        future_games = player.get('future_games', {})
+
+        for game in future_games.values():
+            matchup = game.get("Matchup", "")
+            if " vs " in matchup:  # Bad format
+                player_collection.delete_one({"_id": player["_id"]})
+                print(f"Deleted player: {player['name']}")
+                break
+
+def delete_duplicate_teams():
+    teams = team_collection.find(
+        {}, {"_id": 1, "name": 1, "future_games": 1}
+    )
+
+    for team in teams:
+        future_games = team.get('future_games', {})
+
+        for game in future_games.values():
+            matchup = game.get("Matchup", "")
+            if " vs " in matchup:  # Bad format
+                team_collection.delete_one({"_id": team["_id"]})
+                print(f"Deleted team: {team['name']}")
+                break
+
 def upload_to_mongodb():
     # Call get_player_data and get_team_data, but data will be uploaded to MongoDB in the functions
     store_feedback() # Uncomment if you want to run feedback loop
@@ -353,5 +434,9 @@ def upload_to_mongodb():
     
 
 if __name__ == "__main__":
-    upload_to_mongodb()
+    # upload_to_mongodb()
+    # fix_future_games()
+    # delete_duplicate_players()
+    # delete_duplicate_teams()
+    predict_win_loss()
  

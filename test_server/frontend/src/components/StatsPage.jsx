@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import logo from '../assets/Basketify-Logo.png';
 import FilterSection from './FilterSection';
@@ -10,7 +10,7 @@ function StatsPage() {
     const navigate = useNavigate();
     const [statsData, setStatsData] = useState([]);
     const [seasonalStats, setSeasonalStats] = useState([]);
-    const [currentSeasonStats, setCurrentSeasonStats] = useState([]);
+    const [historyStats, setHistoryStats] = useState([]);
     const [futureGames, setFutureGames] = useState([]);
     const [isSeasonal, setIsSeasonal] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -22,7 +22,7 @@ function StatsPage() {
         setLoading(true);
         try {
             // Construct the URL with query parameters for filtering
-            let url = `http://localhost:8000/api/stats/${type}/${name}`;
+            let url = `/api/stats/${type}/${name}`;
 
             // Add filter parameters to the URL if they exist
             if (Object.keys(filters).length > 0) {
@@ -33,33 +33,18 @@ function StatsPage() {
                 setIsFiltered(false);
             }
 
-            const response = await axios.get(url);
+            const response = await api.get(url);
             const { stats, seasonal_stats } = response.data;
 
-            // Process current season stats
-            const currentSeason = stats.filter((stat) => {
-                const statDate = new Date(stat.date);
-                const currentDate = new Date();
-                let seasonStart = new Date(currentDate.getFullYear(), 9, 1);
-                let seasonEnd = new Date(currentDate.getFullYear() + 1, 8, 31);
-
-                if (currentDate.getMonth() < 9) {
-                    seasonStart = new Date(currentDate.getFullYear() - 1, 9, 1);
-                    seasonEnd = new Date(currentDate.getFullYear(), 8, 31);
-                }
-
-                return (
-                    statDate >= seasonStart &&
-                    statDate <= seasonEnd &&
-                    !stat.is_future_game
-                );
-            });
-
-            const futureGames = stats.filter((stat) => stat.is_future_game);
-
+            // Set all the data
             setStatsData(stats);
             setSeasonalStats(seasonal_stats);
-            setCurrentSeasonStats(currentSeason);
+
+            // Separate future games from historical games
+            const futureGames = stats.filter((stat) => stat.is_future_game);
+            const historical = stats.filter((stat) => !stat.is_future_game);
+
+            setHistoryStats(historical);
             setFutureGames(futureGames);
         } catch (error) {
             console.error('Error fetching stats data:', error);
@@ -130,6 +115,26 @@ function StatsPage() {
             filterMessages.push(`To date: ${dateTo}`);
         }
 
+        // Month filter
+        const month = activeFilters.month || '';
+        if (month) {
+            const monthNames = [
+                'January',
+                'February',
+                'March',
+                'April',
+                'May',
+                'June',
+                'July',
+                'August',
+                'September',
+                'October',
+                'November',
+                'December',
+            ];
+            filterMessages.push(`Month: ${monthNames[parseInt(month) - 1]}`);
+        }
+
         // Last N Games
         const lastNGames = activeFilters.last_n_games || '';
         if (lastNGames) {
@@ -183,12 +188,6 @@ function StatsPage() {
         return (
             <div className="filter-status">
                 <span>Filtering: {filterMessages.join(' • ')}</span>
-                <button
-                    className="clear-filter-button"
-                    onClick={() => handleApplyFilters({}, true)}
-                >
-                    Clear
-                </button>
             </div>
         );
     };
@@ -230,13 +229,12 @@ function StatsPage() {
                     </button>
                 </div>
 
-                {!isSeasonal && (
-                    <FilterSection
-                        isOpen={isFilterOpen}
-                        onApplyFilters={handleApplyFilters}
-                        entityType={type}
-                    />
-                )}
+                <FilterSection
+                    isOpen={isFilterOpen}
+                    onApplyFilters={handleApplyFilters}
+                    entityType={type}
+                    initialFilters={activeFilters}
+                />
 
                 {renderFilterStatus()}
 
@@ -244,90 +242,18 @@ function StatsPage() {
                     <p>No stats available for this {type}.</p>
                 ) : (
                     <div>
-                        <table className="stats-page-table">
-                            <thead>
-                                <tr>
-                                    <th>{isSeasonal ? 'Season' : 'Date'}</th>
-                                    {!isSeasonal && <th>Opponent</th>}
-                                    <th>Points Scored</th>
-                                    <th>Rebounds</th>
-                                    <th>Assists</th>
-                                    <th>Field Goals Made</th>
-                                    <th>Field Goal %</th>
-                                    <th>3P Made</th>
-                                    <th>3P %</th>
-                                    <th>Free Throws Made</th>
-                                    <th>Free Throw %</th>
-                                    <th>Steals</th>
-                                    <th>Blocks</th>
-                                    <th>Turnovers</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {(isSeasonal
-                                    ? seasonalStats
-                                    : currentSeasonStats
-                                )
-                                    .slice()
-                                    .reverse()
-                                    .map((gameStats, index) => (
-                                        <tr key={index}>
-                                            <td>
-                                                {isSeasonal
-                                                    ? gameStats.season
-                                                    : new Date(
-                                                          gameStats.date
-                                                      ).toLocaleDateString()}
-                                            </td>
-                                            {!isSeasonal && (
-                                                <td>
-                                                    {gameStats.opponent ||
-                                                        'N/A'}
-                                                </td>
-                                            )}
-                                            <td>{gameStats.points}</td>
-                                            <td>{gameStats.rebounds}</td>
-                                            <td>{gameStats.assists}</td>
-                                            <td>{gameStats.fieldGoalsMade}</td>
-                                            <td>
-                                                {(
-                                                    gameStats.fieldGoalPercentage *
-                                                    100
-                                                ).toFixed(1)}
-                                                %
-                                            </td>
-                                            <td>{gameStats.threePointsMade}</td>
-                                            <td>
-                                                {(
-                                                    gameStats.threePointPercentage *
-                                                    100
-                                                ).toFixed(1)}
-                                                %
-                                            </td>
-                                            <td>{gameStats.freeThrowsMade}</td>
-                                            <td>
-                                                {(
-                                                    gameStats.freeThrowPercentage *
-                                                    100
-                                                ).toFixed(1)}
-                                                %
-                                            </td>
-                                            <td>{gameStats.steals}</td>
-                                            <td>{gameStats.blocks}</td>
-                                            <td>{gameStats.turnovers}</td>
-                                        </tr>
-                                    ))}
-                            </tbody>
-                        </table>
-
+                        {/* Display Future Games First */}
                         {!isSeasonal && futureGames.length > 0 && (
                             <>
-                                <h2>Future Games</h2>
+                                <h2>Upcoming Games (Predictions)</h2>
                                 <table className="stats-page-table">
                                     <thead>
                                         <tr>
                                             <th>Date</th>
                                             <th>Opponent</th>
+                                            <th>Predicted Outcome</th>
+                                            <th>Location</th>
+                                            <th>Season Type</th>
                                             <th>Points Scored</th>
                                             <th>Rebounds</th>
                                             <th>Assists</th>
@@ -348,12 +274,19 @@ function StatsPage() {
                                                 <td>
                                                     {new Date(
                                                         gameStats.date
+                                                            .replace(/-/g, '/')
+                                                            .replace(/T.+/, '')
                                                     ).toLocaleDateString()}
                                                 </td>
                                                 <td>
                                                     {gameStats.opponent ||
                                                         'N/A'}
                                                 </td>
+                                                <td>{gameStats.WinLoss}</td>
+                                                <td>
+                                                    {gameStats.gameLocation}
+                                                </td>
+                                                <td>{gameStats.seasonType}</td>
                                                 <td>{gameStats.points}</td>
                                                 <td>{gameStats.rebounds}</td>
                                                 <td>{gameStats.assists}</td>
@@ -361,30 +294,30 @@ function StatsPage() {
                                                     {gameStats.fieldGoalsMade}
                                                 </td>
                                                 <td>
-                                                    {(
+                                                    {gameStats.fieldGoalPercentage ? (
                                                         gameStats.fieldGoalPercentage *
                                                         100
-                                                    ).toFixed(1)}
+                                                    ).toFixed(1): 'N/A'}
                                                     %
                                                 </td>
                                                 <td>
                                                     {gameStats.threePointsMade}
                                                 </td>
                                                 <td>
-                                                    {(
+                                                    {gameStats.threePointPercentage ? (
                                                         gameStats.threePointPercentage *
                                                         100
-                                                    ).toFixed(1)}
+                                                    ).toFixed(1) : 'N/A'}
                                                     %
                                                 </td>
                                                 <td>
                                                     {gameStats.freeThrowsMade}
                                                 </td>
                                                 <td>
-                                                    {(
+                                                    {gameStats.freeThrowPercentage ? (
                                                         gameStats.freeThrowPercentage *
                                                         100
-                                                    ).toFixed(1)}
+                                                    ).toFixed(1) : 'N/A'}
                                                     %
                                                 </td>
                                                 <td>{gameStats.steals}</td>
@@ -396,6 +329,131 @@ function StatsPage() {
                                 </table>
                             </>
                         )}
+
+                        {/* Then Display Historical Games */}
+                        <h2>
+                            {!isSeasonal && futureGames.length > 0
+                                ? 'Past Games'
+                                : 'All Games'}
+                        </h2>
+                        <table className="stats-page-table">
+                            <thead>
+                                <tr>
+                                    <th>{isSeasonal ? 'Season' : 'Date'}</th>
+                                    {!isSeasonal && <th>Opponent</th>}
+                                    {!isSeasonal && <th>Game Outcome</th>}
+                                    {!isSeasonal && <th>Location</th>}
+                                    {!isSeasonal && <th>Season Type</th>}
+                                    <th>Points Scored</th>
+                                    <th>Rebounds</th>
+                                    <th>Assists</th>
+                                    <th>Field Goals Made</th>
+                                    <th>Field Goal %</th>
+                                    <th>3P Made</th>
+                                    <th>3P %</th>
+                                    <th>Free Throws Made</th>
+                                    <th>Free Throw %</th>
+                                    <th>Steals</th>
+                                    <th>Blocks</th>
+                                    <th>Turnovers</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(isSeasonal ? seasonalStats : historyStats) // Use all historical stats instead of currentSeasonStats
+                                    .slice()
+                                    .reverse()
+                                    .map((gameStats, index) => (
+                                        <tr key={index}>
+                                            <td>
+                                                {isSeasonal
+                                                    ? gameStats.season
+                                                    : new Date(
+                                                          gameStats.date
+                                                              .replace(
+                                                                  /-/g,
+                                                                  '/'
+                                                              )
+                                                              .replace(
+                                                                  /T.+/,
+                                                                  ''
+                                                              )
+                                                      ).toLocaleDateString()}
+                                            </td>
+                                            {!isSeasonal && (
+                                                <td>
+                                                    {gameStats.opponent ||
+                                                        'N/A'}
+                                                </td>
+                                            )}
+                                            {!isSeasonal && (
+                                                <td>{gameStats.WinLoss}</td>
+                                            )}
+                                            {!isSeasonal && (
+                                                <td>
+                                                    {gameStats.gameLocation}
+                                                </td>
+                                            )}
+                                            {!isSeasonal && (
+                                                <td>{gameStats.seasonType}</td>
+                                            )}
+                                            <td>
+                                                {gameStats.points ? gameStats.points.toFixed(0): 'N/A'}
+                                            </td>
+                                            <td>
+                                                {gameStats.rebounds ? gameStats.rebounds.toFixed(0) : 'N/A'}
+                                            </td>
+                                            <td>
+                                                {gameStats.assists ? gameStats.assists.toFixed(0): 'N/A'}
+                                            </td>
+                                            <td>
+                                                {gameStats.fieldGoalsMade ? gameStats.fieldGoalsMade.toFixed(
+                                                    0
+                                                ): 'N/a'}
+                                            </td>
+                                            <td>
+                                                {gameStats.fieldGoalPercentage ? (
+                                                    gameStats.fieldGoalPercentage *
+                                                    100
+                                                ).toFixed(1) : 'N/A'}
+                                                %
+                                            </td>
+                                            <td>
+                                                {gameStats.threePointsMade ? gameStats.threePointsMade.toFixed(
+                                                    0
+                                                ) : 'N/A'}
+                                            </td>
+                                            <td>
+                                                {gameStats.threePointPercentage ? (
+                                                    gameStats.threePointPercentage *
+                                                    100
+                                                ).toFixed(1) : 'N/A'}
+                                                %
+                                            </td>
+                                            <td>
+                                                {gameStats.freeThrowsMade ? gameStats.freeThrowsMade.toFixed(
+                                                    0
+                                                ): 'N/A'}
+                                            </td>
+                                            <td>
+                                                {gameStats.freeThrowPercentage ? (
+                                                    gameStats.freeThrowPercentage *
+                                                    100
+                                                ).toFixed(1): 'N/A'}
+                                                %
+                                            </td>
+                                            <td>
+                                                {gameStats.steals ? gameStats.steals.toFixed(0) : 'N/A'}
+                                            </td>
+                                            <td>
+                                                {gameStats.blocks ? gameStats.blocks.toFixed(0): 'N/A'}
+                                            </td>
+                                            <td>
+                                                {gameStats.turnovers ? gameStats.turnovers.toFixed(0): 'N/A'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                            </tbody>
+                        </table>
                     </div>
                 )}
             </div>

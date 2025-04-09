@@ -133,42 +133,50 @@ def get_opponent_from_matchup(matchup, team_abbr):
     else:
         return None
 
-def determine_season_year(date_str):
+def get_season_type_from_season_id(season_id):
     """
-    Determine the NBA season based on the date (e.g. 2022-12-25 would be in the 2022-23 season)
+    Extract season type from SEASON_ID.
+    Examples:
+    - "22024" (first digit 2) → "Regular Season"
+    - "42024" (first digit 4) → "Playoffs"
+    - "52024" (first digit 5) → "Play-In Tournament"
+    - "62024" (first digit 6) → "NBA Cup Finals"
     """
+    if not season_id or not isinstance(season_id, str):
+        return None
+    
     try:
-        date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d')
-        year = date_obj.year
-        month = date_obj.month
-        
-        # If month is October through December, it's part of the season starting that year
-        if month >= 10:
-            return f"{year}-{str(year+1)[2:]}"
-        # If month is January through June, it's part of the season that started the previous year
+        first_digit = season_id[0]
+        if first_digit == '1':
+            return "Preseason"
+        if first_digit == '2':
+            return "Regular Season"
+        elif first_digit == '4':
+            return "Postseason" 
+        elif first_digit == '5':
+            return "Play-In Tournament"
+        elif first_digit == '6':
+            return "NBA Cup Finals"
         else:
-            return f"{year-1}-{str(year)[2:]}"
-    except (ValueError, TypeError):
-        # Handle cases where date_str is not a proper date string
+            return None
+    except IndexError:
         return None
 
-def determine_season_type(date_str):
+def get_season_year_from_season_id(season_id):
     """
-    Determine season type (regular/playoffs) based on date
-    A very basic implementation - assuming post-April 15 is playoffs in most seasons
+    Extract season year from SEASON_ID.
+    Example: "22024" → "2024-25"
     """
+    if not season_id or not isinstance(season_id, str):
+        return None
+    
     try:
-        date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d')
-        month = date_obj.month
-        day = date_obj.day
-        
-        # Rough estimate: after April 15 is typically playoffs
-        if (month == 4 and day > 15) or month > 4:
-            return "Postseason"
-        else:
-            return "Regular Season"
-    except (ValueError, TypeError):
-        return "Regular Season"
+        # Extract year portion (all digits after the first)
+        year = int(season_id[1:])
+        # Format as "YYYY-YY"
+        return f"{year}-{(year % 100) + 1}"
+    except (ValueError, IndexError):
+        return None
 
 def is_interconference_game(team_abbr, opponent_abbr):
     """
@@ -205,21 +213,28 @@ def apply_filters_to_games(games, filters):
             ]
         except ValueError:
             pass
-    
+    # Month filter
+    if 'month' in filters and filters['month']:
+        month = int(filters['month'])
+        filtered_games = [
+            game for game in filtered_games 
+            if datetime.datetime.strptime(game['date'].split('_')[0], '%Y-%m-%d').month == month
+        ]
+
     # Season filter (e.g., "2022-23")
     if 'season' in filters and filters['season']:
         season = filters['season']
         filtered_games = [
             game for game in filtered_games 
-            if determine_season_year(game['date'].split('_')[0]) == season
+            if get_season_year_from_season_id(game.get('SEASON_ID')) == season
         ]
-    
+
     # Season type filter (Regular Season, Postseason)
     if 'season_type' in filters and filters['season_type']:
         season_type = filters['season_type']
         filtered_games = [
             game for game in filtered_games 
-            if determine_season_type(game['date'].split('_')[0]) == season_type
+            if get_season_type_from_season_id(game.get('SEASON_ID')) == season_type
         ]
     
     # Game outcome filter (Win/Loss)
