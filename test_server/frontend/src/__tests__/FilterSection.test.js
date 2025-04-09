@@ -136,6 +136,143 @@ describe('Filter Section Tests (FR25-FR28)', () => {
                 })
             );
         });
+
+        // NEW TEST: Season Type filter
+        test('filter_season_type_update', async () => {
+            const { container } = renderFilterSection();
+
+            // Get the season type select element
+            const seasonTypeLabel = screen.getByText('Season Type:');
+            const seasonTypeSelectWrapper =
+                seasonTypeLabel.closest('.filter-group');
+            const seasonTypeSelect =
+                seasonTypeSelectWrapper.querySelector('select');
+
+            // Change value to "Regular Season"
+            fireEvent.change(seasonTypeSelect, {
+                target: { value: 'Regular Season' },
+            });
+
+            // Apply filters
+            fireEvent.click(
+                screen.getByRole('button', { name: /Apply Filters/i })
+            );
+
+            // Check if callback was called with correct filter values
+            expect(mockApplyFilters).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    season_type: 'Regular Season',
+                })
+            );
+        });
+
+        // NEW TEST: Conference filter
+        test('filter_conference_update', async () => {
+            const { container } = renderFilterSection();
+
+            // Get the conference select element
+            const conferenceLabel = screen.getByText('Conference:');
+            const conferenceSelectWrapper =
+                conferenceLabel.closest('.filter-group');
+            const conferenceSelect =
+                conferenceSelectWrapper.querySelector('select');
+
+            // Change value to "East"
+            fireEvent.change(conferenceSelect, { target: { value: 'East' } });
+
+            // Apply filters
+            fireEvent.click(
+                screen.getByRole('button', { name: /Apply Filters/i })
+            );
+
+            // Check if callback was called with correct filter values
+            expect(mockApplyFilters).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    conference: 'East',
+                })
+            );
+        });
+
+        // NEW TEST: Division filter
+        test('filter_division_update', async () => {
+            const { container } = renderFilterSection();
+
+            // Get the division select element
+            const divisionLabel = screen.getByText('Division:');
+            const divisionSelectWrapper =
+                divisionLabel.closest('.filter-group');
+            const divisionSelect =
+                divisionSelectWrapper.querySelector('select');
+
+            // Change value to "Atlantic"
+            fireEvent.change(divisionSelect, { target: { value: 'Atlantic' } });
+
+            // Apply filters
+            fireEvent.click(
+                screen.getByRole('button', { name: /Apply Filters/i })
+            );
+
+            // Check if callback was called with correct filter values
+            expect(mockApplyFilters).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    division: 'Atlantic',
+                })
+            );
+        });
+
+        // NEW TEST: Game Type filter (Conference Type)
+        test('filter_game_type_update', async () => {
+            const { container } = renderFilterSection();
+
+            // Get the game type select element
+            const gameTypeLabel = screen.getByText('Conference Type:');
+            const gameTypeSelectWrapper =
+                gameTypeLabel.closest('.filter-group');
+            const gameTypeSelect =
+                gameTypeSelectWrapper.querySelector('select');
+
+            // Change value to "Interconference"
+            fireEvent.change(gameTypeSelect, {
+                target: { value: 'Interconference' },
+            });
+
+            // Apply filters
+            fireEvent.click(
+                screen.getByRole('button', { name: /Apply Filters/i })
+            );
+
+            // Check if callback was called with correct filter values
+            expect(mockApplyFilters).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    game_type: 'Interconference',
+                })
+            );
+        });
+
+        // NEW TEST: Game Outcome filter
+        test('filter_outcome_update', async () => {
+            const { container } = renderFilterSection();
+
+            // Get the outcome select element
+            const outcomeLabel = screen.getByText('Game Outcome:');
+            const outcomeSelectWrapper = outcomeLabel.closest('.filter-group');
+            const outcomeSelect = outcomeSelectWrapper.querySelector('select');
+
+            // Change value to "Win"
+            fireEvent.change(outcomeSelect, { target: { value: 'Win' } });
+
+            // Apply filters
+            fireEvent.click(
+                screen.getByRole('button', { name: /Apply Filters/i })
+            );
+
+            // Check if callback was called with correct filter values
+            expect(mockApplyFilters).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    outcome: 'Win',
+                })
+            );
+        });
     });
 
     // FR27 - Multiple Filter Criteria Tests
@@ -215,6 +352,47 @@ describe('Filter Section Tests (FR25-FR28)', () => {
             expect(mockApplyFilters).toHaveBeenCalledWith(
                 expect.objectContaining({
                     opponents: 'Boston Celtics,Los Angeles Lakers',
+                })
+            );
+        });
+
+        // NEW TEST: Multiple dropdown filters
+        test('multiple_dropdown_filters', async () => {
+            const { container } = renderFilterSection();
+
+            // Select multiple dropdown filters at once
+
+            // 1. Season Type
+            const seasonTypeLabel = screen.getByText('Season Type:');
+            const seasonTypeWrapper = seasonTypeLabel.closest('.filter-group');
+            const seasonTypeSelect = seasonTypeWrapper.querySelector('select');
+            fireEvent.change(seasonTypeSelect, {
+                target: { value: 'Postseason' },
+            });
+
+            // 2. Conference
+            const conferenceLabel = screen.getByText('Conference:');
+            const conferenceWrapper = conferenceLabel.closest('.filter-group');
+            const conferenceSelect = conferenceWrapper.querySelector('select');
+            fireEvent.change(conferenceSelect, { target: { value: 'East' } });
+
+            // 3. Division
+            const divisionLabel = screen.getByText('Division:');
+            const divisionWrapper = divisionLabel.closest('.filter-group');
+            const divisionSelect = divisionWrapper.querySelector('select');
+            fireEvent.change(divisionSelect, { target: { value: 'Atlantic' } });
+
+            // Apply filters
+            fireEvent.click(
+                screen.getByRole('button', { name: /Apply Filters/i })
+            );
+
+            // Check if callback was called with all selected filter values
+            expect(mockApplyFilters).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    season_type: 'Postseason',
+                    conference: 'East',
+                    division: 'Atlantic',
                 })
             );
         });
