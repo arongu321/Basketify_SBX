@@ -15,10 +15,12 @@ $ cd backend
 $ python3 manage.py test
 
 Frontend/Acceptance tests (React/JS) can be executed by the following:
+```
 $ cd frontend
 $ npm install --save-dev @testing-library/react @babel/preset-env @babel/preset-react babel-jest
 $ npm test
 (to see coverage statistics run it as: npm test -- --coverage)
+```
 
 ## Developers
 - Aron Gu (arongu321)
