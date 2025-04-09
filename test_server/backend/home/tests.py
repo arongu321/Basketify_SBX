@@ -626,3 +626,233 @@ class StatisticsFilteringTestCase(TestCase):
             self.assertEqual(game['WinLoss'], 'W')
             self.assertEqual(game['gameLocation'], 'home')
             self.assertTrue('2025-01-01' <= game['date'] <= '2025-02-28')
+            
+    # NEW TEST: Season year filter
+    def test_season_year_filter(self):
+        """Test filtering by specific season year"""
+        # Add a game with different season year to test data
+        different_season_game = {
+            "date": "2024-01-01",
+            "opponent": "MIA",
+            "opponent_abbr": "MIA",
+            "points": 25,
+            "rebounds": 8,
+            "assists": 5,
+            "WinLoss": "W",
+            "Matchup": "LAL vs. MIA",
+            "TEAM_ABBREVIATION": "LAL",
+            "gameLocation": "home",
+            "seasonType": "Regular Season",
+            "SEASON_ID": "22023",  # 2023-24 season
+            "is_future_game": False
+        }
+        
+        test_games = self.test_player_games + [different_season_game]
+        
+        # Filter for 2024-25 season (SEASON_ID starting with 22024)
+        filters = {
+            'season': '2024-25'
+        }
+        
+        filtered_results = apply_filters_to_games(test_games, filters)
+        
+        # Should return only games from the 2024-25 season (SEASON_ID 22024)
+        self.assertEqual(len(filtered_results), 6)  # Our original test games
+        
+        for game in filtered_results:
+            self.assertEqual(game.get('SEASON_ID', '').startswith('22024') or 
+                            game.get('SEASON_ID', '').startswith('42024'), True)
+            
+    # NEW TEST: Conference filter
+    def test_conference_filter(self):
+        """Test filtering by conference (East/West)"""
+        # Filter for games against Eastern Conference teams
+        filters = {
+            'conference': 'East'
+        }
+        
+        filtered_results = apply_filters_to_games(self.test_player_games, filters)
+        
+        # Should return games against BOS, NYK, PHI (Eastern teams)
+        eastern_opponents = ['BOS', 'NYK', 'PHI']
+        
+        for game in filtered_results:
+            self.assertIn(game['opponent'], eastern_opponents)
+            
+        # Count games to verify
+        eastern_games_count = sum(1 for game in self.test_player_games 
+                                 if game['opponent'] in eastern_opponents)
+        self.assertEqual(len(filtered_results), eastern_games_count)
+            
+        # Test Western Conference filter
+        filters = {
+            'conference': 'West'
+        }
+        
+        filtered_results = apply_filters_to_games(self.test_player_games, filters)
+        
+        # Should return games against GSW, DEN (Western teams)
+        western_opponents = ['GSW', 'DEN']
+        
+        for game in filtered_results:
+            self.assertIn(game['opponent'], western_opponents)
+            
+        # Count games to verify
+        western_games_count = sum(1 for game in self.test_player_games 
+                                if game['opponent'] in western_opponents)
+        self.assertEqual(len(filtered_results), western_games_count)
+    
+    # NEW TEST: Division filter
+    def test_division_filter(self):
+        """Test filtering by division (Atlantic, Central, etc.)"""
+        # Filter for games against Atlantic Division teams
+        filters = {
+            'division': 'Atlantic'
+        }
+        
+        filtered_results = apply_filters_to_games(self.test_player_games, filters)
+        
+        # Should return games against BOS, NYK, PHI (Atlantic Division teams)
+        atlantic_opponents = ['BOS', 'NYK', 'PHI']
+        
+        for game in filtered_results:
+            self.assertIn(game['opponent'], atlantic_opponents)
+            
+        # Count games to verify
+        atlantic_games_count = sum(1 for game in self.test_player_games 
+                                 if game['opponent'] in atlantic_opponents)
+        self.assertEqual(len(filtered_results), atlantic_games_count)
+        
+        # Test Pacific Division filter
+        filters = {
+            'division': 'Pacific'
+        }
+        
+        filtered_results = apply_filters_to_games(self.test_player_games, filters)
+        
+        # Should return games against GSW (Pacific Division team)
+        pacific_opponents = ['GSW']
+        
+        for game in filtered_results:
+            self.assertIn(game['opponent'], pacific_opponents)
+            
+        # Count games to verify
+        pacific_games_count = sum(1 for game in self.test_player_games 
+                                if game['opponent'] in pacific_opponents)
+        self.assertEqual(len(filtered_results), pacific_games_count)
+    
+    # NEW TEST: Conference type filter (interconference/intraconference)
+    def test_conference_type_filter(self):
+        """Test filtering by conference type (interconference/intraconference)"""
+        # Setup game data with conference information
+        for game in self.test_player_games:
+            # LAL is in Western Conference
+            # BOS, NYK, PHI are in Eastern Conference
+            # GSW, DEN are in Western Conference
+            if game['opponent'] in ['BOS', 'NYK', 'PHI']:
+                game['is_interconference'] = True  # West vs East
+            else:
+                game['is_interconference'] = False  # West vs West
+        
+        # Filter for interconference games (West vs East)
+        filters = {
+            'game_type': 'Interconference'
+        }
+        
+        filtered_results = apply_filters_to_games(self.test_player_games, filters)
+        
+        # Should return games against Eastern Conference teams
+        eastern_opponents = ['BOS', 'NYK', 'PHI']
+        
+        for game in filtered_results:
+            self.assertIn(game['opponent'], eastern_opponents)
+            self.assertTrue(game['is_interconference'])
+            
+        # Count interconference games to verify
+        interconf_games_count = sum(1 for game in self.test_player_games 
+                                  if game['opponent'] in eastern_opponents)
+        self.assertEqual(len(filtered_results), interconf_games_count)
+        
+        # Test intraconference games (West vs West)
+        filters = {
+            'game_type': 'Intraconference'
+        }
+        
+        filtered_results = apply_filters_to_games(self.test_player_games, filters)
+        
+        # Should return games against Western Conference teams
+        western_opponents = ['GSW', 'DEN']
+        
+        for game in filtered_results:
+            self.assertIn(game['opponent'], western_opponents)
+            self.assertFalse(game['is_interconference'])
+            
+        # Count intraconference games to verify
+        intraconf_games_count = sum(1 for game in self.test_player_games 
+                                  if game['opponent'] in western_opponents)
+        self.assertEqual(len(filtered_results), intraconf_games_count)
+    
+    # NEW TEST: Month filter
+    def test_month_filter(self):
+        """Test filtering by specific month"""
+        # January games
+        filters = {
+            'month': '1'  # January
+        }
+        
+        filtered_results = apply_filters_to_games(self.test_player_games, filters)
+        
+        # Should return 3 games in January
+        january_games = [game for game in self.test_player_games 
+                        if game['date'].startswith('2025-01')]
+        self.assertEqual(len(filtered_results), len(january_games))
+        
+        for game in filtered_results:
+            self.assertTrue(game['date'].startswith('2025-01'))
+            
+        # February games
+        filters = {
+            'month': '2'  # February
+        }
+        
+        filtered_results = apply_filters_to_games(self.test_player_games, filters)
+        
+        # Should return 1 game in February
+        february_games = [game for game in self.test_player_games 
+                         if game['date'].startswith('2025-02')]
+        self.assertEqual(len(filtered_results), len(february_games))
+        
+        for game in filtered_results:
+            self.assertTrue(game['date'].startswith('2025-02'))
+            
+    # NEW TEST: Apply filters utility function
+    def test_apply_filters_function(self):
+        """Test that the apply_filters_to_games utility function works correctly"""
+        # Test a complex filter combination
+        filters = {
+            'date_from': '2025-01-01',
+            'date_to': '2025-03-31',
+            'season_type': 'Regular Season',
+            'outcome': 'Win',
+            'last_n_games': '3'
+        }
+        
+        # First filter to expected result set
+        expected_games = [game for game in self.test_player_games
+                         if '2025-01-01' <= game['date'] <= '2025-03-31'
+                         and game['seasonType'] == 'Regular Season'
+                         and game['WinLoss'] == 'W']
+        
+        # Then sort by date (newest first) and take only the first 3
+        expected_games = sorted(expected_games, key=lambda x: x['date'], reverse=True)[:3]
+        
+        # Apply our filter function
+        filtered_results = apply_filters_to_games(self.test_player_games, filters)
+        
+        # Verify results
+        self.assertEqual(len(filtered_results), len(expected_games))
+        
+        # Check that we have the right games (sorted by date)
+        filtered_dates = sorted([game['date'] for game in filtered_results], reverse=True)
+        expected_dates = sorted([game['date'] for game in expected_games], reverse=True)
+        self.assertEqual(filtered_dates, expected_dates)
