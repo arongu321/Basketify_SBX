@@ -24,7 +24,7 @@ export default function VerifyEmailConfirm() {
                     // Redirect to complete page after 2 seconds
                     setTimeout(() => {
                         navigate('/verify-email-complete');
-                    }, 2000);
+                    }, 500);
                 } else {
                     setIsSuccess(false);
                     setMessage(

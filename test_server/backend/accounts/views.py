@@ -197,7 +197,7 @@ class GetFavoriteView(APIView):
         return Response(favorite_data, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.AllowAny])
 def verify_email(request):
     """API endpoint to request a verification email"""
     if request.user.email_is_verified != True:
